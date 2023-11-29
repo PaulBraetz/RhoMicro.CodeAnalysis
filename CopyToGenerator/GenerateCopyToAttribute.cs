@@ -1,0 +1,9 @@
+﻿namespace RhoMicro.CodeAnalysis;
+
+using System;
+
+[global::System.AttributeUsage(AttributeTargets.Class)]
+#if GENERATOR
+[RhoMicro.CodeAnalysis.GenerateFactory]
+#endif
+internal sealed partial class GenerateCopyToAttribute : global::System.Attribute { }
