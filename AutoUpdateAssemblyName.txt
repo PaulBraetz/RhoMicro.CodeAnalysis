@@ -1,1 +1,1 @@
-TestApp
+Applications/TestApp

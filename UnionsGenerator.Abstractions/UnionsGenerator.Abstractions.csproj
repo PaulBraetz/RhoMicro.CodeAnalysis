@@ -2,35 +2,24 @@
 
 	<PropertyGroup>
 		<TargetFramework>net7.0</TargetFramework>
-		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-		<EnableNETAnalyzers>true</EnableNETAnalyzers>
-		<AnalysisMode>All</AnalysisMode>
-		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-		<LangVersion>latest</LangVersion>
-		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Authors>Paul Brätz</Authors>
 		<Description>
 			Generate hybrid (tagged/type) union types. This package contains interface definitions required for interoperability of unrelated union types.
 		</Description>
-		<Copyright>2023</Copyright>
 		<PackageTags>Source Generator; Union Types; Unions</PackageTags>
-		<Version>1.0.1</Version>
 		<PackageId>RhoMicro.CodeAnalysis.UnionsGenerator.Abstractions</PackageId>
-		<Company>RhoMicro</Company>
 		<PackageProjectUrl>https://github.com/PaulBraetz/Unions/</PackageProjectUrl>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 	</PropertyGroup>
 
-	<PropertyGroup>
-		<AssemblyName>RhoMicro.CodeAnalysis.UnionsGenerator.Abstractions</AssemblyName>
-		<RootNamespace>RhoMicro.CodeAnalysis.UnionsGenerator.Abstractions</RootNamespace>
-		<WarningsAsErrors>$(WarningsAsErrors);NU1605;1591;1573;1712;nullable</WarningsAsErrors>
-	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="IKVM.Core.MSBuild" Version="0.1.58">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
 
 	<ItemGroup>
 		<None Include="..\UnionsGenerator\README.md" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />

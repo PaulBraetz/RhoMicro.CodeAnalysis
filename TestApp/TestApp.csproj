@@ -1,13 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net8.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<LangVersion>latest</LangVersion>
-		<Author>Paul Brätz</Author>
-		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -16,28 +11,30 @@
 
 		<RootNamespace>$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 		<RootNamespace Condition="'$(SolutionName)'!=''">$(SolutionName).$(MSBuildProjectName.Replace(".", "_"))</RootNamespace>
-	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<WarningsAsErrors>$(WarningsAsErrors);NU1605;1591;1573;1712;nullable</WarningsAsErrors>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<WarningsAsErrors>$(WarningsAsErrors);NU1605;1591;1573;1712;nullable</WarningsAsErrors>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageProjectReference Include="..\UnionsGenerator\UnionsGenerator.csproj" PackageTargetPath="nuget" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis" Version="4.8.0" />
-		<PackageReference Include="RhoMicro.CodeAnalysis.UnionsGenerator" Version="2.0.2">
+		<!--<PackageReference Include="RhoMicro.CodeAnalysis.CommonGenerator" Version="5.0.2">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>-->
+		<!--<PackageReference Include="RhoMicro.CodeAnalysis.UnionsGenerator" Version="2.0.2">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="RhoMicro.CodeAnalysis.UnionsGenerator.Abstractions" Version="*" />
-		
-		<ProjectReference Include="..\AttributeFactoryGenerator\AttributeFactoryGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-		<ProjectReference Include="..\CopyToGenerator\CopyToGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-		<!--<ProjectReference Include="..\UnionsGenerator\UnionsGenerator.csproj"
+		<ProjectReference Include="..\CommonGenerator\CommonGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />-->
+
+		<ProjectReference Include="..\UnionsGenerator\UnionsGenerator.csproj"
 						  OutputItemType="Analyzer"
 						  ReferenceOutputAssembly="false"/>
-		<ProjectReference Include="..\UnionsGenerator.Abstractions\UnionsGenerator.Abstractions.csproj"/>-->
+		<ProjectReference Include="..\UnionsGenerator.Abstractions\UnionsGenerator.Abstractions.csproj"/>
 	</ItemGroup>
 </Project>

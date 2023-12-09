@@ -12,11 +12,13 @@ using System;
 using Microsoft.CodeAnalysis;
 
 using RhoMicro.CodeAnalysis.UnionsGenerator;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
 /// <summary>
 /// Defines the type of relations that can be defined between two union types.
 /// </summary>
-internal enum RelationType
+enum RelationType
 {
     /// <summary>
     /// There is no relation between the provided type and target type.
@@ -88,7 +90,7 @@ internal enum RelationType
 #if GENERATOR
 [GenerateFactory]
 #endif
-public sealed partial class RelationAttribute : Attribute
+sealed partial class RelationAttribute : Attribute
 #if GENERATOR
     , IEquatable<RelationAttribute>
 #endif
@@ -113,8 +115,8 @@ public sealed partial class RelationAttribute : Attribute
     private RelationAttribute(Object relatedTypeSymbolContainer) => _relatedTypeSymbolContainer = relatedTypeSymbolContainer;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-    internal RelationTypeData ExtractData(TargetDataModel target) =>
-            RelationTypeData.Create(this, target);
+    internal RelationTypeModel ExtractData(TargetDataModel target) =>
+            RelationTypeModel.Create(this, target);
 
     public override Boolean Equals(Object? obj) => Equals(obj as RelationAttribute);
     public Boolean Equals(RelationAttribute? other)

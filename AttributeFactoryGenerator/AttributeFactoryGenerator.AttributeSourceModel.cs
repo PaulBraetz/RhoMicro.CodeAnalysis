@@ -1,4 +1,5 @@
-﻿namespace RhoMicro.CodeAnalysis.AttributeFactoryGenerator;
+﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+namespace RhoMicro.CodeAnalysis.AttributeFactoryGenerator;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -34,20 +35,20 @@ public sealed partial class AttributeFactoryGenerator
             stream.Position = 0;
             var reader = new StreamReader(stream);
             var sourceText = reader.ReadToEnd();
-            var quotedSourceText = GetRawSourceTextLiteral(sourceText);
+            var quotedSourceText = GetRawSourceTextValue(sourceText);
 
-            var source = _sourceTemplate.Replace(_sourceTextPlaceholder, quotedSourceText);
+            var source = _sourceTemplate.Replace(_sourceTexTMacro, quotedSourceText);
 
             var result = new AttributeSourceModel(source, declaration, semanticModel, symbol);
 
             return result;
         }
 
-        private static readonly Regex _rawStringLiteralPattern = new("\"*", RegexOptions.Compiled);
+        private static readonly Regex _rawStringValuePattern = new("\"*", RegexOptions.Compiled);
 
-        private static String GetRawSourceTextLiteral(String sourceText)
+        private static String GetRawSourceTextValue(String sourceText)
         {
-            var longestMatch = _rawStringLiteralPattern.Matches(sourceText)
+            var longestMatch = _rawStringValuePattern.Matches(sourceText)
                 .OfType<Match>()
                 .Select(m => m.Length)
                 .Max();

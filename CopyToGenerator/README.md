@@ -33,7 +33,13 @@ partial class MyType
 
 The generator is able to copy:
 - other copyable types
-- instances of IEnumerable<> whose item type is also copyable
+- instances of 
+`List<T>`,
+`IEnumerable<T>`,
+`ICollection<T>`,
+`IList<T>`,
+`IReadOnlyCollection<T>` or
+`IReadOnlyList<T>` whose item type is also copyable
 - using assignment for all other properties
 
 The generator is limited to:

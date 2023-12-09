@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<Description>
+			This library contains common utilities and types for code analysis projects.
+		</Description>
+		<PackageTags>CodeAnalysis; Common; Generator; Analyzer</PackageTags>
+		<PackageId>$(MSBuildProjectName)</PackageId>
+		<PackageId Condition="'$(SolutionName)'!=''">$(SolutionName).$(MSBuildProjectName)</PackageId>
+		<RepositoryUrl>https://github.com/PaulBraetz/Common/</RepositoryUrl>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="Common.Tests" />
+	</ItemGroup>
+
+	<PropertyGroup>
+		<AssemblyName>$(MSBuildProjectName)</AssemblyName>
+		<AssemblyName Condition="'$(SolutionName)'!=''">$(SolutionName).$(MSBuildProjectName)</AssemblyName>
+
+		<RootNamespace>$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+		<RootNamespace Condition="'$(SolutionName)'!=''">$(SolutionName).$(MSBuildProjectName.Replace(".","_"))</RootNamespace>
+
+		<WarningsAsErrors>$(WarningsAsErrors);NU1605;1591;1573;1712;nullable</WarningsAsErrors>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Update="NETStandard.Library" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.CodeAnalysis" Version="4.8.0" />
+		<ProjectReference Include="../CommonGenerator/CommonGenerator.csproj" ReferenceOutputAssembly="false"/>
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Remove=".editorconfig"></None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
+		<None Include="LICENSE.txt" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
+	</ItemGroup>
+</Project>

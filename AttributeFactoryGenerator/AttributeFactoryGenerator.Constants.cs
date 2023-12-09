@@ -111,9 +111,9 @@ namespace {NAMESPACE}
     }
 }
 """";
-    private const String _genericParamListPlaceholder = "{GENERICPARAMLIST}";
+    private const String _genericParamLisTMacro = "{GENERICPARAMLIST}";
     private const String _genericParamNamesPlaceholder = "{GENERICPARAMNAMES}";
-    private const String _genericParamCommentPlaceholder = "{GENERICPARAMCOMMENT}";
+    private const String _genericParamCommenTMacro = "{GENERICPARAMCOMMENT}";
     private const String _targetCtorCasesPlaceholder = "{CTORCASES}";
     private const String _targetPropCasesPlaceholder = "{PROPCASES}";
     private const String _targetNamePlaceholder = "{NAME}";
@@ -122,13 +122,13 @@ namespace {NAMESPACE}
     private const String _targetSymbolsPlaceholder = "{SYMBOLS}";
     private const String _targetAccessibilityPlaceholder = "{ACCESSIBILITY}";
     private const String _targetNamespacePlaceholder = "{NAMESPACE}";
-    private const String _sourceTextPlaceholder = "{SOURCETEXT}";
+    private const String _sourceTexTMacro = "{SOURCETEXT}";
 
     private const String _generateFactoryAttributeName = "GenerateFactoryAttribute";
     private const String _excludeConstructorAttributeName = "ExcludeFromFactoryAttribute";
     private const String _attributeNamespace = "RhoMicro.CodeAnalysis";
     private const String _generateFactoryAttributeFullyQualifiedName = _attributeNamespace + "." + _generateFactoryAttributeName;
-    private const String _attributesHint = "Attributes";
+    private const String _attributesHint = "Attributes.g.cs";
     private const String _attributeSource =
 """
 // <generated>

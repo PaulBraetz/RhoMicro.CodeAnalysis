@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
@@ -6,37 +6,18 @@
 		<developmentDependency>true</developmentDependency>
 		<NoPackageAnalysis>true</NoPackageAnalysis>
 		<IsRoslynComponent>true</IsRoslynComponent>
-		<EnableNETAnalyzers>true</EnableNETAnalyzers>
-		<AnalysisMode>All</AnalysisMode>
-		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-		<LangVersion>latest</LangVersion>
-		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Authors>Paul Brätz</Authors>
 		<Description>
 			Generate a `CopyTo` method for copying one instances property values to another.
 		</Description>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<PackageTags>Source Generator</PackageTags>
-		<Version>2.0.0</Version>
-		<PackageId>RhoMicro.CodeAnalysis.CopyToGenerator</PackageId>
-		<Company>RhoMicro</Company>
-		<RepositoryUrl>https://github.com/PaulBraetz/CopyToGenerator/</RepositoryUrl>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<DefineConstants>$(DefineConstants);GENERATOR</DefineConstants>
-	</PropertyGroup>
-
-	<!--AutoUpdateAssemblyName-->
-	<PropertyGroup>
-		<AssemblyName>RhoMicro.CodeAnalysis.CopyToGenerator.122</AssemblyName>
-		<RootNamespace>RhoMicro.CodeAnalysis.CopyToGenerator</RootNamespace>
-		<WarningsAsErrors>$(WarningsAsErrors);NU1605;1591;1573;1712;nullable</WarningsAsErrors>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -46,12 +27,21 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="RhoMicro.CodeAnalysis.CommonGenerator" Version="6.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="bin\Debug\netstandard2.0\\RhoMicro.CodeAnalysis.CopyToGenerator.130.dll" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-		<None Include="README.md" Pack="true" PackagePath="/" CopyToOutputDirectory="Always"/>
-		<None Include="LICENSE.txt" Pack="true" PackagePath="/" CopyToOutputDirectory="Always"/>
+		<None Include="README.md" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
+		<None Include="LICENSE.txt" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
 	</ItemGroup>
-
+	
+	<!--AutoUpdateAssemblyName-->
 </Project>

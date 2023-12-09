@@ -13,13 +13,15 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 
 using RhoMicro.CodeAnalysis.UnionsGenerator;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 #endif
 
 /// <summary>
 /// Defines options for generating union types.
 /// </summary>
 [Flags]
-public enum UnionTypeOptions
+enum UnionTypeOptions
 {
     /// <summary>
     /// </summary>
@@ -54,7 +56,7 @@ public enum UnionTypeOptions
     class  | rc  | rc! | rc   | cc
     none   | rc! | vc! | rc!  | cc
 */
-public enum StorageOption
+enum StorageOption
 {
     /// <summary>
     /// The generator will automatically decide on a storage strategy.
@@ -146,7 +148,7 @@ public enum StorageOption
 #if GENERATOR
 [GenerateFactory]
 #endif
-public sealed partial class UnionTypeAttribute : Attribute
+sealed partial class UnionTypeAttribute : Attribute
 #if GENERATOR
     , IEquatable<UnionTypeAttribute>
 #endif
@@ -208,8 +210,8 @@ public sealed partial class UnionTypeAttribute : Attribute
     public UnionTypeAttribute(Object representableTypeSymbolContainer) =>
         _representableTypeSymbolContainer = representableTypeSymbolContainer;
 
-    internal RepresentableTypeData ExtractData(INamedTypeSymbol target) =>
-        RepresentableTypeData.Create(this, target);
+    internal RepresentableTypeModel ExtractData(INamedTypeSymbol target) =>
+        RepresentableTypeModel.Create(this, target);
 
     public override Boolean Equals(Object? obj) => Equals(obj as UnionTypeAttribute);
     public Boolean Equals(UnionTypeAttribute? other)

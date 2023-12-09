@@ -1,4 +1,5 @@
-﻿namespace RhoMicro.CodeAnalysis.AttributeFactoryGenerator;
+﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+namespace RhoMicro.CodeAnalysis.AttributeFactoryGenerator;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -71,7 +72,7 @@ public sealed partial class AttributeFactoryGenerator : IIncrementalGenerator
             _generateFactoryAttributeFullyQualifiedName,
             static (n, t) => n is ClassDeclarationSyntax c && c.Modifiers.Any(SyntaxKind.PartialKeyword),
             static (c, t) => AttributeSourceModel.Create(
-                c.TargetNode as ClassDeclarationSyntax ?? throw new InvalidOperationException("Traget node passed predicate but was not class declaration."), 
+                c.TargetNode as ClassDeclarationSyntax ?? throw new InvalidOperationException("Target node passed predicate but was not class declaration."), 
                 c.SemanticModel, 
                 t))
             .Where(m => targetSet.Add(m.Symbol))
@@ -207,9 +208,9 @@ $"get => (INamedTypeSymbol)_{ToCamelCase(p.Name)}SymbolContainer;}}");
 
                 var source = m.Source
                     .Replace(_targetMetadataNamePlaceholder, metadataName)
-                    .Replace(_genericParamListPlaceholder, genericParamList)
+                    .Replace(_genericParamLisTMacro, genericParamList)
                     .Replace(_genericParamNamesPlaceholder, genericParamNames)
-                    .Replace(_genericParamCommentPlaceholder, genericParamComment)
+                    .Replace(_genericParamCommenTMacro, genericParamComment)
                     .Replace(_targetNamePlaceholder, m.Symbol.Name)
                     .Replace(_targetAccessibilityPlaceholder, SyntaxFacts.GetText(m.Symbol.DeclaredAccessibility))
                     .Replace(_targetNamespacePlaceholder, m.Symbol.ContainingNamespace.ToDisplayString());
@@ -218,7 +219,7 @@ $"get => (INamedTypeSymbol)_{ToCamelCase(p.Name)}SymbolContainer;}}");
             })
             .Select(static (m, t) =>
             {
-                var hint = $"{m.Symbol.Name}_Factory.cs";
+                var hint = $"{m.Symbol.Name}_Factory.g.cs";
 
                 //source: https://stackoverflow.com/a/74412674
                 var source = CSharpSyntaxTree.ParseText(m.Source, cancellationToken: t)

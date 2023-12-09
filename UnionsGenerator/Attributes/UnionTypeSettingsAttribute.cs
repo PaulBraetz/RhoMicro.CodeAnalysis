@@ -12,7 +12,7 @@ using System.Collections.Generic;
 /// <summary>
 /// Defines settings for generating an implementation of <see cref="Object.ToString"/>.
 /// </summary>
-public enum ToStringSetting
+enum ToStringSetting
 {
     /// <summary>
     /// The generator will emit an implementation that returns detailed information, including:
@@ -37,7 +37,7 @@ public enum ToStringSetting
 /// <summary>
 /// Defines settings for annotating the target with an instance of <see cref="System.Runtime.InteropServices.StructLayoutAttribute"/>.
 /// </summary>
-public enum LayoutSetting
+enum LayoutSetting
 {    /// <summary>
      /// Generate an annotation optimized for size.
      /// </summary>
@@ -51,7 +51,7 @@ public enum LayoutSetting
 /// <summary>
 /// Defines settings for controlling the accessibility of generated constructors.
 /// </summary>
-public enum ConstructorAccessibilitySetting
+enum ConstructorAccessibilitySetting
 {
     /// <summary>
     /// Generated constructors should always be private, unless
@@ -69,11 +69,12 @@ public enum ConstructorAccessibilitySetting
     /// </summary>
     Public
 }
+
 /// <summary>
 /// Defines settings for the kind of diagnostics to report.
 /// </summary>
 [Flags]
-public enum DiagnosticsLevelSettings
+enum DiagnosticsLevelSettings
 {
     /// <summary>
     /// Instructs the analyzer to report info diagnostics.
@@ -101,7 +102,7 @@ public enum DiagnosticsLevelSettings
 #if GENERATOR
 [GenerateFactory]
 #endif
-public sealed partial class UnionTypeSettingsAttribute : Attribute
+sealed partial class UnionTypeSettingsAttribute : Attribute
 #if GENERATOR
     , IEquatable<UnionTypeSettingsAttribute>
 #endif
