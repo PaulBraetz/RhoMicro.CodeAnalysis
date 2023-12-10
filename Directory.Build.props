@@ -1,12 +1,12 @@
 <Project>
 	<PropertyGroup>
-		<AutoIncrementAssemblyRevision>13</AutoIncrementAssemblyRevision>
+		<AutoIncrementedAssemblyRevision>18</AutoIncrementedAssemblyRevision>
 	</PropertyGroup>
 	
 	<PropertyGroup Label="VersionInfo">
 		<Version>8.0.0</Version>
 		<AssemblyVersion Condition="$(Configuration) == 'Release'">$(Version).0</AssemblyVersion>
-		<AssemblyVersion Condition="$(Configuration) == 'Debug'">$(Version).$(AutoIncrementAssemblyRevision)</AssemblyVersion>
+		<AssemblyVersion Condition="$(Configuration) == 'Debug'">$(Version).$(AutoIncrementedAssemblyRevision)</AssemblyVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Label="AnalysisInfo">
