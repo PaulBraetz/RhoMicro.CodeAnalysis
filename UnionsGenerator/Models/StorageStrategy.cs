@@ -124,28 +124,106 @@ abstract partial class StorageStrategy
         IExpandingMacroStringBuilder<Macro> builder,
         String instance,
         CancellationToken cancellationToken);
-    public void InstanceVariableExpressionAppendix(
+    public abstract void TypesafeInstanceVariableExpressionAppendix(
         IExpandingMacroStringBuilder<Macro> builder,
-        CancellationToken cancellationToken) => InstanceVariableExpressionAppendix(builder, "this", cancellationToken);
-
+        String instance,
+        CancellationToken cancellationToken);
     public abstract void AppendConvertedInstanceVariableExpression(
         IExpandingMacroStringBuilder<Macro> builder,
         (String targetType, String instance) model,
         CancellationToken cancellationToken);
+    public abstract void InstanceVariableAssignmentExpressionAppendix(
+        IExpandingMacroStringBuilder<Macro> builder,
+        (String valueExpression, String instance) model,
+        CancellationToken cancellationToken);
+    #endregion
+
+    public void EqualsInvocationAppendix(
+        IExpandingMacroStringBuilder<Macro> builder,
+        (String instance, String otherInstance) model,
+        CancellationToken cancellationToken) =>
+        _ = TypeNature is RepresentableTypeNature.ImpureValueType
+            or RepresentableTypeNature.PureValueType
+            ? builder
+                .Append('(')
+                .Append(
+                    TypesafeInstanceVariableExpressionAppendix,
+                    model.instance,
+                    cancellationToken)
+                .Append(".Equals(")
+                .Append(
+                    TypesafeInstanceVariableExpressionAppendix,
+                    model.otherInstance,
+                    cancellationToken)
+                .Append("))")
+            : builder
+                .Append('(')
+                .Append(
+                    InstanceVariableExpressionAppendix,
+                    model.instance,
+                    cancellationToken)
+                .Append(" == null ? ")
+                .Append(
+                    InstanceVariableExpressionAppendix,
+                    model.otherInstance,
+                    cancellationToken)
+                .Append(" == null : ")
+                .Append(
+                    InstanceVariableExpressionAppendix,
+                    model.otherInstance,
+                    cancellationToken)
+                .Append(" != null && ")
+                .Append(
+                    TypesafeInstanceVariableExpressionAppendix,
+                    model.instance,
+                    cancellationToken)
+                .Append(".Equals(")
+                .Append(
+                    TypesafeInstanceVariableExpressionAppendix,
+                    model.otherInstance,
+                    cancellationToken)
+                .Append("))");
+
+    public void EqualsInvocationAppendix(
+        IExpandingMacroStringBuilder<Macro> builder,
+        String otherInstance,
+        CancellationToken cancellationToken) =>
+        EqualsInvocationAppendix(builder, ("this", otherInstance), cancellationToken);
+
+    public void InstanceVariableExpressionAppendix(
+        IExpandingMacroStringBuilder<Macro> builder,
+        CancellationToken cancellationToken) =>
+        InstanceVariableExpressionAppendix(builder, "this", cancellationToken);
+    public void GetHashCodeInvocationAppendix(
+        IExpandingMacroStringBuilder<Macro> builder,
+        String instance,
+        CancellationToken cancellationToken) =>
+       _ = TypeNature is RepresentableTypeNature.PureValueType
+            or RepresentableTypeNature.ImpureValueType
+            ? builder.Append('(')
+                .Append(TypesafeInstanceVariableExpressionAppendix, instance, cancellationToken)
+                .Append(".GetHashCode())")
+            : builder.Append('(')
+                .Append(InstanceVariableExpressionAppendix, instance, cancellationToken)
+                .Append("?.GetHashCode() ?? 0)");
+    public void GetHashCodeInvocationAppendix(
+        IExpandingMacroStringBuilder<Macro> builder,
+        CancellationToken cancellationToken) =>
+        GetHashCodeInvocationAppendix(builder, "this", cancellationToken);
+
+    public void TypesafeInstanceVariableExpressionAppendix(
+        IExpandingMacroStringBuilder<Macro> builder,
+        CancellationToken cancellationToken) => TypesafeInstanceVariableExpressionAppendix(builder, "this", cancellationToken);
+
     public void ConvertedInstanceVariableExpressionAppendix(
         IExpandingMacroStringBuilder<Macro> builder,
         String targetType,
         CancellationToken cancellationToken) => AppendConvertedInstanceVariableExpression(builder, (targetType, "this"), cancellationToken);
 
-    public abstract void InstanceVariableAssignmentExpressionAppendix(
-        IExpandingMacroStringBuilder<Macro> builder,
-        (String valueExpression, String instance) model,
-        CancellationToken cancellationToken);
     public void InstanceVariableAssignmentExpressionAppendix(
         IExpandingMacroStringBuilder<Macro> builder,
         String valueExpression,
         CancellationToken cancellationToken) => InstanceVariableAssignmentExpressionAppendix(builder, (valueExpression, "this"), cancellationToken);
-    #endregion
 
     public void ToStringInvocationAppendix(
         IExpandingMacroStringBuilder<Macro> builder,
@@ -155,7 +233,8 @@ abstract partial class StorageStrategy
         _ = builder.Append('(')
             .Append(InstanceVariableExpressionAppendix, instance, cancellationToken);
 
-        if(TypeNature == RepresentableTypeNature.ReferenceType)
+        if(TypeNature is RepresentableTypeNature.ReferenceType
+            or RepresentableTypeNature.UnknownType)
         {
             _ = builder.Append('?');
         }
@@ -164,39 +243,9 @@ abstract partial class StorageStrategy
     }
     public void ToStringInvocationAppendix(
         IExpandingMacroStringBuilder<Macro> builder,
-        CancellationToken cancellationToken) => ToStringInvocationAppendix(builder, "this", cancellationToken);
-
-    public void GetHashCodeInvocationAppendix(
-        IExpandingMacroStringBuilder<Macro> builder,
-        String instance,
         CancellationToken cancellationToken) =>
-        builder.Append("(global::System.Collections.Generic.EqualityComparer<")
-            .Append(FullTypeName)
-            .Append(">.Default.GetHashCode(")
-            .Append(InstanceVariableExpressionAppendix, instance, cancellationToken)
-            .Append("))");
-    public void GetHashCodeInvocationAppendix(
-        IExpandingMacroStringBuilder<Macro> builder,
-        CancellationToken cancellationToken) => GetHashCodeInvocationAppendix(builder, "this", cancellationToken);
+        ToStringInvocationAppendix(builder, "this", cancellationToken);
 
-    public void EqualsInvocationAppendix(
-        IExpandingMacroStringBuilder<Macro> builder,
-        (String instance, String parameter) model,
-        CancellationToken cancellationToken)
-    {
-        var (instance, parameter) = model;
-
-        _ = builder.Append("(global::System.Collections.Generic.EqualityComparer<")
-            .Append(FullTypeName)
-            .Append(">.Default.Equals(")
-            .Append(InstanceVariableExpressionAppendix, instance, cancellationToken)
-            .Append(", ")
-            .Append(InstanceVariableExpressionAppendix, parameter, cancellationToken)
-            .Append("))");
-    }
-    public void EqualsInvocationAppendix(
-        IExpandingMacroStringBuilder<Macro> builder,
-        CancellationToken cancellationToken) => EqualsInvocationAppendix(builder, ("this", "obj"), cancellationToken);
 
     public abstract void Visit(StrategySourceHost host);
 }

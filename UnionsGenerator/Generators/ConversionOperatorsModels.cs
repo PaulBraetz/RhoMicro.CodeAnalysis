@@ -86,7 +86,7 @@ static class ConversionExpansion
                     .Append('?');
             }
 
-            _ = builder.Append(representableType.Storage.InstanceVariableExpressionAppendix, "union", cancellationToken);
+            _ = builder.Append(representableType.Storage.TypesafeInstanceVariableExpressionAppendix, "union", cancellationToken);
 
             if(allAttributes.Count > 1)
             {
@@ -103,7 +103,7 @@ static class ConversionExpansion
                 .Append('(')
                 .AppendOpen(model)
                 .Append(" union) => ")
-                .Append(representableType.Storage.InstanceVariableExpressionAppendix, "union", cancellationToken)
+                .Append(representableType.Storage.TypesafeInstanceVariableExpressionAppendix, "union", cancellationToken)
                 .AppendLine(';');
         }
     }

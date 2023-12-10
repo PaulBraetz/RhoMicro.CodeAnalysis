@@ -34,7 +34,7 @@ sealed class MatchExpansion(TargetDataModel model) : ExpansionBase(model, Macro.
             ? builder.Append("on")
                 .Append(representableTypes[0].Names.SafeAlias)
                 .Append(".Invoke(")
-                .Append(representableTypes[0].Storage.InstanceVariableExpressionAppendix, cancellationToken)
+                .Append(representableTypes[0].Storage.TypesafeInstanceVariableExpressionAppendix, cancellationToken)
                 .AppendLine(");")
             : builder.AppendLine("__tag switch{")
                 .AppendJoin(
@@ -42,7 +42,7 @@ sealed class MatchExpansion(TargetDataModel model) : ExpansionBase(model, Macro.
                 (b, a, t) => b.Append(a.CorrespondingTag)
                     .AppendLine(" => ")
                     .Append("on").Append(a.Names.SafeAlias).Append(".Invoke(")
-                    .Append(a.Storage.InstanceVariableExpressionAppendix, t).AppendLine("),"),
+                    .Append(a.Storage.TypesafeInstanceVariableExpressionAppendix, t).AppendLine("),"),
                 cancellationToken)
                 .AppendLine("_ =>")
                 .AppendLine(ConstantSources.InvalidTagStateThrow)

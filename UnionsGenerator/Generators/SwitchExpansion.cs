@@ -40,7 +40,7 @@ sealed class SwitchExpansion(TargetDataModel model) : ExpansionBase(model, Macro
             ? builder.Append("on")
                 .Append(representableTypes[0].Names.SafeAlias)
                 .Append(".Invoke(")
-                .Append(representableTypes[0].Storage.InstanceVariableExpressionAppendix, cancellationToken)
+                .Append(representableTypes[0].Storage.TypesafeInstanceVariableExpressionAppendix, cancellationToken)
                 .AppendLine(')')
             : builder.AppendLine("switch(__tag){")
                 .AppendJoin(
@@ -49,7 +49,7 @@ sealed class SwitchExpansion(TargetDataModel model) : ExpansionBase(model, Macro
                     .Append(a.CorrespondingTag)
                     .AppendLine(':')
                     .Append("on").Append(a.Names.SafeAlias).Append(".Invoke(")
-                    .Append(a.Storage.InstanceVariableExpressionAppendix, t).AppendLine(");return;"),
+                    .Append(a.Storage.TypesafeInstanceVariableExpressionAppendix, t).AppendLine(");return;"),
                 cancellationToken)
                 .AppendLine("default:")
                 .Append(ConstantSources.InvalidTagStateThrow)).AppendLine(";}}").AppendLine("#endregion");

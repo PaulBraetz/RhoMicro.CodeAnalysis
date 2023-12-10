@@ -5,7 +5,7 @@ using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
 using System.Threading;
 
-sealed class GetHashcodeExpansion(TargetDataModel model) : ExpansionBase(model, Macro.GetHashcode)
+sealed class GetHashCodeExpansion(TargetDataModel model) : ExpansionBase(model, Macro.GetHashcode)
 {
     public override void Expand(IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken)
     {

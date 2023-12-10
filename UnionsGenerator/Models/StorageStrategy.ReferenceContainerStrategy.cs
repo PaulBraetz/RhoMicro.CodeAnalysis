@@ -23,7 +23,7 @@ abstract partial class StorageStrategy
             (String targetType, String instance) model,
             CancellationToken cancellationToken) =>
             builder.Append("((").Append(model.targetType).Append(')').Append(model.instance).Append(".__referenceTypeContainer)");
-        public override void InstanceVariableExpressionAppendix(
+        public override void TypesafeInstanceVariableExpressionAppendix(
             IExpandingMacroStringBuilder<Macro> builder,
             String instance,
             CancellationToken cancellationToken) =>
@@ -33,6 +33,11 @@ abstract partial class StorageStrategy
             (String valueExpression, String instance) model,
             CancellationToken cancellationToken) =>
             builder.Append(model.instance).Append(".__referenceTypeContainer = ").Append(model.valueExpression);
+        public override void InstanceVariableExpressionAppendix(
+            IExpandingMacroStringBuilder<Macro> builder,
+            String instance,
+            CancellationToken cancellationToken) =>
+            builder.Append('(').Append(instance).Append(".__referenceTypeContainer)");
         public override void Visit(StrategySourceHost host) => host.AddReferenceTypeContainerField();
     }
 }

@@ -59,7 +59,7 @@ internal class UnionsGenerator : IIncrementalGenerator
                         .Receive(new IsAsExpansion(model))
                         .Receive(new MatchExpansion(model))
                         .Receive(new SwitchExpansion(model))
-                        .Receive(new GetHashcodeExpansion(model))
+                        .Receive(new GetHashCodeExpansion(model))
                         .Receive(new EqualsExpansion(model))
                         .Receive(ToStringExpansion.Create(model))
                         .Receive(ConversionExpansion.Create(model))

@@ -27,7 +27,7 @@ abstract partial class StorageStrategy
             (String targetType, String instance) model,
             CancellationToken cancellationToken) =>
             builder.AppendUnsafeConvert(FullTypeName, model.targetType, $"{model.instance}.{_fieldName}", cancellationToken);
-        public override void InstanceVariableExpressionAppendix(
+        public override void TypesafeInstanceVariableExpressionAppendix(
             IExpandingMacroStringBuilder<Macro> builder,
             String instance,
             CancellationToken cancellationToken) =>
@@ -45,6 +45,11 @@ abstract partial class StorageStrategy
                 .Append(_fieldName)
                 .Append(" = ")
                 .Append(model.valueExpression);
+        public override void InstanceVariableExpressionAppendix(
+            IExpandingMacroStringBuilder<Macro> builder,
+            String instance,
+            CancellationToken cancellationToken) => 
+            TypesafeInstanceVariableExpressionAppendix(builder, instance, cancellationToken);
 
         public override void Visit(StrategySourceHost host) => host.AddDedicatedField(this);
     }

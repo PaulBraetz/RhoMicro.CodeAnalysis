@@ -75,9 +75,9 @@ sealed class IsAsExpansion(TargetDataModel model) : ExpansionBase(model, Macro.I
                     .Append(settings.GenericTValueName)
                     .Append(") == typeof(")
                     .AppendFull(a).Append(")?").Append(a.Storage.ConvertedInstanceVariableExpressionAppendix, settings.GenericTValueName, t)
-                    .Append(':').AppendInvalidConversionThrow($"nameof({settings.GenericTValueName})", t).AppendLine(','),
+                    .Append(':').AppendInvalidConversionThrow($"typeof({settings.GenericTValueName})", t).AppendLine(','),
                     cancellationToken)
-                .AppendLine("_ => ").AppendInvalidConversionThrow($"nameof({settings.GenericTValueName})", cancellationToken)
+                .AppendLine("_ => ").AppendInvalidConversionThrow($"typeof({settings.GenericTValueName})", cancellationToken)
                 .AppendLine("};");
         } else
         {
@@ -86,7 +86,7 @@ sealed class IsAsExpansion(TargetDataModel model) : ExpansionBase(model, Macro.I
                 .Append(") == typeof(")
                 .AppendFull(attributes[0])
                 .AppendLine(")?").Append(attributes[0].Storage.ConvertedInstanceVariableExpressionAppendix, settings.GenericTValueName, cancellationToken)
-                .Append(':').AppendInvalidConversionThrow($"nameof({settings.GenericTValueName})", cancellationToken).AppendLine(';');
+                .Append(':').AppendInvalidConversionThrow($"typeof({settings.GenericTValueName})", cancellationToken).AppendLine(';');
         }
 #pragma warning restore IDE0045 // Convert to conditional expression
         if(attributes.Count > 1)
@@ -108,7 +108,7 @@ sealed class IsAsExpansion(TargetDataModel model) : ExpansionBase(model, Macro.I
                  .Append("public ").AppendFull(a)
                  .Append(' ').Append(a.Names.AsPropertyName)
                  .Append(" => __tag == ").Append(a.CorrespondingTag).Append('?')
-                 .Append(a.Storage.InstanceVariableExpressionAppendix, t)
+                 .Append(a.Storage.TypesafeInstanceVariableExpressionAppendix, t)
                  .Append(':')
                  .AppendInvalidConversionThrow($"typeof({a.Names.FullTypeName}).Name", t).AppendLine(';'),
                  cancellationToken);
@@ -129,7 +129,7 @@ sealed class IsAsExpansion(TargetDataModel model) : ExpansionBase(model, Macro.I
                  .AppendLine("/// </summary>")
                  .Append("public ").AppendFull(attribute)
                  .Append(" As").Append(attribute.Names.SafeAlias)
-                 .Append(" => ").Append(attribute.Storage.InstanceVariableExpressionAppendix, cancellationToken).AppendLine(';');
+                 .Append(" => ").Append(attribute.Storage.TypesafeInstanceVariableExpressionAppendix, cancellationToken).AppendLine(';');
         }
 
         _ = builder.AppendLine("#endregion");

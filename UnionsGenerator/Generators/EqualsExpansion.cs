@@ -29,14 +29,14 @@ sealed class EqualsExpansion(TargetDataModel model) : ExpansionBase(model, Macro
                     attributes.AllRepresentableTypes,
                     (b, a, t) => b.Append(a.CorrespondingTag)
                         .Append(" => ")
-                        .Append(a.Storage.EqualsInvocationAppendix, t)
+                        .Append(a.Storage.EqualsInvocationAppendix, "obj" , t)
                         .AppendLine(','),
                     cancellationToken)
                 .Append("_ => ").Append(ConstantSources.InvalidTagStateThrow)
                 .Append('}');
         } else if(attributes.AllRepresentableTypes.Count == 1)
         {
-            _ = builder.Append(attributes.AllRepresentableTypes[0].Storage.EqualsInvocationAppendix, cancellationToken);
+            _ = builder.Append(attributes.AllRepresentableTypes[0].Storage.EqualsInvocationAppendix, "obj", cancellationToken);
         }
 
         _ = builder.AppendLine(';');

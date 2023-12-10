@@ -475,6 +475,6 @@ internal static class Extensions
             .Append('.')
             .Append(targetData.Names.CreateFromFunctionName)
             .Append('(')
-            .Append(sourceData.Storage.InstanceVariableExpressionAppendix, parameterName, cancellationToken)
+            .Append(sourceData.Storage.TypesafeInstanceVariableExpressionAppendix, parameterName, cancellationToken)
             .Append("))");
 }

@@ -19,9 +19,8 @@ static class ToStringExpansion
             .AppendLine("/// <summary>")
             .AppendLine("/// Returns a string representation of the current instance.")
             .AppendLine("/// </summary>")
-            .Append("public override String? ToString(){var stringRepresentation = ");
-
-        AppendSimpleToStringExpression(builder, model, cancellationToken);
+            .Append("public override String? ToString(){var stringRepresentation = ")
+            .Append(SimpleToStringExpressionAppendix, model, cancellationToken);
 
         _ = builder
             .Append("; var result = $\"")
@@ -38,7 +37,7 @@ static class ToStringExpansion
                     .Append("\"<").Append(a.Names.SafeAlias).Append(">\"").Append(':')
                     .Append('\"').Append(a.Names.SafeAlias).Append("\")}"),
                 cancellationToken))
-            .AppendLine("){{{stringRepresentation}}}\"; return result;}")
+            .Append("){{{stringRepresentation}}}\"; return result;}")
             .AppendLine("#nullable restore")
             .AppendLine("#endregion");
     }
@@ -50,15 +49,14 @@ static class ToStringExpansion
             .AppendLine("/// </summary>")
             .Append("public override String? ToString() => ");
 
-        AppendSimpleToStringExpression(builder, model, cancellationToken);
+        SimpleToStringExpressionAppendix(builder, model, cancellationToken);
 
         _ = builder.AppendLine(';')
-            .AppendLine("#nullable restore")
-            .ToString();
+            .AppendLine("#nullable restore");
     }
     private static void AppendNone(IExpandingMacroStringBuilder<Macro> _0, TargetDataModel _1, CancellationToken _2) { }
 
-    private static void AppendSimpleToStringExpression(IExpandingMacroStringBuilder<Macro> builder, TargetDataModel model, CancellationToken cancellationToken)
+    private static void SimpleToStringExpressionAppendix(IExpandingMacroStringBuilder<Macro> builder, TargetDataModel model, CancellationToken cancellationToken)
     {
         var attributes = model.Annotations;
 

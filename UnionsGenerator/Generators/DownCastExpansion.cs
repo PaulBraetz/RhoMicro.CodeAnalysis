@@ -37,7 +37,7 @@ sealed class DownCastExpansion(TargetDataModel model) : ExpansionBase(model, Mac
             _ = builder.Append(" => ")
                 .Append(settings.MatchTypeName)
                 .Append(".Create<").AppendFull(representableTypes[0])
-                .Append(">(").Append(representableTypes[0].Storage.InstanceVariableExpressionAppendix, cancellationToken).Append(')');
+                .Append(">(").Append(representableTypes[0].Storage.TypesafeInstanceVariableExpressionAppendix, cancellationToken).Append(')');
         } else
         {
             _ = builder.AppendLine(" => __tag switch{")
@@ -47,7 +47,7 @@ sealed class DownCastExpansion(TargetDataModel model) : ExpansionBase(model, Mac
                     .Append(" => ")
                     .Append(settings.MatchTypeName)
                     .Append(".Create<").AppendFull(a)
-                    .Append(">(").Append(a.Storage.InstanceVariableExpressionAppendix, cancellationToken).Append(')')
+                    .Append(">(").Append(a.Storage.TypesafeInstanceVariableExpressionAppendix, cancellationToken).Append(')')
                     .AppendLine(','),
                 cancellationToken)
                 .Append("_ => ")
