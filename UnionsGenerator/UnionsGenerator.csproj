@@ -10,6 +10,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Description>
 			Generate hybrid (tagged/type) union types.
 		</Description>

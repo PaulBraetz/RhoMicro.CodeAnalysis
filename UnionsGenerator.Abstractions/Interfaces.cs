@@ -5,7 +5,6 @@ namespace RhoMicro.CodeAnalysis.UnionsGenerator.Abstractions;
 using System;
 using System.Collections.Generic;
 
-#if NET7_0_OR_GREATER
 /// <summary>
 /// Represents a superset union type.
 /// </summary>
@@ -25,7 +24,6 @@ public interface ISuperset<TSubset, TSuperset>
     /// <param name = "superset">The superset union type instance to convert.</param>
     static abstract explicit operator TSubset(TSuperset superset);
 }
-#endif
 
 /// <summary>
 /// Represents a union type that is able to be converted to a type.
@@ -61,7 +59,6 @@ public interface IUnion<TSelf>
     /// <typeparam name = "T">The type to retrieve this instances' value as.</typeparam>
     /// <returns>The value of this instance, if it is representing a value of type <typeparamref name = "T"/>; otherwise, an exception of type <see cref = "InvalidOperationException"/> will be thrown.</returns>
     T As<T>();
-#if NET7_0_OR_GREATER
     /// <summary>
     /// Attempts to create a new instance of the union type using the value provided.
     /// </summary>
@@ -77,7 +74,6 @@ public interface IUnion<TSelf>
     /// <param name = "value">The value from which to create an instance of <typeparamref name = "TSelf"/>.</param>
     /// <returns>A new instance of <typeparamref name = "TSelf"/> if one could be created using <paramref name = "value"/>; otherwise, an exception of type <see cref = "ArgumentException"/> will be thrown.</returns>
     static abstract TSelf Create<T>(T value);
-#endif
 }
 
 /// <summary>
