@@ -27,7 +27,7 @@ Read about union types here: https://en.wikipedia.org/wiki/Union_type
 - [CSharpDiscriminatedUnion](https://github.com/Galad/CSharpDiscriminatedUnion)
 - [UnionType](https://github.com/Cricle/UnionType)
 - [Funcky Discriminated Union](https://github.com/polyadic/funcky-discriminated-union)
-- [N.SourceGenerators.UnionTypes](https://github.com/Ne4to/N.SourceGenerators.UnionTypes) <- This one is really similar to mine
+- [N.SourceGenerators.UnionTypes](https://github.com/Ne4to/N.SourceGenerators.UnionTypes)
 
 ## Installation
 
