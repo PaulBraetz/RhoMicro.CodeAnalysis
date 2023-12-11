@@ -3,7 +3,7 @@
 using Microsoft.CodeAnalysis;
 
 using RhoMicro.CodeAnalysis;
-using RhoMicro.CodeAnalysis.Common;
+using RhoMicro.CodeAnalysis.UtilityGenerators.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Generators;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 

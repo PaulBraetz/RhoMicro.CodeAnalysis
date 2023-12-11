@@ -21,7 +21,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Include="..\Common.Tests\ExpansionProviderFixture.cs" Link="RhoMicro.CodeAnalysis.Common.Tests\ExpansionProviderFixture.cs" />
+	  <Compile Include="..\Common.Tests\ExpansionProviderFixture.cs" Link="RhoMicro.CodeAnalysis.UtilityGenerators.Library.Tests\ExpansionProviderFixture.cs" />
 	  <Compile Include="..\CopyToGenerator\CopyToGenerator.cs" Link="RhoMicro.CodeAnalysis.CopyToGenerator\CopyToGenerator.cs" />
 	  <Compile Include="..\CopyToGenerator\Extensions.cs" Link="RhoMicro.CodeAnalysis.CopyToGenerator\Extensions.cs" />
 	  <Compile Include="..\CopyToGenerator\GenerateCopyToAttribute.cs" Link="RhoMicro.CodeAnalysis.CopyToGenerator\GenerateCopyToAttribute.cs" />
@@ -47,7 +47,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="RhoMicro.CodeAnalysis.CommonGenerator" Version="6.0.0">
+		<PackageReference Include="RhoMicro.CodeAnalysis.UtilityGenerators" Version="6.0.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>

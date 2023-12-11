@@ -3,7 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-using RhoMicro.CodeAnalysis.Common;
+using RhoMicro.CodeAnalysis.UtilityGenerators.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
 sealed class HeadExpansion(TargetDataModel model)

@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "CommonGenerator.Generator": {
-      "commandName": "Project",
-      "commandLineArgs": "../../../../Common ../../../../CommonGenerator/Generator.cs"
-    }
-  }
-}

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "UtilityGenerators.Generator": {
+      "commandName": "Project",
+      "commandLineArgs": "../../../../UtilityGenerators.Library ../../../../UtilityGenerators/Library/LibraryGenerator.g.cs"
+    }
+  }
+}

@@ -3,7 +3,7 @@ namespace RhoMicro.CodeAnalysis.CopyToGenerator.Tests;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using RhoMicro.CodeAnalysis.Common.Tests;
+using RhoMicro.CodeAnalysis.UtilityGenerators.Library.Tests;
 using RhoMicro.CodeAnalysis.CopyToGenerator.ExpansionProviders;
 
 public class HeadExpansionTest

@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
-using RhoMicro.CodeAnalysis.Common;
+using RhoMicro.CodeAnalysis.UtilityGenerators.Library;
 
 using System.Collections.Immutable;
 

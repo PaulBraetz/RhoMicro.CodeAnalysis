@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<!--AutoUpdateAssemblyName-->
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
@@ -23,7 +24,7 @@
 	<ItemGroup>
 		<PackageReference Update="NETStandard.Library" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis" Version="4.8.0" />
-		<PackageReference Include="RhoMicro.CodeAnalysis.CommonGenerator" Version="6.0.0">
+		<PackageReference Include="RhoMicro.CodeAnalysis.UtilityGenerators" Version="6.0.0">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>

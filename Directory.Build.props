@@ -1,12 +1,14 @@
 <Project>
 	<PropertyGroup>
-		<AutoIncrementedAssemblyRevision>18</AutoIncrementedAssemblyRevision>
+		<AutoIncrementedAssemblyRevision>58</AutoIncrementedAssemblyRevision>
 	</PropertyGroup>
-	
+
 	<PropertyGroup Label="VersionInfo">
 		<Version>8.0.0</Version>
-		<AssemblyVersion Condition="$(Configuration) == 'Release'">$(Version).0</AssemblyVersion>
-		<AssemblyVersion Condition="$(Configuration) == 'Debug'">$(Version).$(AutoIncrementedAssemblyRevision)</AssemblyVersion>
+		<ReleaseAssemblyVersion >$(Version).0</ReleaseAssemblyVersion>
+		<DebugAssemblyVersion >$(Version).$(AutoIncrementedAssemblyRevision)</DebugAssemblyVersion>
+		<AssemblyVersion Condition="$(Configuration) == 'Debug'">$(DebugAssemblyVersion)</AssemblyVersion>
+		<AssemblyVersion Condition="$(Configuration) == 'Release'">$(ReleaseAssemblyVersion)</AssemblyVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Label="AnalysisInfo">
@@ -31,7 +33,7 @@
 		<RepositoryUrl>https://github.com/PaulBraetz/$(PackageId)/</RepositoryUrl>
 	</PropertyGroup>
 
-	<PropertyGroup>		
+	<PropertyGroup>
 		<AssemblyName>$(MSBuildProjectName).$(AssemblyVersion)</AssemblyName>
 		<AssemblyName Condition="'$(SolutionName)'!=''">$(SolutionName).$(AssemblyName)</AssemblyName>
 

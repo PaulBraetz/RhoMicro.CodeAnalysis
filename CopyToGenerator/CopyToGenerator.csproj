@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<!--AutoUpdateAssemblyName-->
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
@@ -27,7 +28,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="RhoMicro.CodeAnalysis.CommonGenerator" Version="6.0.0">
+		<PackageReference Include="RhoMicro.CodeAnalysis.UtilityGenerators" Version="6.0.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
@@ -42,6 +43,4 @@
 		<None Include="README.md" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
 		<None Include="LICENSE.txt" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
 	</ItemGroup>
-	
-	<!--AutoUpdateAssemblyName-->
 </Project>

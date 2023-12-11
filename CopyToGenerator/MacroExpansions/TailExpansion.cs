@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 
-using RhoMicro.CodeAnalysis.Common;
+using RhoMicro.CodeAnalysis.UtilityGenerators.Library;
 using RhoMicro.CodeAnalysis.CopyToGenerator;
 using RhoMicro.CodeAnalysis.CopyToGenerator.MacroExpansions;
 
