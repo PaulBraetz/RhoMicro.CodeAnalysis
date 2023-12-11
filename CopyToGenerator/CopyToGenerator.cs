@@ -10,7 +10,6 @@ using RhoMicro.CodeAnalysis.UtilityGenerators.Library;
 
 using System;
 using System.Linq;
-using System.Reflection;
 
 [Generator]
 public class CopyToGenerator : IIncrementalGenerator
@@ -36,7 +35,7 @@ public class CopyToGenerator : IIncrementalGenerator
                     .Receive(new CopyToMethodExpansion(m), t)
                     .Receive(new TailExpansion(m), t)
                     .AppendHeader("RhoMicro.CodeAnalysis.CopyToGenerator")
-                    .Append(t)
+                    .AppendMacros(t)
                     .Format()))
             .Select(static (c, t) => (Source: c.BuildSource(t), HintName: $"{c.Model.Name}.g.cs"));
 

@@ -28,7 +28,8 @@ sealed class DownCastExpansion(TargetDataModel model) : ExpansionBase(model, Mac
             .AppendJoin(
                 ",",
                 representableTypes,
-                (b, a, t) => b.AppendFull(a))
+                (b, a, t) => b.AppendFull(a),
+                cancellationToken)
             .Append('>');
 
 #pragma warning disable IDE0045 // Convert to conditional expression

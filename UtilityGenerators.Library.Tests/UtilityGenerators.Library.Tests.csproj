@@ -28,7 +28,7 @@
 	</ItemGroup>
 
 	<ItemGroup>		
-		<ProjectReference Include="..\CommonGenerator\UtilityGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\UtilityGenerators\UtilityGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
 </Project>

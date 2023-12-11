@@ -10,7 +10,8 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<!--superceded by utilities generator-->
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 		<Description>
 			Generate factories for creating attribute instances from `AttributeData` instances.
 		</Description>

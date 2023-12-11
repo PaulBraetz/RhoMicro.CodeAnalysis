@@ -246,6 +246,5 @@ abstract partial class StorageStrategy
         CancellationToken cancellationToken) =>
         ToStringInvocationAppendix(builder, "this", cancellationToken);
 
-
     public abstract void Visit(StrategySourceHost host);
 }

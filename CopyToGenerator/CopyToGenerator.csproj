@@ -24,18 +24,12 @@
 	<ItemGroup>
 		<PackageReference Update="NETStandard.Library" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis" Version="4.8.0" />
-		<PackageReference Include="RhoMicro.CodeAnalysis.AttributeFactoryGenerator" Version="*">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="RhoMicro.CodeAnalysis.UtilityGenerators" Version="6.0.0">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
+
+		<ProjectReference Include="..\UtilityGenerators\UtilityGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="bin\Debug\netstandard2.0\\RhoMicro.CodeAnalysis.CopyToGenerator.130.dll" />
+	  <None Remove="bin\Debug\netstandard2.0\\RhoMicro.CodeAnalysis.CopyToGenerator.8.0.0.60.dll" />
 	</ItemGroup>
 
 	<ItemGroup>

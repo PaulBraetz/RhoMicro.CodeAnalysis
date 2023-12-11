@@ -17,11 +17,12 @@ Currently, there are two generators contained within:
 </PackageReference>
 ```
 
-# RhoMicro.CodeAnalysis.LibraryGenerator
+# LibraryGenerator
 
 Generates types that help with source code generators & analyzers.
+A more detailed section is coming soon.
 
-# RhoMicro.CodeAnalysis.AttributeFactoryGenerator
+# AttributeFactoryGenerator
 
 Are you creating source generators for C#? Are you using attributes to allow your consumers to instruct your generator? Are you dissatisfied with the amount of boilerplate you have to write in order to extract those instructions from the roslyn api? 
 
