@@ -40,42 +40,43 @@ sealed class HeadExpansion(TargetDataModel model)
 
     private void AppendInterfaceImplementations(
         IExpandingMacroStringBuilder<Macro> builder,
-        CancellationToken cancellationToken)
+        CancellationToken _0)
     {
         var attributes = Model.Annotations;
         var target = Model.Symbol;
-        var targetDeclaration = Model.TargetDeclaration;
+        //var targetDeclaration = Model.TargetDeclaration;
 
-        _ = builder.Append(": global::RhoMicro.CodeAnalysis.UnionsGenerator.Abstractions.IUnion<")
+        _ = builder.Append(": global::System.IEquatable<")
             .AppendOpen(target)
-            .Append(',')
-            .AppendJoin(
-                attributes.AllRepresentableTypes.Select((a, i) => (Name: a.Names.FullTypeName, Index: i)),
-                (b, n, t) => b.Append(n.Name).Append(n.Index != attributes.AllRepresentableTypes.Count - 1 ? "," : String.Empty),
-                cancellationToken)
-            .AppendLine(">,")
-            .Append("global::System.IEquatable<")
-            .AppendOpen(target)
-            .Append('>');
+            .Append('>')
+            //.Append(" global::RhoMicro.CodeAnalysis.UnionsGenerator.Abstractions.IUnion<")
+            //.AppendOpen(target)
+            //.Append(',')
+            //.AppendJoin(
+            //    attributes.AllRepresentableTypes.Select((a, i) => (Name: a.Names.FullTypeName, Index: i)),
+            //    (b, n, t) => b.Append(n.Name).Append(n.Index != attributes.AllRepresentableTypes.Count - 1 ? "," : String.Empty),
+            //    cancellationToken)
+            //.AppendLine(">,")
+            ;
 
         if(!(attributes.AllRepresentableTypes.Count == 1 &&
              attributes.AllRepresentableTypes[0].Attribute.Options.HasFlag(UnionTypeOptions.ImplicitConversionIfSolitary)))
         {
-            var omissions = Model.OperatorOmissions.AllOmissions;
+            //var omissions = Model.OperatorOmissions.AllOmissions;
 
-            _ = builder.AppendJoin(
-                attributes.AllRepresentableTypes
-                .Where(a => !omissions.Contains(a) &&
-                            !a.Attribute.RepresentableTypeIsGenericParameter ||
-                             a.Attribute.Options.HasFlag(UnionTypeOptions.SupersetOfParameter))
-                .Select(a => a.Names.FullTypeName),
-                (b, n, t) => b.AppendLine(',')
-                        .Append(" global::RhoMicro.CodeAnalysis.UnionsGenerator.Abstractions.ISuperset<")
-                        .Append(n)
-                        .Append(',')
-                        .AppendOpen(target)
-                        .Append('>'),
-                cancellationToken);
+            //_ = builder.AppendJoin(
+            //    attributes.AllRepresentableTypes
+            //    .Where(a => !omissions.Contains(a) &&
+            //                !a.Attribute.RepresentableTypeIsGenericParameter ||
+            //                 a.Attribute.Options.HasFlag(UnionTypeOptions.SupersetOfParameter))
+            //    .Select(a => a.Names.FullTypeName),
+            //    (b, n, t) => b.AppendLine(',')
+            //            .Append(" global::RhoMicro.CodeAnalysis.UnionsGenerator.Abstractions.ISuperset<")
+            //            .Append(n)
+            //            .Append(',')
+            //            .AppendOpen(target)
+            //            .Append('>'),
+            //    cancellationToken);
         }
     }
 }

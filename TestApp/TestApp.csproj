@@ -27,6 +27,6 @@
 		<ProjectReference Include="..\CopyToGenerator\CopyToGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 
 		<ProjectReference Include="..\UnionsGenerator\UnionsGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-		<ProjectReference Include="..\UnionsGenerator.Abstractions\UnionsGenerator.Abstractions.csproj" />
+		<!--<ProjectReference Include="..\UnionsGenerator.Abstractions\UnionsGenerator.Abstractions.csproj" />-->
 	</ItemGroup>
 </Project>

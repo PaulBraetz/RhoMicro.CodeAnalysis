@@ -52,6 +52,9 @@ sealed class SwitchExpansion(TargetDataModel model) : ExpansionBase(model, Macro
                     .Append(a.Storage.TypesafeInstanceVariableExpressionAppendix, t).AppendLine(");return;"),
                 cancellationToken)
                 .AppendLine("default:")
-                .Append(ConstantSources.InvalidTagStateThrow)).AppendLine(";}}").AppendLine("#endregion");
+                .Append(ConstantSources.InvalidTagStateThrow)
+                .Append('}'))
+                .AppendLine(";}")
+                .AppendLine("#endregion");
     }
 }

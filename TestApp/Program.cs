@@ -5,3 +5,6 @@ using RhoMicro.CodeAnalysis;
 readonly partial struct Union
 {
 }
+[UnionType(typeof(String))]
+[Relation(typeof(Union))]
+partial class Subset;

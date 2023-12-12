@@ -1,10 +1,10 @@
 <Project>
 	<PropertyGroup>
-		<AutoIncrementedAssemblyRevision>67</AutoIncrementedAssemblyRevision>
+		<AutoIncrementedAssemblyRevision>78</AutoIncrementedAssemblyRevision>
 	</PropertyGroup>
 
 	<PropertyGroup Label="VersionInfo">
-		<Version>8.0.1</Version>
+		<Version>9.0.0</Version>
 		<ReleaseAssemblyVersion >$(Version).0</ReleaseAssemblyVersion>
 		<DebugAssemblyVersion >$(Version).$(AutoIncrementedAssemblyRevision)</DebugAssemblyVersion>
 		<AssemblyVersion Condition="$(Configuration) == 'Debug'">$(DebugAssemblyVersion)</AssemblyVersion>
@@ -30,7 +30,7 @@
 		<Company>RhoMicro</Company>
 		<PackageId>$(MSBuildProjectName)</PackageId>
 		<PackageId Condition="'$(SolutionName)'!=''">$(SolutionName).$(MSBuildProjectName)</PackageId>
-		<RepositoryUrl>https://github.com/PaulBraetz/$(PackageId)/</RepositoryUrl>
+		<RepositoryUrl>https://github.com/PaulBraetz/RhoMicro.CodeAnalysis/tree/master/$(MSBuildProjectName)</RepositoryUrl>
 	</PropertyGroup>
 
 	<PropertyGroup>

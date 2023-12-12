@@ -9,6 +9,8 @@ sealed class DownCastExpansion(TargetDataModel model) : ExpansionBase(model, Mac
 {
     public override void Expand(IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken)
     {
+        return;
+
         var representableTypes = Model.Annotations.AllRepresentableTypes;
         var target = Model.Symbol;
         var settings = Model.Annotations.Settings;
