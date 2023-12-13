@@ -4,13 +4,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 using RhoMicro.CodeAnalysis.UtilityGenerators.Library;
-using RhoMicro.CodeAnalysis.UnionsGenerator.Generators;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
 internal static class Providers
 {

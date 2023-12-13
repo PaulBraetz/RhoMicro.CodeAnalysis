@@ -1,8 +1,12 @@
 {
   "profiles": {
-    "Profile 1": {
+    "UnionsGenerator": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\TestApp\\TestApp.csproj"
+      "targetProject": "..\\UnionsGenerator\\UnionsGenerator.csproj"
+    },
+    "Tests": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\UtilityGenerators.Library.Tests\\UtilityGenerators.Library.Tests.csproj"
     }
   }
 }

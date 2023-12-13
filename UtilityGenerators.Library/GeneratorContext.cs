@@ -1,5 +1,7 @@
 ﻿namespace RhoMicro.CodeAnalysis.UtilityGenerators.Library;
 
+using Microsoft.CodeAnalysis;
+
 using System;
 
 /// <summary>
@@ -38,15 +40,20 @@ static partial class GeneratorContext
             builder = configureSourceTextBuilder.Invoke(builder);
         }
 
-        var interceptedBuilder = new ErrorProxy<TMacro, TModel>(
-            builder,
-        diagnosticsAccumulator);
-
         var result = new Impl<TMacro, TModel>(
-            interceptedBuilder,
+            builder,
             diagnosticsAccumulator,
             model);
 
         return result;
     }
+
+    public static readonly DiagnosticDescriptor BuildErrorDiagnosticDescriptor =
+        new(
+            "RCUL0001",
+            "Failure While Building Source",
+            "An unexpected error occured while building source text: {0}",
+            "Source Generator",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
 }

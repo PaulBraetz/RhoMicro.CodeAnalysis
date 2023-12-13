@@ -1,14 +1,18 @@
 ﻿namespace RhoMicro.CodeAnalysis.UtilityGenerators.Library;
 
+using Microsoft.CodeAnalysis;
+
 using System;
 using System.Collections.Generic;
+using System.Net.Http.Headers;
 
 partial class GeneratorContext
 {
     internal sealed class Impl<TMacro, TModel>(
     IExpandingMacroStringBuilder<TMacro> builder,
     IDiagnosticsAccumulator<TModel> diagnostics,
-    TModel model) : IEquatable<Impl<TMacro, TModel>?>, IGeneratorContext<TMacro, TModel>
+    TModel model) :
+        IEquatable<Impl<TMacro, TModel>?>, IGeneratorContext<TMacro, TModel>
     {
         /// <summary>
         /// The underlying expanding macro string builder.
@@ -64,7 +68,29 @@ partial class GeneratorContext
             Receive(new TProvider());
 
         /// <inheritdoc/>
-        public String BuildSource(CancellationToken cancellationToken) => _sourceText.Build(cancellationToken);
+        public GeneratorContextBuildResult<TModel> BuildSource(CancellationToken cancellationToken)
+        {
+            String sourceText;
+            var diagnostics = DiagnosticsAccumulator.Create(Model);
+            _diagnostics.ReportDiagnostics(d => diagnostics.Add(d));
+
+            try
+            {
+                sourceText = _sourceText.Build(cancellationToken);
+            } catch(Exception ex)
+            {
+                _ = _diagnostics.Add(
+                    Diagnostic.Create(
+                        BuildErrorDiagnosticDescriptor,
+                        Location.None,
+                        ex));
+                sourceText = String.Empty;
+            }
+
+            var result = new GeneratorContextBuildResult<TModel>(sourceText, diagnostics);
+
+            return result;
+        }
 
         /// <inheritdoc/>
         public override Boolean Equals(Object? obj) => Equals(obj as Impl<TMacro, TModel>);

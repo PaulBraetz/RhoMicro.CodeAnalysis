@@ -3,7 +3,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 
 using RhoMicro.CodeAnalysis;
-using RhoMicro.CodeAnalysis.UnionsGenerator.Generators;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
 using System;
 

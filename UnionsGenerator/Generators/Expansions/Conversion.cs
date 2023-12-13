@@ -1,4 +1,4 @@
-﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Generators;
+﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
 using Microsoft.CodeAnalysis;
 
@@ -9,8 +9,9 @@ using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
 using System.Collections.Immutable;
 using System.Linq;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
-static class ConversionExpansion
+static class Conversion
 {
     public static IMacroExpansion<Macro> Create(TargetDataModel model)
     {
@@ -25,13 +26,13 @@ static class ConversionExpansion
             .ToList();
         var result = MacroExpansion.Create(
             Macro.Conversion,
-            (b, t) => b
-            .AppendLine("#region Conversions")
+            (b, t) => b /
+            "#region Conversions"
             .AppendJoin(
                 appendices,
                 (b, a, t) => b.Append(a, t),
-                t)
-            .AppendLine("#endregion"));
+                t) /
+            "#endregion");
 
         return result;
     }
@@ -51,18 +52,18 @@ static class ConversionExpansion
             return;
         }
 
-        _ = builder
-            .AppendLine("/// <summary>")
-            .Append("/// Converts an instance of ").AppendCommentRef(representableType)
-            .Append(" to the union type ").AppendCommentRef(data).AppendLine("\"/>.")
-            .AppendLine("/// </summary>")
-            .AppendLine("/// <param name=\"value\">The value to convert.</param>")
-            .AppendLine("/// <returns>The converted value.</returns>")
-            .Append("public static implicit operator ")
+        _ = builder /
+            "/// <summary>" *
+            "/// Converts an instance of ".AppendCommentRef(representableType) *
+            " to the union type ").AppendCommentRef(data).AppendLine("\"/>." /
+            "/// </summary>" /
+            "/// <param name=\"value\">The value to convert.</param>" /
+            "/// <returns>The converted value.</returns>" *
+            "public static implicit operator "
             .AppendOpen(model)
             .Append('(')
-            .AppendFull(representableType)
-            .AppendLine(" value) => new(value);");
+            .AppendFull(representableType) /
+            " value) => new(value);";
 
         var generateSolitaryExplicit =
             allAttributes.Count > 1 ||
@@ -71,17 +72,23 @@ static class ConversionExpansion
 
         if(generateSolitaryExplicit)
         {
-            _ = builder
-                .Append("public static explicit operator ")
+            _ = builder /
+                "/// <summary>" *
+                "/// Converts an instance of ".AppendCommentRef(data) *
+                " to the representable type ").AppendCommentRef(representableType).AppendLine("\"/>." /
+                "/// </summary>" /
+                "/// <param name=\"union\">The union to convert.</param>" /
+                "/// <returns>The converted value.</returns>" *
+                "public static explicit operator "
                 .AppendFull(representableType)
                 .Append('(')
-                .AppendOpen(model)
-                .Append(" union) => ");
+                .AppendOpen(model) *
+                " union) => ";
 
             if(allAttributes.Count > 1)
             {
-                _ = builder
-                    .Append("union.__tag == Tag.")
+                _ = builder *
+                    "union.__tag == ".Append(data.TagTypeName).Append('.')
                     .Append(representableType.Names.SafeAlias)
                     .Append('?');
             }
@@ -101,8 +108,8 @@ static class ConversionExpansion
             _ = builder.Append("public static implicit operator ")
                 .AppendFull(representableType)
                 .Append('(')
-                .AppendOpen(model)
-                .Append(" union) => ")
+                .AppendOpen(model) *
+                " union) => "
                 .Append(representableType.Storage.TypesafeInstanceVariableExpressionAppendix, "union", cancellationToken)
                 .AppendLine(';');
         }
@@ -131,8 +138,8 @@ static class ConversionExpansion
 
         //conversion to model from relation
         //public static _plicit operator Target(Relation relatedUnion)
-        _ = builder
-            .Append("#region ")
+        _ = builder *
+            "#region "
             .Append(relationType switch
             {
                 RelationType.Congruent => "Congruency with ",
@@ -141,17 +148,17 @@ static class ConversionExpansion
                 RelationType.Subset => "Subset of ",
                 _ => "Relation"
             })
-            .AppendLine(relation.Symbol.Name)
-            .Append("public static ")
+            .AppendLine(relation.Symbol.Name) *
+            "public static "
             .Append(
             relationType is RelationType.Congruent or RelationType.Superset ?
                 "im" :
-                "ex")
-            .Append("plicit operator ")
+                "ex") *
+            "plicit operator "
             .Append(model.Symbol.Name)
             .Append('(')
-            .AppendFull(relation.Symbol)
-            .AppendLine(" relatedUnion) =>");
+            .AppendFull(relation.Symbol) /
+            " relatedUnion) =>";
 
         _ = (targetTypeMap.Count == 1 ?
             builder.AppendUnknownConversion(
@@ -174,12 +181,12 @@ static class ConversionExpansion
             .Append(
             relationType is RelationType.Congruent or RelationType.Subset ?
             "im" :
-            "ex")
-            .Append("plicit operator ")
+            "ex") *
+            "plicit operator "
             .AppendFull(relation.Symbol)
             .Append('(')
-            .Append(model.Symbol.Name)
-            .AppendLine(" union) => ");
+            .Append(model.Symbol.Name) /
+            " union) => ";
 
         _ = (relationTypeMap.Count == 1 ?
             builder.AppendKnownConversion(

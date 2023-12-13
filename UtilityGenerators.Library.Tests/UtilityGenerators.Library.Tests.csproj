@@ -9,12 +9,6 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis" Version="4.8.0" />
 
-		<PackageReference Include="RhoMicro.CodeAnalysis.UnionsGenerator" Version="2.0.2">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="RhoMicro.CodeAnalysis.UnionsGenerator.Abstractions" Version="*" />
-
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
 		<PackageReference Include="xunit" Version="2.6.2" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="2.5.4">
@@ -27,7 +21,7 @@
 		</PackageReference>
 	</ItemGroup>
 
-	<ItemGroup>		
+	<ItemGroup>
 		<ProjectReference Include="..\UtilityGenerators\UtilityGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 

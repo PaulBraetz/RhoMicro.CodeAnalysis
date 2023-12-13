@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using RhoMicro.CodeAnalysis;
-using RhoMicro.CodeAnalysis.UnionsGenerator.Generators;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
 using System;
 
@@ -27,6 +27,7 @@ internal sealed class TargetDataModel : UnionDataModel
     public readonly TypeDeclarationSyntax TargetDeclaration;
     public readonly SemanticModel SemanticModel;
     public readonly String ValueTypeContainerName;
+    public readonly String TagTypeName = "__Tag";
 
     public static TargetDataModel Create(TypeDeclarationSyntax targetDeclaration, SemanticModel semanticModel)
     {

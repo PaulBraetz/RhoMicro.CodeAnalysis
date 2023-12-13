@@ -1,1 +1,2 @@
 Applications/TestApp
+Generators/UtilityGenerators.Library.Tests

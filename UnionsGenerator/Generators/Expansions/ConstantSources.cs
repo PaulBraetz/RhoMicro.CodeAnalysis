@@ -1,4 +1,4 @@
-﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Generators;
+﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
 using System;
 
@@ -110,6 +110,5 @@ internal static class ConstantSources
         }
     }
     """;
-    public const String UnionInterfaceName = "IUnion";
     public const String InvalidTagStateThrow = "throw new global::System.InvalidOperationException(\"Unable to determine the represented type or value. The union type was likely not initialized correctly.\")";
 }

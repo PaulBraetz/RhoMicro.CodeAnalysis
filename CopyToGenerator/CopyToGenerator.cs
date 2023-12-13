@@ -39,7 +39,7 @@ public class CopyToGenerator : IIncrementalGenerator
                     .Format()))
             .Select(static (c, t) => (Source: c.BuildSource(t), HintName: $"{c.Model.Name}.g.cs"));
 
-        context.RegisterSourceOutput(provider, (c, output) => c.AddSource(output.HintName, output.Source));
+        context.RegisterSourceOutput(provider, (c, output) => output.Source.AddToContext(c, output.HintName));
         context.RegisterPostInitializationOutput(c => c.AddSource($"{nameof(GenerateCopyToAttribute)}.g.cs", GenerateCopyToAttribute.SourceText));
     }
 }

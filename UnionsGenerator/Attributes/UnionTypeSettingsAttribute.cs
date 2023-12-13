@@ -99,22 +99,19 @@ enum DiagnosticsLevelSettings
 /// If the target member is an assembly, the attribute supplies default values for any union type not defining its own settings.
 /// </summary>
 [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class | AttributeTargets.Assembly, AllowMultiple = false, Inherited = false)]
-#if GENERATOR
+#if UNIONS_GENERATOR
 [GenerateFactory]
 #endif
 sealed partial class UnionTypeSettingsAttribute : Attribute
-#if GENERATOR
-    , IEquatable<UnionTypeSettingsAttribute>
-#endif
 {
     /// <summary>
     /// Initializes a new instance.
     /// </summary>
     public UnionTypeSettingsAttribute() => _reservedGenericTypeNames =
-        [_genericTValueName, _downcastTypeName, _matchTypeName];
+        new HashSet<String>() { _genericTValueName, _tryConvertTypeName, _matchTypeName };
 
     private String _genericTValueName = "TValue";
-    private String _downcastTypeName = "TSuperset";
+    private String _tryConvertTypeName = "TSuperset";
     private String _matchTypeName = "TResult";
 
     /// <summary>
@@ -143,13 +140,13 @@ sealed partial class UnionTypeSettingsAttribute : Attribute
         set => SetReservedName(ref _genericTValueName, value);
     }
     /// <summary>
-    /// Gets or sets the name of the generic parameter for the <c>DownCast</c> method. 
+    /// Gets or sets the name of the generic parameter for the <c>TryConvert</c> method. 
     /// Set this property in order to avoid name collisions with generic union type parameters
     /// </summary>
-    public String DowncastTypeName
+    public String TryConvertTypeName
     {
-        get => _downcastTypeName;
-        set => SetReservedName(ref _downcastTypeName, value);
+        get => _tryConvertTypeName;
+        set => SetReservedName(ref _tryConvertTypeName, value);
     }
     /// <summary>
     /// Gets or sets the name of the generic parameter for the <c>Match</c> method. 
@@ -171,32 +168,4 @@ sealed partial class UnionTypeSettingsAttribute : Attribute
         field = newValue;
     }
     private readonly HashSet<String> _reservedGenericTypeNames;
-
-#if GENERATOR
-    public override Boolean Equals(Object? obj) => Equals(obj as UnionTypeSettingsAttribute);
-    public Boolean Equals(UnionTypeSettingsAttribute? other) =>
-        other is not null &&
-        ToStringSetting == other.ToStringSetting &&
-        Layout == other.Layout &&
-        DiagnosticsLevel == other.DiagnosticsLevel &&
-        ConstructorAccessibility == other.ConstructorAccessibility &&
-        MatchTypeName == other.MatchTypeName &&
-        GenericTValueName == other.GenericTValueName &&
-        DowncastTypeName == other.DowncastTypeName;
-
-    public Boolean IsReservedGenericTypeName(String name) => _reservedGenericTypeNames.Contains(name);
-
-    public override Int32 GetHashCode()
-    {
-        var hashCode = 304521224;
-        hashCode = hashCode * -1521134295 + ToStringSetting.GetHashCode();
-        hashCode = hashCode * -1521134295 + Layout.GetHashCode();
-        hashCode = hashCode * -1521134295 + MatchTypeName.GetHashCode();
-        hashCode = hashCode * -1521134295 + DowncastTypeName.GetHashCode();
-        hashCode = hashCode * -1521134295 + GenericTValueName.GetHashCode();
-        hashCode = hashCode * -1521134295 + DiagnosticsLevel.GetHashCode();
-        hashCode = hashCode * -1521134295 + ConstructorAccessibility.GetHashCode();
-        return hashCode;
-    }
-#endif
 }

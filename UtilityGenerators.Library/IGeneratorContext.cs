@@ -72,5 +72,5 @@ interface IGeneratorContext<TMacro, TModel>
     /// </summary>
     /// <param name="cancellationToken">The cancellation token used to signal source text generation to cancel.</param>
     /// <returns>The built source code.</returns>
-    String BuildSource(CancellationToken cancellationToken);
+    GeneratorContextBuildResult<TModel> BuildSource(CancellationToken cancellationToken);
 }

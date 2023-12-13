@@ -3,7 +3,7 @@
 using Microsoft.CodeAnalysis;
 
 using RhoMicro.CodeAnalysis;
-using RhoMicro.CodeAnalysis.UnionsGenerator.Generators;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
 using System;
@@ -24,7 +24,8 @@ sealed class RepresentableTypeModel(
     public readonly RepresentableTypeNature Nature = nature;
     public readonly RepresentableTypeNames Names = names;
     public readonly StorageStrategy Storage = storage;
-    public readonly String CorrespondingTag = $"Tag.{names.SafeAlias}";
+
+    public String GetCorrespondingTag(TargetDataModel model) => $"{model.TagTypeName}.{Names.SafeAlias}";
 
     public static RepresentableTypeModel Create(
         UnionTypeAttribute attribute,

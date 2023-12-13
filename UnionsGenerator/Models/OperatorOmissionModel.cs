@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 
-using RhoMicro.CodeAnalysis.UnionsGenerator.Generators;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
 using System.Collections.Generic;
 using System.Linq;

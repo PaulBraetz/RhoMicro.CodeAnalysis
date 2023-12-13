@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
 sealed class StrategySourceHost(TargetDataModel target)
 {
@@ -30,9 +31,9 @@ sealed class StrategySourceHost(TargetDataModel target)
                 .AppendLine(';'),
             TypeName: strategy.FullTypeName));
 
-    public void AppendDedicatedReferenceFields(IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken) =>
+    public void DedicatedReferenceFieldsAppendix(IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken) =>
         _dedicatedReferenceFieldAdditions.ForEach(t => t.Factory.Invoke(builder, cancellationToken));
-    public void AppendDedicatedPureValueTypeFields(IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken) =>
+    public void DedicatedPureValueTypeFieldsAppendix(IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken) =>
         _dedicatedPureValueTypeFieldAdditions.OrderByDescending(static t =>
         {
             var pureValueType = Type.GetType(t.TypeName, false);
@@ -46,7 +47,7 @@ sealed class StrategySourceHost(TargetDataModel target)
 
     private Boolean _referenceFieldRequired;
     public void AddReferenceTypeContainerField() => _referenceFieldRequired = true;
-    public void AppendReferenceTypeContainerField(IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken)
+    public void ReferenceTypeContainerFieldAppendix(IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken)
     {
         if(!_referenceFieldRequired)
             return;
@@ -61,7 +62,7 @@ sealed class StrategySourceHost(TargetDataModel target)
     private Boolean _valueTypeContainerTypeRequired;
     public void AddValueTypeContainerType() => _valueTypeContainerTypeRequired = true;
     public void AddValueTypeContainerField() => _valueTypeContainerTypeRequired = true;
-    private readonly List<Action<IExpandingMacroStringBuilder<Macro>, CancellationToken>> _valueTypeFieldAdditions = [];
+    private readonly List<Appendix<Macro>> _valueTypeFieldAdditions = [];
     public void AddValueTypeVontainerInstanceFieldAndCtor(StorageStrategy strategy) =>
         _valueTypeFieldAdditions.Add((b, t) =>
         {
@@ -77,7 +78,7 @@ sealed class StrategySourceHost(TargetDataModel target)
                 .Append(strategy.SafeAlias).AppendLine(" = value;");
         });
 
-    public void AppendValueTypeContainerField(IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken)
+    public void ValueTypeContainerFieldAppendix(IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken)
     {
         if(!_valueTypeContainerTypeRequired)
             return;
@@ -91,26 +92,26 @@ sealed class StrategySourceHost(TargetDataModel target)
             .Append(" __valueTypeContainer;");
     }
 
-    public void AppendValueTypeContainerType(IExpandingMacroStringBuilder<Macro> builder)
+    public void ValueTypeContainerTypeAppendix(ExpandingMacroBuilder builder)
     {
         if(!_valueTypeContainerTypeRequired)
             return;
+
+        _ = builder +
+            (Extensions.DocCommentAppendix, "Helper types for storing value types efficiently.");
 
         if(!_target.Symbol.IsGenericType)
             _ = builder.AppendLine("[global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]");
 
         _ = builder
                 .AppendLine("[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]")
-                .AppendLine("internal readonly struct ")
+                .AppendLine("readonly struct ")
                 .Append(_target.ValueTypeContainerName)
                 .AppendLine('{')
                 .AppendJoin(
                     _valueTypeFieldAdditions,
-                    (b, a, t) =>
-                    {
-                        a.Invoke(b, t);
-                        return b;
-                    })
+                    (b, a, t) => b.Append(a, t),
+                    cancellationToken)
                 .AppendLine('}');
     }
 }

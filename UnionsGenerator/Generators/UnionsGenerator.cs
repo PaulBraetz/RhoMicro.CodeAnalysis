@@ -12,6 +12,8 @@ using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 using System;
 using System.Text;
 using System.Threading;
+using System.Diagnostics;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
 enum Macro
 {
@@ -20,11 +22,11 @@ enum Macro
     Constructors,
     Fields,
     Factories,
-    DownCast,
     Switch,
     Match,
     RepresentedTypes,
-    IsAs,
+    IsAsProperties,
+    IsAsFunctions,
     GetHashcode,
     Equals,
     ToString,
@@ -47,40 +49,58 @@ internal class UnionsGenerator : IIncrementalGenerator
 
                 var context = GeneratorContext.Create<Macro, TargetDataModel>(
                     model,
-                    configureSourceTextBuilder: b => b
-                        .Receive(new HeadExpansion(model))
-                        .Receive(new NestedTypesExpansion(model))
-                        .Receive(new ConstructorsExpansion(model))
-                        .Receive(new FieldsExpansion(model))
-                        .Receive(new FactoriesExpansion(model))
-                        .Receive(new TailExpansion(model))
-                        .Receive(new DownCastExpansion(model))
-                        .Receive(new RepresentedTypesExpansion(model))
-                        .Receive(new IsAsExpansion(model))
-                        .Receive(new MatchExpansion(model))
-                        .Receive(new SwitchExpansion(model))
-                        .Receive(new GetHashCodeExpansion(model))
-                        .Receive(new EqualsExpansion(model))
-                        .Receive(ToStringExpansion.Create(model))
-                        .Receive(ConversionExpansion.Create(model))
-                        .AppendHeader("RhoMicro.CodeAnalysis.UnionsGenerator")
+                    configureSourceTextBuilder: b =>b.AppendHeader("RhoMicro.CodeAnalysis.UnionsGenerator")
                         .AppendMacros(t)
-                        .Format(),
+                        .Format()
+                        .GetOperators<Macro, TargetDataModel>(t) +
+                        new Head(model) +
+                        new NestedTypes(model) +
+                        new Constructors(model) +
+                        new Fields(model) +
+                        new Factories(model) +
+                        new Tail(model) +
+                        new RepresentedTypes(model) +
+                        new IsAsProperties(model) +
+                        new IsAsFunctions(model) +
+                        new Match(model) +
+                        new Expansions.Switch(model) +
+                        new GetHashCode(model) +
+                        new Equals(model) +
+                        ToStringFunction.Create(model) +
+                        Expansions.Conversion.Create(model),
                     configureDiagnosticsAccumulator: d => d
                         .ReportNonHiddenSeverities()
                         .DiagnoseNonHiddenSeverities()
                         .Receive(Providers.All, t));
 
-                var source = context.BuildSource(t);
+                var source = BuildSource(context, t);
+
                 var hintName = $"{model.Symbol.ToHintName()}.g.cs";
 
                 return (source, hintName);
             });
 
-        context.RegisterSourceOutput(providers, static (c, t) => c.AddSource(t.hintName, t.source));
+        context.RegisterSourceOutput(providers, static (c, t) => t.source.AddToContext(c, t.hintName));
         context.RegisterPostInitializationOutput(static c => c.AddSource("Util.g.cs", ConstantSources.Util));
         context.RegisterPostInitializationOutput(static c => c.AddSource($"{nameof(UnionTypeAttribute)}.g.cs", UnionTypeAttribute.SourceText));
         context.RegisterPostInitializationOutput(static c => c.AddSource($"{nameof(RelationAttribute)}.g.cs", RelationAttribute.SourceText));
         context.RegisterPostInitializationOutput(static c => c.AddSource($"{nameof(UnionTypeSettingsAttribute)}.g.cs", UnionTypeSettingsAttribute.SourceText));
+    }
+    private static GeneratorContextBuildResult<TargetDataModel> BuildSource(IGeneratorContext<Macro, TargetDataModel> context, CancellationToken t)
+    {
+        var source = context.BuildSource(t);
+
+        var syntaxTree = CSharpSyntaxTree.ParseText(
+            source.SourceText,
+            new CSharpParseOptions(LanguageVersion.CSharp8, DocumentationMode.Diagnose, SourceCodeKind.Regular),
+            cancellationToken: t);
+        var diagnostics = syntaxTree.GetDiagnostics(t);
+        if(diagnostics.Any())
+        {
+            var newSourceText = $"/*\nThe generator failed to generate diagnostics-free source code.\nThis indicates a bug in the generator.\nPlease report this issue to the maintainer at https://github.com/PaulBraetz/RhoMicro.CodeAnalysis/issues.\n{String.Join("\n", diagnostics)}\n*/\n{String.Concat(Enumerable.Repeat('/', 150))}\n{source.SourceText}";
+            source = source.WithSourceText(newSourceText);
+        }
+
+        return source;
     }
 }

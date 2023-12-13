@@ -1,13 +1,13 @@
-﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Generators;
+﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
 using RhoMicro.CodeAnalysis.UtilityGenerators.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
 using System.Threading;
 
-sealed class RepresentedTypesExpansion(TargetDataModel model) : ExpansionBase(model, Macro.RepresentedTypes)
+sealed class RepresentedTypes(TargetDataModel model) : ExpansionBase(model, Macro.RepresentedTypes)
 {
-    public override void Expand(IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken)
+    public override void Expand(ExpandingMacroBuilder builder)
     {
         var attributes = Model.Annotations.AllRepresentableTypes;
         _ = builder.AppendLine("#region GetRepresentedType")
@@ -24,8 +24,8 @@ sealed class RepresentedTypesExpansion(TargetDataModel model) : ExpansionBase(mo
                 ",",
                 attributes,
                 (b, a, t) => b.Append("typeof(").Append(a.Names.FullTypeName).Append(')'),
-                cancellationToken)
-            .AppendLine("};")
+                cancellationToken) /
+            "};"
             .AppendLine(
             """
             /// <summary>
@@ -38,17 +38,17 @@ sealed class RepresentedTypesExpansion(TargetDataModel model) : ExpansionBase(mo
         if(attributes.Count == 1)
         {
             _ = builder.Append("typeof(")
-                .AppendFull(attributes[0])
-                .AppendLine(");");
+                .AppendFull(attributes[0]) /
+                ");";
         } else
         {
             _ = builder.AppendLine("__tag switch {")
                 .AppendJoin(
                     attributes,
                     (b, a, t) => b.Append(a.CorrespondingTag).Append(" => typeof(").AppendFull(a).AppendLine("),"),
-                    cancellationToken)
-                .Append("_ => ").AppendLine(ConstantSources.InvalidTagStateThrow)
-                .AppendLine("};");
+                    cancellationToken) *
+                "_ => ".AppendLine(ConstantSources.InvalidTagStateThrow) /
+                "};";
         }
 #pragma warning restore IDE0045 // Convert to conditional expression
         _ = builder.AppendLine("#endregion");

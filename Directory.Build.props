@@ -1,10 +1,10 @@
 <Project>
 	<PropertyGroup>
-		<AutoIncrementedAssemblyRevision>78</AutoIncrementedAssemblyRevision>
+		<AutoIncrementedAssemblyRevision>148</AutoIncrementedAssemblyRevision>
 	</PropertyGroup>
 
 	<PropertyGroup Label="VersionInfo">
-		<Version>9.0.0</Version>
+		<Version>10.0.0</Version>
 		<ReleaseAssemblyVersion >$(Version).0</ReleaseAssemblyVersion>
 		<DebugAssemblyVersion >$(Version).$(AutoIncrementedAssemblyRevision)</DebugAssemblyVersion>
 		<AssemblyVersion Condition="$(Configuration) == 'Debug'">$(DebugAssemblyVersion)</AssemblyVersion>

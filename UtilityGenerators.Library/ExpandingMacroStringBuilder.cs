@@ -149,6 +149,31 @@ static partial class ExpandingMacroStringBuilder
         appendix.Invoke(builder, model, cancellationToken);
         return builder;
     }
+    /// <summary>
+    /// Creates a decorator around the provided builder enabling the use of operators instead of append, append macro and receive.
+    /// </summary>
+    /// <typeparam name="TMacro">The type of macro to support.</typeparam>
+    /// <param name="builder">The builder to decorate.</param>
+    /// <param name="cancellationToken">
+    /// The cancellation token used to signal expansion to cancel.
+    /// This token will be ambiently passed to calls backing the operators provided.
+    /// </param>
+    /// <returns>The new decorator.</returns>
+    public static OperatorsDecorator<TMacro> GetOperators<TMacro>(this IExpandingMacroStringBuilder<TMacro> builder, CancellationToken cancellationToken) =>
+        OperatorsDecorator<TMacro>.Create(builder, cancellationToken);
+    /// <summary>
+    /// Creates a decorator around the provided builder enabling the use of operators instead of append, append macro and receive.
+    /// </summary>
+    /// <typeparam name="TMacro">The type of macro to support.</typeparam>
+    /// <typeparam name="TModel">The type of model to support appendices for.</typeparam>
+    /// <param name="builder">The builder to decorate.</param>
+    /// <param name="cancellationToken">
+    /// The cancellation token used to signal expansion to cancel.
+    /// This token will be ambiently passed to calls backing the operators provided.
+    /// </param>
+    /// <returns>The new decorator.</returns>
+    public static OperatorsDecorator<TMacro, TModel> GetOperators<TMacro, TModel>(this IExpandingMacroStringBuilder<TMacro> builder, CancellationToken cancellationToken) =>
+        OperatorsDecorator<TMacro, TModel>.Create(builder, cancellationToken);
     #region Append Value
     /// <summary>
     /// Appends to the builder a single newline character.

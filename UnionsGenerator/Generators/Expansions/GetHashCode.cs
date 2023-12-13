@@ -1,31 +1,31 @@
-﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Generators;
+﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
 using RhoMicro.CodeAnalysis.UtilityGenerators.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
 using System.Threading;
 
-sealed class GetHashCodeExpansion(TargetDataModel model) : ExpansionBase(model, Macro.GetHashcode)
+sealed class GetHashCode(TargetDataModel model) : ExpansionBase(model, Macro.GetHashcode)
 {
-    public override void Expand(IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken)
+    public override void Expand(ExpandingMacroBuilder builder)
     {
         var annotations = Model.Annotations;
         var target = Model.Symbol;
 
-        _ = builder.AppendLine("#region GetHashcode")
-            .AppendLine("public override Int32 GetHashCode() => ");
+        _ = builder.AppendLine("#region GetHashcode") /
+            "public override Int32 GetHashCode() => ";
 
         if(annotations.AllRepresentableTypes.Count > 1)
         {
             _ = builder.Append("__tag switch{")
                 .AppendJoin(
                     annotations.AllRepresentableTypes,
-                    (b, a, t) => b.Append(a.CorrespondingTag)
-                        .Append(" => ")
+                    (b, a, t) => b.Append(a.CorrespondingTag) *
+                        " => "
                         .Append(a.Storage.GetHashCodeInvocationAppendix, t)
                         .AppendLine(','),
-                    cancellationToken)
-                .AppendLine("_ => ").Append(ConstantSources.InvalidTagStateThrow)
+                    cancellationToken) /
+                "_ => ".Append(ConstantSources.InvalidTagStateThrow)
                 .Append('}');
 
         } else if(annotations.AllRepresentableTypes.Count == 1)

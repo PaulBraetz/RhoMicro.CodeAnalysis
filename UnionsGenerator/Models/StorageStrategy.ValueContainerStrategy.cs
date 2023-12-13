@@ -6,6 +6,7 @@ using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
 using System;
 using System.Threading;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
 abstract partial class StorageStrategy
 {

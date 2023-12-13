@@ -42,10 +42,6 @@
 		<None Include="LICENSE.txt" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Library\" />
-	</ItemGroup>
-
 	<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
 	  <Exec Command="Library\Generator\UtilityGenerators.Library.Generator.exe ../UtilityGenerators.Library Library/LibraryGenerator.g.cs" ConsoleToMsBuild="true" />
 	</Target>

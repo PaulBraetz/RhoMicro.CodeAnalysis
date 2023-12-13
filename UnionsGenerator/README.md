@@ -31,12 +31,9 @@ Read about union types here: https://en.wikipedia.org/wiki/Union_type
 
 ## Installation
 
-Requirements: `net7` (due to `static abstract` members)
-
 Package Reference:
 ```
 	<ItemGroup>
-	  <PackageReference Include="RhoMicro.CodeAnalysis.UnionsGenerator.Abstractions" Version="*"/>
 	  <PackageReference Include="RhoMicro.CodeAnalysis.UnionsGenerator" Version="*">
 	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	    <PrivateAssets>all</PrivateAssets>
@@ -46,8 +43,9 @@ Package Reference:
 CLI:
 ```
 dotnet add package RhoMicro.CodeAnalysis.UnionsGenerator
-dotnet add package RhoMicro.CodeAnalysis.UnionsGenerator.Abstractions
 ```
+
+*Note: The source code generator will generate C#8 compliant code.*
 
 ## How To Use
 
@@ -264,9 +262,6 @@ public enum LayoutSetting
 // Gets or sets the name of the generic parameter for generic Is, As and factory methods. 
 // Set this property in order to avoid name collisions with generic union type parameters
 public String GenericTValueName { get; set; }
-// Gets or sets the name of the generic parameter for the DownCast method. 
-// Set this property in order to avoid name collisions with generic union type parameters
-public String DowncastTypeName { get; set; }
 // Gets or sets the name of the generic parameter for the Match method. 
 // Set this property in order to avoid name collisions with generic union type parameters
 public String MatchTypeName { get; set; }
@@ -452,8 +447,6 @@ public TResult Match<TResult>(
     Func<User, TResult> onUser);
 
 /*Casting & Conversion*/
-public TResult DownCast<TResult>();
-
 public Boolean Is<TValue>();
 
 public Boolean Is(Type type);
