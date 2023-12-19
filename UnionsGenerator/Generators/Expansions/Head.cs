@@ -5,67 +5,62 @@ using Microsoft.CodeAnalysis.CSharp;
 
 using RhoMicro.CodeAnalysis.UtilityGenerators.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
+using System.Text;
 
 sealed class Head(TargetDataModel model)
     : ExpansionBase(model, Macro.Head)
 {
+    public static void ContainingClassHead(ExpandingMacroBuilder builder, ITypeSymbol nestedType)
+    {
+        _ = getContainingTypes(nestedType)
+            .Select(s => (Kind: s.TypeKind switch
+            {
+                TypeKind.Class => "class ",
+                TypeKind.Struct => "struct ",
+                TypeKind.Interface => "interface ",
+                _ => null
+            }, Symbol: s))
+            .Where(t => t.Kind != null)
+            .Aggregate(
+                builder,
+                (b, t) => b * "partial " * t.Kind * ' ' * t.Symbol.ToMinimalOpenString() * '{');
+
+        static IEnumerable<ITypeSymbol> getContainingTypes(ITypeSymbol symbol)
+        {
+            if(symbol.ContainingType != null)
+                return getContainingTypes(symbol.ContainingType).Append(symbol.ContainingType);
+
+            return Array.Empty<ITypeSymbol>();
+        }
+    }
     protected override void Expand(ExpandingMacroBuilder builder)
     {
         if(!Model.Symbol.ContainingNamespace.IsGlobalNamespace)
         {
-            _ = builder +
-                "namespace " +
+            _ = builder *
+                "namespace " *
                 Model.Symbol.ContainingNamespace.ToDisplayString(
                     SymbolDisplayFormat.FullyQualifiedFormat
-                    .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted)) -
+                    .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted)) /
                 '{';
         }
 
-        _ = builder - Model.Symbol.GetContainingClassHead();
+        _ = builder / (ContainingClassHead, Model.Symbol);
 
         if(Model.Annotations.Settings.Layout == LayoutSetting.Small && !Model.Symbol.IsGenericType)
-            _ = builder - "[global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Sequential, Pack = 1)]";
+            _ = builder / String.Empty % "[global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Sequential, Pack = 1)]";
 
-        _ = builder +
-            SyntaxFacts.GetText(Model.Symbol.DeclaredAccessibility) +
-            " partial " +
+        _ = builder *
+            SyntaxFacts.GetText(Model.Symbol.DeclaredAccessibility) *
+            " partial " *
             (Model.Symbol.IsValueType ?
                 "struct " :
-                "class ") -
+                "class ") %
             Model.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat
-            .WithGenericsOptions(SymbolDisplayGenericsOptions.IncludeTypeParameters)) +
-            AppendInterfaceImplementations -
+            .WithGenericsOptions(SymbolDisplayGenericsOptions.IncludeTypeParameters)) *
+            ": global::System.IEquatable<" *
+            Model.Symbol.ToMinimalOpenString() *
+            '>' %
             '{';
-    }
-
-    private void AppendInterfaceImplementations(ExpandingMacroBuilder builder)
-    {
-        var attributes = Model.Annotations;
-        var target = Model.Symbol;
-
-        _ = builder +
-            ": global::System.IEquatable<" +
-            target.ToMinimalOpenString() +
-            '>';
-
-        if(!(attributes.AllRepresentableTypes.Count == 1 &&
-             attributes.AllRepresentableTypes[0].Attribute.Options.HasFlag(UnionTypeOptions.ImplicitConversionIfSolitary)))
-        {
-            //var omissions = Model.OperatorOmissions.AllOmissions;
-
-            //_ = builder.AppendJoin(
-            //    attributes.AllRepresentableTypes
-            //    .Where(a => !omissions.Contains(a) &&
-            //                !a.Attribute.RepresentableTypeIsGenericParameter ||
-            //                 a.Attribute.Options.HasFlag(UnionTypeOptions.SupersetOfParameter))
-            //    .Select(a => a.Names.FullTypeName),
-            //    (b, n, t) => b.AppendLine(',')
-            //            .Append(" global::RhoMicro.CodeAnalysis.UnionsGenerator.Abstractions.ISuperset<")
-            //            .Append(n)
-            //            .Append(',')
-            //            .AppendOpen(target)
-            //            .Append('>'),
-            //    cancellationToken);
-        }
     }
 }

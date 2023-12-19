@@ -23,34 +23,24 @@ abstract partial class StorageStrategy
 
         private readonly String _fieldName;
 
-        public override void AppendConvertedInstanceVariableExpression(
-            IExpandingMacroStringBuilder<Macro> builder,
-            (String targetType, String instance) model,
-            CancellationToken cancellationToken) =>
-            builder.AppendUnsafeConvert(FullTypeName, model.targetType, $"{model.instance}.{_fieldName}", cancellationToken);
-        public override void TypesafeInstanceVariableExpressionAppendix(
-            IExpandingMacroStringBuilder<Macro> builder,
-            String instance,
-            CancellationToken cancellationToken) =>
-            builder.Append('(')
-                .Append(instance)
-                .Append('.')
-                .Append(_fieldName)
-                .Append(')');
-        public override void InstanceVariableAssignmentExpressionAppendix(
-            IExpandingMacroStringBuilder<Macro> builder,
-            (String valueExpression, String instance) model,
-            CancellationToken cancellationToken) =>
-            builder.Append(model.instance)
-                .Append('.')
-                .Append(_fieldName)
-                .Append(" = ")
-                .Append(model.valueExpression);
-        public override void InstanceVariableExpressionAppendix(
-            IExpandingMacroStringBuilder<Macro> builder,
-            String instance,
-            CancellationToken cancellationToken) => 
-            TypesafeInstanceVariableExpressionAppendix(builder, instance, cancellationToken);
+        public override void ConvertedInstanceVariableExpression(
+            ExpandingMacroBuilder builder,
+            String targetType,
+            String instance) =>
+            Extensions.UtilUnsafeConvert(builder, FullTypeName, targetType, $"{instance}.{_fieldName}");
+        public override void TypesafeInstanceVariableExpression(
+            ExpandingMacroBuilder builder,
+            String instance) =>
+            _ = builder * '(' * instance * '.' * _fieldName * ')';
+        public override void InstanceVariableAssignmentExpression(
+            ExpandingMacroBuilder builder,
+            String valueExpression,
+            String instance) =>
+            _ = builder * instance * '.' * _fieldName * " = " * valueExpression;
+        public override void InstanceVariableExpression(
+            ExpandingMacroBuilder builder,
+            String instance) =>
+            TypesafeInstanceVariableExpression(builder, instance);
 
         public override void Visit(StrategySourceHost host) => host.AddDedicatedField(this);
     }

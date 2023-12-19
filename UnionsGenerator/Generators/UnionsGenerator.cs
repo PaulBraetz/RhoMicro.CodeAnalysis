@@ -41,33 +41,33 @@ internal class UnionsGenerator : IIncrementalGenerator
         //TODO: implement model for efficient equality
         //TODO: implement incremental model building?
         var providers = context.SyntaxProvider.ForUnionTypeAttribute(
-            static (n, t) => n is TypeDeclarationSyntax tds && tds.Modifiers.Any(SyntaxKind.PartialKeyword) && n is not RecordDeclarationSyntax,
+            static (n, t) => Util.IsSyntaxCandidate(n),
             static (c, t) =>
             {
-                var target = c.TargetNode as TypeDeclarationSyntax ?? throw new Exception("Target node was not type declaration.");
-                var model = TargetDataModel.Create(target, c.SemanticModel);
+                var model = TargetDataModel.Create((TypeDeclarationSyntax)c.TargetNode, c.SemanticModel);
 
                 var context = GeneratorContext.Create<Macro, TargetDataModel>(
                     model,
-                    configureSourceTextBuilder: b =>b.AppendHeader("RhoMicro.CodeAnalysis.UnionsGenerator")
+                    configureSourceTextBuilder: b => b.AppendHeader("RhoMicro.CodeAnalysis.UnionsGenerator")
                         .AppendMacros(t)
+                        //on the phone
                         .Format()
-                        .GetOperators<Macro, TargetDataModel>(t) +
-                        new Head(model) +
-                        new NestedTypes(model) +
-                        new Constructors(model) +
-                        new Fields(model) +
-                        new Factories(model) +
-                        new Tail(model) +
-                        new RepresentedTypes(model) +
-                        new IsAsProperties(model) +
-                        new IsAsFunctions(model) +
-                        new Match(model) +
-                        new Expansions.Switch(model) +
-                        new GetHashCode(model) +
-                        new Equals(model) +
-                        ToStringFunction.Create(model) +
-                        Expansions.Conversion.Create(model),
+                        .WithOperators<Macro, TargetDataModel>(t)
+                        .Receive(new Head(model), t)
+                        .Receive(new NestedTypes(model), t)
+                        .Receive(new Constructors(model), t)
+                        .Receive(new Fields(model), t)
+                        .Receive(new Factories(model), t)
+                        .Receive(new Tail(model), t)
+                        .Receive(new RepresentedTypes(model), t)
+                        .Receive(new IsAsProperties(model), t)
+                        .Receive(new IsAsFunctions(model), t)
+                        .Receive(new Match(model), t)
+                        .Receive(new Expansions.Switch(model), t)
+                        .Receive(new GetHashCode(model), t)
+                        .Receive(new Equals(model), t)
+                        .Receive(ToStringFunction.Create(model), t)
+                        .Receive(Expansions.Conversion.Create(model), t),
                     configureDiagnosticsAccumulator: d => d
                         .ReportNonHiddenSeverities()
                         .DiagnoseNonHiddenSeverities()

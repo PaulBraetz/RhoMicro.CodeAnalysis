@@ -1,10 +1,10 @@
 <Project>
 	<PropertyGroup>
-		<AutoIncrementedAssemblyRevision>148</AutoIncrementedAssemblyRevision>
+		<AutoIncrementedAssemblyRevision>225</AutoIncrementedAssemblyRevision>
 	</PropertyGroup>
 
 	<PropertyGroup Label="VersionInfo">
-		<Version>10.0.0</Version>
+		<Version>11.0.0</Version>
 		<ReleaseAssemblyVersion >$(Version).0</ReleaseAssemblyVersion>
 		<DebugAssemblyVersion >$(Version).$(AutoIncrementedAssemblyRevision)</DebugAssemblyVersion>
 		<AssemblyVersion Condition="$(Configuration) == 'Debug'">$(DebugAssemblyVersion)</AssemblyVersion>
@@ -19,7 +19,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-		<PackageOutputPath>/dist/nuget</PackageOutputPath>
+		<PackageOutputPath>$(SolutionDir)\dist\nuget</PackageOutputPath>
 	</PropertyGroup>
 
 	<PropertyGroup Label="PackageInfo">
@@ -47,25 +47,4 @@
 	<ItemGroup>
 		<None Remove=".editorconfig"></None>
 	</ItemGroup>
-
-	<Target Name="RemoveDirectories" BeforeTargets="PreBuildEvent">
-		<RemoveDir Directories="$(OutputDirectory);$(DebugDirectory);$(PackageOutputPath);" />
-		<Message Text="Cleaned project." Importance="high" />
-		<ItemGroup>
-			<OldProjectPackages Include="$(SolutionDir)\dist\nuget\$(PackageId)*.*" />
-		</ItemGroup>
-		<Delete Files="@(OldProjectPackages)"/>
-		<Message Text="Cleared from solution dist: @(OldProjectPackages)" Importance="high" />
-	</Target>
-
-	<Target Name="AssemblePackages" AfterTargets="Pack">
-		<ItemGroup>
-			<NewProjectPackages Include="$(PackageOutputPath)\*.*" />
-		</ItemGroup>
-		<Copy SourceFiles="@(NewProjectPackages)" DestinationFolder="$(SolutionDir)\dist\nuget\%(RecursiveDir)" />
-		<ItemGroup>
-			<PublishedProjectPackages Include="$(SolutionDir)\dist\nuget\$(PackageId)*.*" />
-		</ItemGroup>
-		<Message Text="Copied to solution dist: @(PublishedProjectPackages)" Importance="high" />
-	</Target>
 </Project>

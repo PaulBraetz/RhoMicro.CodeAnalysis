@@ -1,80 +1,67 @@
-﻿using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
+﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
-namespace RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
-
-using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 using RhoMicro.CodeAnalysis.UtilityGenerators.Library;
 
-using System;
-using System.Collections.Generic;
-using System.Runtime;
-using System.Text;
-using System.Threading;
-using System.Xml.Linq;
-
 sealed class IsAsFunctions(TargetDataModel model) : ExpansionBase(model, Macro.IsAsFunctions)
 {
-    public override void Expand(ExpandingMacroBuilder builder)
+    protected override void Expand(ExpandingMacroBuilder builder)
     {
         var attributes = Model.Annotations.AllRepresentableTypes;
         var target = Model.Symbol;
         var settings = Model.Annotations.Settings;
 
-        _ = builder.AppendLine("#region IsAsFunctions") *
-            "public global::System.Boolean Is<"
-            .Append(settings.GenericTValueName) *
-            ">() => ";
+        _ = builder * "#region IsAsFunctions" /
+            "public global::System.Boolean Is<" * settings.GenericTValueName * ">() => ";
+
 #pragma warning disable IDE0045 // Convert to conditional expression
         if(attributes.Count > 1)
         {
-            _ = builder.AppendLine("typeof(")
-                .Append(settings.GenericTValueName) *
-                ") == __tag switch {"
-                .AppendJoin(
+            _ = builder * "typeof(" * settings.GenericTValueName * ") == __tag switch {" *
+                (b => b.AppendJoin(
                     attributes,
-                    (b, a, t) => b.Append(a.CorrespondingTag).Append(" => typeof(").AppendFull(a).AppendLine("),"),
-                    cancellationToken) /
-                "_ => ".Append(ConstantSources.InvalidTagStateThrow) /
+                    (b, a, t) => b.WithOperators(builder.CancellationToken) *
+                        a.GetCorrespondingTag(Model) * " => typeof(" * a.Names.FullTypeName % "),",
+                    builder.CancellationToken)) /
+                "_ => " * ConstantSources.InvalidTagStateThrow /
                 "};";
         } else
         {
-            _ = builder.Append("typeof(")
-                .Append(settings.GenericTValueName) *
-                ") == typeof("
-                .AppendFull(attributes[0]) /
-                ");";
+            _ = builder * "typeof(" * settings.GenericTValueName * ") == typeof(" * attributes[0].Names.FullTypeName % ");";
         }
 
-        _ = builder.Append("/// <summary>Determines whether this instance is representing a value of type <typeparamref name=\"")
-            .Append(settings.GenericTValueName).AppendLine("\"/>.</summary>") *
-            "/// <typeparam name=\"").Append(settings.GenericTValueName).AppendLine("\">The type whose representation in this instance to determine.</typeparam>" *
-            "/// <param name=\"value\">If this instance is representing a value of type <typeparamref name=\"" /
-            "\"/>, this parameter will contain that value; otherwise, <see langword=\"default\"/>.</param>" *
-            "/// <returns><see langword=\"true\"/> if this instance is representing a value of type <typeparamref name=\""
-            .Append(settings.GenericTValueName).AppendLine("\"/>; otherwise, <see langword=\"false\"/>.</returns>") *
-            "public global::System.Boolean Is<").Append(settings.GenericTValueName).Append(">(out "
-            .Append(settings.GenericTValueName).AppendLine("? value){");
+        _ = builder *
+            (b => Docs.MethodSummary(b, b => _ = b *
+            "Determines whether this instance is representing a value of type <typeparamref name=\"" * settings.GenericTValueName * "\"/>.",
+            [(Name: "value", Summary: b => _ = b * "If this instance is representing a value of type <typeparamref name=\"" *
+            settings.GenericTValueName *
+            "\"/>, this parameter will contain that value; otherwise, <see langword=\"default\"/>")],
+            [(Name: settings.GenericTValueName, Summary: b => _ = b *
+            "The type whose representation in this instance to determine.")],
+            b => _ = b *
+            "<see langword=\"true\"/> if this instance is representing a value of type <typeparamref name=\"" *
+            settings.GenericTValueName *
+            "\"/>; otherwise, <see langword=\"false\"/>.")) /
+            "public global::System.Boolean Is<" * settings.GenericTValueName * ">(out " * settings.GenericTValueName * "? value){";
 
         if(attributes.Count > 1)
         {
-            _ = builder
-                .AppendSwitchStatement(
-                attributes,
-                (b, t) => b.Append("__tag"),
-                (b, a, t) => b.Append(a.CorrespondingTag) *
-                    " when typeof(").Append(settings.GenericTValueName).Append(") == typeof("
-                    .Append(a.Names.FullTypeName).Append(')'),
-                (b, a, t) => b.Append("value = ").Append(a.Storage.ConvertedInstanceVariableExpressionAppendix, settings.GenericTValueName, t).AppendLine(';') *
-                    "return true;",
-                (b, t) => b.Append("value = default; return false;"),
-                cancellationToken) /
+            _ = builder *
+                (b => Extensions.SwitchStatement(
+                    b,
+                    attributes,
+                    (b) => _ = b * "__tag",
+                    (b, a) => _ = b *
+                        a.GetCorrespondingTag(Model) * " when typeof(" * settings.GenericTValueName * ") == typeof(" * a.Names.FullTypeName * ')',
+                    (b, a) => _ = b *
+                        "value = " * (a.Storage.ConvertedInstanceVariableExpression, settings.GenericTValueName) * ';' * "return true;",
+                    (b) => _ = b *
+                        "value = default; return false;")) /
                 "}";
         } else
         {
-            _ = builder.Append("if(typeof(").Append(settings.GenericTValueName).Append(") == typeof(")
-                .Append(attributes[0].Names.FullTypeName).Append(")){value = ")
-                .Append(attributes[0].Storage.ConvertedInstanceVariableExpressionAppendix, settings.GenericTValueName, cancellationToken) /
+            _ = builder * "if(typeof(" * settings.GenericTValueName * ") == typeof(" * attributes[0].Names.FullTypeName *
+                ")){value = " * (attributes[0].Storage.ConvertedInstanceVariableExpression, settings.GenericTValueName) /
                 "; return true;} value = default; return false;}";
         }
 
@@ -83,49 +70,42 @@ sealed class IsAsFunctions(TargetDataModel model) : ExpansionBase(model, Macro.I
 #pragma warning disable IDE0045 // Convert to conditional expression
         if(attributes.Count > 1)
         {
-            _ = builder.AppendLine("type == __tag switch {")
-                .AppendJoin(
+            _ = builder * "type == __tag switch {" *
+                (b => b.AppendJoin(
                     attributes,
-                    (b, a, t) => b.Append(a.CorrespondingTag).Append(" => typeof(").AppendFull(a).AppendLine("),"),
-                    cancellationToken) /
-                "_ => ".Append(ConstantSources.InvalidTagStateThrow) /
+                    (b, a, t) => b.WithOperators(builder.CancellationToken) *
+                        a.GetCorrespondingTag(Model) * " => typeof(" * a.Names.FullTypeName * "),",
+                    b.CancellationToken)) /
+                "_ => " * ConstantSources.InvalidTagStateThrow %
                 "};";
         } else
         {
-            _ = builder.Append("type == typeof(")
-                .AppendFull(attributes[0]) /
-                ");";
+            _ = builder * "type == typeof(" * attributes[0].Names.FullTypeName % ");";
         }
 
-        _ = builder.Append("public ")
-            .Append(settings.GenericTValueName) *
-            " As<"
-            .Append(settings.GenericTValueName) *
-            ">() => ";
+        _ = builder * "public " * settings.GenericTValueName * " As<" * settings.GenericTValueName * ">() => ";
 
         if(attributes.Count > 1)
         {
-            _ = builder.AppendLine("__tag switch {")
-                .AppendJoin(
+            _ = builder * "__tag switch {" *
+                (b => b.AppendJoin(
                     attributes,
-                    (b, a, t) => b.Append(a.CorrespondingTag).AppendLine(" => typeof(")
-                    .Append(settings.GenericTValueName) *
-                    ") == typeof("
-                    .AppendFull(a).Append(")?").Append(a.Storage.ConvertedInstanceVariableExpressionAppendix, settings.GenericTValueName, t)
-                    .Append(':').AppendInvalidConversionThrow($"typeof({settings.GenericTValueName})", t).AppendLine(','),
-                    cancellationToken) /
-                "_ => ".AppendInvalidConversionThrow($"typeof({settings.GenericTValueName})", cancellationToken) /
+                    (b, a, t) => b.WithOperators(builder.CancellationToken) *
+                        a.GetCorrespondingTag(Model) * " => typeof(" * settings.GenericTValueName * ") == typeof(" *
+                        a.Names.FullTypeName * ")?" * (a.Storage.ConvertedInstanceVariableExpression, settings.GenericTValueName) *
+                        ':' * (Extensions.InvalidConversionThrow, $"typeof({settings.GenericTValueName})") % ',',
+                    b.CancellationToken)) /
+                "_ => " * (Extensions.InvalidConversionThrow, $"typeof({settings.GenericTValueName})") %
                 "};";
         } else
         {
-            _ = builder.Append("typeof(")
-                .Append(settings.GenericTValueName) *
-                ") == typeof("
-                .AppendFull(attributes[0]) /
-                ")?".Append(attributes[0].Storage.ConvertedInstanceVariableExpressionAppendix, settings.GenericTValueName, cancellationToken)
-                .Append(':').AppendInvalidConversionThrow($"typeof({settings.GenericTValueName})", cancellationToken).AppendLine(';');
+            _ = builder * "typeof(" * settings.GenericTValueName * ") == typeof(" *
+                attributes[0].Names.FullTypeName * ")?" *
+                (attributes[0].Storage.ConvertedInstanceVariableExpression, settings.GenericTValueName) *
+                ':' * (Extensions.InvalidConversionThrow, $"typeof({settings.GenericTValueName})") %
+                ';';
         }
 
-        _ = builder.AppendLine("#endregion");
+        _ = builder % "#endregion";
     }
 }

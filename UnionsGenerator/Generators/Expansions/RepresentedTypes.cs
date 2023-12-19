@@ -7,50 +7,42 @@ using System.Threading;
 
 sealed class RepresentedTypes(TargetDataModel model) : ExpansionBase(model, Macro.RepresentedTypes)
 {
-    public override void Expand(ExpandingMacroBuilder builder)
+    protected override void Expand(ExpandingMacroBuilder builder)
     {
         var attributes = Model.Annotations.AllRepresentableTypes;
-        _ = builder.AppendLine("#region GetRepresentedType")
-            .AppendLine(
+        _ = builder * "#region GetRepresentedType" /
+            (Docs.Summary, "Gets the types of value this union type can represent.") *
             """
-            /// <summary>
-            /// Gets types of value this union type can represent.
-            /// </summary>
             public static global::System.Collections.Generic.IReadOnlyList<Type> RepresentableTypes { get; } = 
                 new global::System.Type[]
                 {
-            """)
-            .AppendJoin(
-                ",",
+            """ /
+            (b => b.AppendJoin(
+                ',',
                 attributes,
-                (b, a, t) => b.Append("typeof(").Append(a.Names.FullTypeName).Append(')'),
-                cancellationToken) /
-            "};"
-            .AppendLine(
-            """
-            /// <summary>
-            /// Gets type of value represented by this instance.
-            /// </summary>
-            public Type RepresentedType => 
-            """);
+                (b, a, t) => b.WithOperators(t) *
+                    "typeof(" * a.Names.FullTypeName * ')',
+                b.CancellationToken)) /
+            "};" /
+            (Docs.Summary, "Gets the type of value represented by this instance.") *
+            "public Type RepresentedType => ";
 
 #pragma warning disable IDE0045 // Convert to conditional expression
         if(attributes.Count == 1)
         {
-            _ = builder.Append("typeof(")
-                .AppendFull(attributes[0]) /
-                ");";
+            _ = builder * "typeof(" * attributes[0].Names.FullTypeName * ");";
         } else
         {
-            _ = builder.AppendLine("__tag switch {")
-                .AppendJoin(
+            _ = builder * "__tag switch {" /
+                (b => b.AppendJoin(
                     attributes,
-                    (b, a, t) => b.Append(a.CorrespondingTag).Append(" => typeof(").AppendFull(a).AppendLine("),"),
-                    cancellationToken) *
-                "_ => ".AppendLine(ConstantSources.InvalidTagStateThrow) /
+                    (b, a, t) => b.WithOperators(t) *
+                        a.GetCorrespondingTag(Model) * " => typeof(" * a.Names.FullTypeName % "),",
+                    b.CancellationToken)) *
+                "_ => " * ConstantSources.InvalidTagStateThrow /
                 "};";
         }
 #pragma warning restore IDE0045 // Convert to conditional expression
-        _ = builder.AppendLine("#endregion");
+        _ = builder % "#endregion";
     }
 }

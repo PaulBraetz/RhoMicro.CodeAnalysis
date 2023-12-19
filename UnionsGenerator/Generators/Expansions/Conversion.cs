@@ -17,31 +17,30 @@ static class Conversion
     {
         var omissions = model.OperatorOmissions.AllOmissions;
 
-        var appendices = model.Annotations.AllRepresentableTypes
-            .Where(a => !omissions.Contains(a))
-            .Select(attribute => (Appendix<Macro>)((b, t) => AppendRepresentableTypeConversion(b, attribute, model, t)))
-            .Concat(model.Annotations.Relations
-                .Select(r => r.ExtractData(model))
-                .Select(r => (Appendix<Macro>)((b, t) => AppendRelationConversion(b, r, model, t))))
-            .ToList();
         var result = MacroExpansion.Create(
             Macro.Conversion,
-            (b, t) => b /
-            "#region Conversions"
-            .AppendJoin(
-                appendices,
-                (b, a, t) => b.Append(a, t),
-                t) /
-            "#endregion");
+            (b, t) => b
+                .AppendLine("#region Conversions")
+                .AppendJoin(
+                model.Annotations.AllRepresentableTypes.Where(a => !omissions.Contains(a)),
+                (b, a, t) => b.WithOperators(t) * (b => _representableTypeConversion(b, a, model)),
+                t)
+                .AppendJoin(model.Annotations.Relations.Select(r => r.ExtractData(model)),
+                (b, r, t) =>
+                {
+                    _ = b.WithOperators(t) * (b => _relationConversion(b, r, model));
+                    return b;
+                },
+                t)
+                .AppendLine("#endregion"));
 
         return result;
     }
 
-    static void AppendRepresentableTypeConversion(
-        IExpandingMacroStringBuilder<Macro> builder,
+    static readonly Action<ExpandingMacroBuilder, RepresentableTypeModel, TargetDataModel> _representableTypeConversion = (
+        ExpandingMacroBuilder builder,
         RepresentableTypeModel representableType,
-        TargetDataModel data,
-        CancellationToken cancellationToken)
+        TargetDataModel data) =>
     {
         var model = data.Symbol;
         var allAttributes = data.Annotations.AllRepresentableTypes;
@@ -53,17 +52,10 @@ static class Conversion
         }
 
         _ = builder /
-            "/// <summary>" *
-            "/// Converts an instance of ".AppendCommentRef(representableType) *
-            " to the union type ").AppendCommentRef(data).AppendLine("\"/>." /
-            "/// </summary>" /
-            "/// <param name=\"value\">The value to convert.</param>" /
-            "/// <returns>The converted value.</returns>" *
-            "public static implicit operator "
-            .AppendOpen(model)
-            .Append('(')
-            .AppendFull(representableType) /
-            " value) => new(value);";
+            (b => Docs.MethodSummary(b,
+            b => _ = b * "Converts an instance of " * representableType.DocCommentRef * " to the union type " * data.CommentRef * '.',
+            [(Name: "value", Summary: b => _ = b * "The value to convert.")])) *
+            "public static implicit operator " * model.ToMinimalOpenString() * '(' * representableType.Names.FullTypeName % " value) => new(value);";
 
         var generateSolitaryExplicit =
             allAttributes.Count > 1 ||
@@ -72,53 +64,37 @@ static class Conversion
 
         if(generateSolitaryExplicit)
         {
-            _ = builder /
-                "/// <summary>" *
-                "/// Converts an instance of ".AppendCommentRef(data) *
-                " to the representable type ").AppendCommentRef(representableType).AppendLine("\"/>." /
-                "/// </summary>" /
-                "/// <param name=\"union\">The union to convert.</param>" /
-                "/// <returns>The converted value.</returns>" *
-                "public static explicit operator "
-                .AppendFull(representableType)
-                .Append('(')
-                .AppendOpen(model) *
-                " union) => ";
+            _ = builder *
+                (b => Docs.MethodSummary(b,
+                summary: b => _ = b * "Converts an instance of " * data.CommentRef * " to the representable type " * representableType.CommentRef * "\"/>.",
+                parameters: [(Name: "union", Summary: b => _ = b * "The union to convert.")],
+                returns: b => _ = b * "The converted value.")) *
+                "public static explicit operator " * representableType.Names.FullTypeName * '(' * model.ToMinimalOpenString() * " union) => ";
 
             if(allAttributes.Count > 1)
             {
                 _ = builder *
-                    "union.__tag == ".Append(data.TagTypeName).Append('.')
-                    .Append(representableType.Names.SafeAlias)
-                    .Append('?');
+                    "union.__tag == " * representableType.GetCorrespondingTag(data) * '?';
             }
 
-            _ = builder.Append(representableType.Storage.TypesafeInstanceVariableExpressionAppendix, "union", cancellationToken);
+            _ = builder * (representableType.Storage.TypesafeInstanceVariableExpression, "union");
 
             if(allAttributes.Count > 1)
             {
-                _ = builder
-                    .Append(':')
-                    .AppendInvalidConversionThrow($"typeof({representableType.Names.FullTypeName}).Name", cancellationToken);
+                _ = builder * ':' * (Extensions.InvalidConversionThrow, $"typeof({representableType.Names.FullTypeName}).Name");
             }
 
-            _ = builder.Append(';');
+            _ = builder * ';';
         } else
         {
-            _ = builder.Append("public static implicit operator ")
-                .AppendFull(representableType)
-                .Append('(')
-                .AppendOpen(model) *
-                " union) => "
-                .Append(representableType.Storage.TypesafeInstanceVariableExpressionAppendix, "union", cancellationToken)
-                .AppendLine(';');
+            _ = builder * "public static implicit operator " * representableType.Names.FullTypeName * '(' * model.ToMinimalOpenString() * " union) => " *
+                (representableType.Storage.TypesafeInstanceVariableExpression, "union") % ';';
         }
-    }
-    static void AppendRelationConversion(
-        IExpandingMacroStringBuilder<Macro> builder,
+    };
+    static readonly Action<ExpandingMacroBuilder, RelationTypeModel, TargetDataModel> _relationConversion = (
+        ExpandingMacroBuilder builder,
         RelationTypeModel relation,
-        TargetDataModel model,
-        CancellationToken cancellationToken)
+        TargetDataModel model) =>
     {
         var relationType = relation.RelationType;
 
@@ -139,71 +115,70 @@ static class Conversion
         //conversion to model from relation
         //public static _plicit operator Target(Relation relatedUnion)
         _ = builder *
-            "#region "
-            .Append(relationType switch
+            "#region " * relationType switch
             {
                 RelationType.Congruent => "Congruency with ",
                 RelationType.Intersection => "Intersection with ",
                 RelationType.Superset => "Superset of ",
                 RelationType.Subset => "Subset of ",
                 _ => "Relation"
-            })
-            .AppendLine(relation.Symbol.Name) *
-            "public static "
-            .Append(
-            relationType is RelationType.Congruent or RelationType.Superset ?
-                "im" :
-                "ex") *
-            "plicit operator "
-            .Append(model.Symbol.Name)
-            .Append('(')
-            .AppendFull(relation.Symbol) /
+            } * relation.Symbol.Name / "public static " *
+            (relationType is RelationType.Congruent or RelationType.Superset ?
+            "im" :
+            "ex") * "plicit operator " * model.Symbol.Name * '(' * relation.Symbol.ToFullOpenString() /
             " relatedUnion) =>";
 
-        _ = (targetTypeMap.Count == 1 ?
-            builder.AppendUnknownConversion(
+        if(targetTypeMap.Count == 1)
+        {
+            Extensions.UnknownConversion(
+                builder,
                 model,
                 relationTypeMap.Single().Value,
                 targetTypeMap.Single().Value,
-                "relatedUnion") :
-            builder.AppendTypeSwitchExpression(
+                "relatedUnion");
+        } else
+        {
+            Extensions.TypeSwitchExpression(
+                builder,
                 targetTypeMap,
-                (b, t) => b.AppendFullString((b, t) => b.Append("relatedUnion.RepresentedType"), t),
-                (b, m, t) => b.Append(m.Value.Names.TypeStringName),
-                (b, m, t) => b.AppendUnknownConversion(model, relationTypeMap[m.Key], m.Value, "relatedUnion"),
-                (b, t) => b.AppendInvalidConversionThrow($"typeof({model.Symbol.ToFullOpenString()})", t).AppendLine(),
-                cancellationToken))
-                .AppendLine(';');
+                (b) => _ = b.WithOperators(builder.CancellationToken) * (b => Extensions.UtilFullString(b, b => _ = b * "relatedUnion.RepresentedType")),
+                (b, m) => _ = b * m.Value.Names.TypeStringName,
+                (b, m) => _ = b.WithOperators(builder.CancellationToken) * (b => Extensions.UnknownConversion(b, model, relationTypeMap[m.Key], m.Value, "relatedUnion")),
+                (b) => _ = b.WithOperators(builder.CancellationToken) % (Extensions.InvalidConversionThrow, $"typeof({model.Symbol.ToFullOpenString()})"));
+        }
+
+        _ = builder % ';';
 
         //conversion to relation from model
         //public static _plicit operator Relation(Target relatedUnion)
-        _ = builder.Append("public static ")
-            .Append(
-            relationType is RelationType.Congruent or RelationType.Subset ?
+        _ = builder * "public static " *
+            (relationType is RelationType.Congruent or RelationType.Subset ?
             "im" :
             "ex") *
-            "plicit operator "
-            .AppendFull(relation.Symbol)
-            .Append('(')
-            .Append(model.Symbol.Name) /
-            " union) => ";
+            "plicit operator " * relation.Symbol.ToFullOpenString() * '(' * model.Symbol.Name % " union) => ";
 
-        _ = (relationTypeMap.Count == 1 ?
-            builder.AppendKnownConversion(
+        if(relationTypeMap.Count == 1)
+        {
+            Extensions.KnownConversion(
+                builder,
                 relation,
                 targetTypeMap.Single().Value,
                 relationTypeMap.Single().Value,
-                "union",
-                cancellationToken).AppendLine() :
-            builder.AppendSwitchExpression(
+                "union");
+            _ = builder.AppendLine();
+        } else
+        {
+            Extensions.SwitchExpression(
+                builder,
                 relationTypeMap,
-                (b, t) => b.Append("union.__tag"),
-                (b, kvp, t) => b.Append(targetTypeMap[kvp.Key].CorrespondingTag),
-                (b, kvp, t) => b.AppendKnownConversion(relation, targetTypeMap[kvp.Key], kvp.Value, "union", t),
-                (b, t) => b.AppendInvalidConversionThrow($"typeof({relation.Symbol.ToFullOpenString()})", t).AppendLine(),
-                cancellationToken))
-            .AppendLine(';');
+                (b) => _ = b * "union.__tag",
+                (b, kvp) => _ = b * targetTypeMap[kvp.Key].GetCorrespondingTag(model),
+                (b, kvp) => _ = b * (b => Extensions.KnownConversion(b, relation, targetTypeMap[kvp.Key], kvp.Value, "union")),
+                (b) => _ = b % (Extensions.InvalidConversionThrow, $"typeof({relation.Symbol.ToFullOpenString()})"));
+        }
+
+        _ = builder % ';';
 
         _ = builder.AppendLine("#endregion");
-    }
+    };
 }

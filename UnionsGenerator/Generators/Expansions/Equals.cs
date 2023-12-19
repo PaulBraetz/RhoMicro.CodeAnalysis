@@ -7,54 +7,43 @@ using System.Threading;
 
 sealed class Equals(TargetDataModel model) : ExpansionBase(model, Macro.Equals)
 {
-    public override void Expand(ExpandingMacroBuilder builder)
+    protected override void Expand(ExpandingMacroBuilder builder)
     {
         var target = Model.Symbol;
         var attributes = Model.Annotations;
 
-        _ = builder /
-            "#region Equality" *
-            "public override Boolean Equals(Object obj) => obj is "
-            .AppendOpen(target).AppendLine(" union && Equals(union);") *
-            "public Boolean Equals("
-            .AppendOpen(target).AppendLine(" obj) =>");
+        _ = builder *
+            "#region Equality" /
+            Docs.Inherit *
+            "public override Boolean Equals(Object obj) => obj is " * target.ToMinimalOpenString() * " union && Equals(union);" /
+            Docs.Inherit *
+            "public Boolean Equals(" * target.ToMinimalOpenString() % " obj) =>";
 
         if(target.IsReferenceType)
-            _ = builder.Append(" obj != null && ");
+            _ = builder * " obj != null && ";
 
         if(attributes.AllRepresentableTypes.Count > 1)
         {
-            _ = builder.AppendLine(" __tag == obj.__tag && __tag switch{")
+            _ = (builder % " __tag == obj.__tag && __tag switch{")
                 .AppendJoin(
                     attributes.AllRepresentableTypes,
-                    (b, a, t) => b.Append(a.CorrespondingTag) *
-                        " => "
-                        .Append(a.Storage.EqualsInvocationAppendix, "obj", t)
-                        .AppendLine(','),
-                    cancellationToken) *
-                "_ => ".Append(ConstantSources.InvalidTagStateThrow)
-                .Append('}');
+                    (b, a, t) => b.WithOperators(builder.CancellationToken) *
+                        a.GetCorrespondingTag(Model) * " => " * (a.Storage.EqualsInvocation, "obj") % ',',
+                    builder.CancellationToken).WithOperators(builder.CancellationToken) *
+                "_ => " * ConstantSources.InvalidTagStateThrow * '}';
         } else if(attributes.AllRepresentableTypes.Count == 1)
         {
-            _ = builder.Append(attributes.AllRepresentableTypes[0].Storage.EqualsInvocationAppendix, "obj", cancellationToken);
+            _ = builder * (attributes.AllRepresentableTypes[0].Storage.EqualsInvocation, "obj");
         }
 
-        _ = builder.AppendLine(';');
+        _ = builder % ';';
 
         if(Model.Symbol.IsValueType)
         {
-            _ = builder.Append("public static Boolean operator ==(")
-                .Append(Model.Symbol.Name) *
-                " a, "
-                .Append(Model.Symbol.Name) /
-                " b) => a.Equals(b);" *
-                "public static Boolean operator !=("
-                .Append(Model.Symbol.Name) *
-                " a, "
-                .Append(Model.Symbol.Name) /
-                " b) => !(a == b);";
+            _ = builder * "public static Boolean operator ==(" * Model.Symbol.Name * " a, " * Model.Symbol.Name * " b) => a.Equals(b);" /
+                "public static Boolean operator !=(" * Model.Symbol.Name * " a, " * Model.Symbol.Name / " b) => !(a == b);";
         }
 
-        _ = builder.AppendLine("#endregion");
+        _ = builder % "#endregion";
     }
 }

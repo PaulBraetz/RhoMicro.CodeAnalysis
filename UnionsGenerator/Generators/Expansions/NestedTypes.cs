@@ -10,28 +10,22 @@ sealed class NestedTypes(TargetDataModel model)
 {
     protected override void Expand(ExpandingMacroBuilder builder)
     {
-        _ = builder +
+        _ = builder % 
             "#region Nested Types";
 
         var representableTypes = Model.Annotations.AllRepresentableTypes;
         if(representableTypes.Count > 1)
         {
-            _ = (builder -
-                """
-                /// <summary>Defines tags to discriminate between representable types.</summary>
-                [global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]
-                enum 
-                """ +
-                Model.TagTypeName -
-                " : Byte {")
+            _ = (builder *
+                (Docs.Summary, "Defines tags to discriminate between representable types.") *
+                ConstantSources.EditorBrowsableNever /
+                "enum " * Model.TagTypeName % " : Byte {")
                 .AppendJoin(
                     ',',
                     representableTypes,
-                    (b, a, t) => b.GetOperators<Macro, TargetDataModel>(builder.CancellationToken) +
-                        "/// <summary>" +
-                        "Used when representing an instance of " +
-                        a.DocCommentRef -
-                        ".</summary>" -
+                    (b, a, t) => b.WithOperators(t) *
+                        (Docs.Summary, b => _ = b *
+                        "Used when representing an instance of " * a.DocCommentRef * '.') *
                         a.Names.SafeAlias)
                 .Append('}');
         }
@@ -39,8 +33,8 @@ sealed class NestedTypes(TargetDataModel model)
         var host = new StrategySourceHost(Model);
         representableTypes.ForEach(t => t.Storage.Visit(host));
 
-        _ = builder +
-            host.ValueTypeContainerTypeAppendix -
+        _ = builder *
+            host.ValueTypeContainerType %
             "#endregion";
     }
 }

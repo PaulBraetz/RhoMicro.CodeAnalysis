@@ -8,7 +8,7 @@ static partial class ExpandingMacroStringBuilder
     /// Decorates an expanding macro string builder with operators for ease of use.
     /// </summary>
     /// <typeparam name="TMacro">The type of macro to support.</typeparam>
-    public partial class OperatorsDecorator<TMacro> : OperatorsDecoratorBase<TMacro, OperatorsDecorator<TMacro>>
+    public sealed partial class OperatorsDecorator<TMacro> : OperatorsDecoratorBase<TMacro, OperatorsDecorator<TMacro>>
     {
         private OperatorsDecorator(IExpandingMacroStringBuilder<TMacro> decorated, CancellationToken cancellationToken) : base(decorated, cancellationToken)
         {
@@ -31,7 +31,7 @@ static partial class ExpandingMacroStringBuilder
     /// </summary>
     /// <typeparam name="TMacro">The type of macro to support.</typeparam>
     /// <typeparam name="TModel">The type of model to support appendices for.</typeparam>
-    public partial class OperatorsDecorator<TMacro, TModel> : OperatorsDecoratorBase<TMacro, OperatorsDecorator<TMacro, TModel>>
+    public sealed partial class OperatorsDecorator<TMacro, TModel> : OperatorsDecoratorBase<TMacro, OperatorsDecorator<TMacro, TModel>>
     {
         private OperatorsDecorator(IExpandingMacroStringBuilder<TMacro> decorated, CancellationToken cancellationToken) : base(decorated, cancellationToken)
         {
@@ -50,41 +50,86 @@ static partial class ExpandingMacroStringBuilder
         protected override OperatorsDecorator<TMacro, TModel> GetSelf() => this;
 
         /// <summary>
-        /// Appends an appendix to the builder wrapped by the decorator provided.
-        /// </summary>
-        /// <param name="decorator">The decorator wrapping a builder.</param>
-        /// <param name="value">
-        /// The appendix to append to the builder wrapped by the decorator, as well as the model to provide to it.
-        /// </param>
-        /// <returns>A reference to the decorator.</returns>
-        public static OperatorsDecorator<TMacro, TModel> operator +(OperatorsDecorator<TMacro, TModel> decorator, (Appendix<TMacro, TModel> appendix, TModel model) value)
-        {
-            _ = decorator.Decorated.Append(value.appendix, value.model, decorator.CancellationToken);
-            return decorator;
-        }
-        /// <summary>
-        /// Appends an appendix, followed by a new line, to the builder wrapped by the decorator provided.
-        /// </summary>
-        /// <param name="decorator">The decorator wrapping a builder.</param>
-        /// <param name="value">
-        /// The appendix to append to the builder wrapped by the decorator, as well as the model to provide to it.
-        /// </param>
-        /// <returns>A reference to the decorator.</returns>
-        public static OperatorsDecorator<TMacro, TModel> operator -(OperatorsDecorator<TMacro, TModel> decorator, (Appendix<TMacro, TModel> appendix, TModel model) value)
-        {
-            _ = decorator.Decorated.Append(value.appendix, value.model, decorator.CancellationToken).AppendLine();
-            return decorator;
-        }
-        /// <summary>
         /// Applies a method to a decorator.
         /// </summary>
         /// <param name="decorator">The decorator to apply a method to.</param>
         /// <param name="action">The method to apply to the decorator.</param>
         /// <returns>A reference to the decorator.</returns>
-        public static OperatorsDecorator<TMacro, TModel> operator +(OperatorsDecorator<TMacro, TModel> decorator, Action<OperatorsDecorator<TMacro, TModel>> action)
+        public static OperatorsDecorator<TMacro, TModel> operator *(OperatorsDecorator<TMacro, TModel> decorator, Action<OperatorsDecorator<TMacro, TModel>> action)
         {
             action.Invoke(decorator);
             return decorator;
+        }
+        /// <summary>
+        /// Applies a sequence of methods to a decorator.
+        /// </summary>
+        /// <param name="decorator">The decorator to apply a method to.</param>
+        /// <param name="actions">The methods to apply to the decorator.</param>
+        /// <returns>A reference to the decorator.</returns>
+        public static OperatorsDecorator<TMacro, TModel> operator *(OperatorsDecorator<TMacro, TModel> decorator, IEnumerable<Action<OperatorsDecorator<TMacro, TModel>>> actions)
+        {
+            foreach(var a in actions)
+            {
+                a.Invoke(decorator);
+            }
+
+            return decorator.GetSelf();
+        }
+        /// <summary>
+        /// Applies a method to a decorator, appending a new line before applying the method.
+        /// </summary>
+        /// <param name="decorator">The decorator to apply a method to.</param>
+        /// <param name="action">The method to apply to the decorator.</param>
+        /// <returns>A reference to the decorator.</returns>
+        public static OperatorsDecorator<TMacro, TModel> operator /(OperatorsDecorator<TMacro, TModel> decorator, Action<OperatorsDecorator<TMacro, TModel>> action)
+        {
+            _ = decorator.AppendLine();
+            action.Invoke(decorator);
+            return decorator;
+        }
+        /// <summary>
+        /// Applies a sequence of methods to a decorator, appending a new line before applying a method.
+        /// </summary>
+        /// <param name="decorator">The decorator to apply a method to.</param>
+        /// <param name="actions">The methods to apply to the decorator.</param>
+        /// <returns>A reference to the decorator.</returns>
+        public static OperatorsDecorator<TMacro, TModel> operator /(OperatorsDecorator<TMacro, TModel> decorator, IEnumerable<Action<OperatorsDecorator<TMacro, TModel>>> actions)
+        {
+            foreach(var a in actions)
+            {
+                _ = decorator.AppendLine();
+                a.Invoke(decorator);
+            }
+
+            return decorator.GetSelf();
+        }
+        /// <summary>
+        /// Applies a method to a decorator, appending a new line after applying the method.
+        /// </summary>
+        /// <param name="decorator">The decorator to apply a method to.</param>
+        /// <param name="action">The method to apply to the decorator.</param>
+        /// <returns>A reference to the decorator.</returns>
+        public static OperatorsDecorator<TMacro, TModel> operator %(OperatorsDecorator<TMacro, TModel> decorator, Action<OperatorsDecorator<TMacro, TModel>> action)
+        {
+            action.Invoke(decorator);
+            _ = decorator.AppendLine();
+            return decorator;
+        }
+        /// <summary>
+        /// Applies a sequence of methods to a decorator, appending a new line after applying a method.
+        /// </summary>
+        /// <param name="decorator">The decorator to apply a method to.</param>
+        /// <param name="actions">The methods to apply to the decorator.</param>
+        /// <returns>A reference to the decorator.</returns>
+        public static OperatorsDecorator<TMacro, TModel> operator %(OperatorsDecorator<TMacro, TModel> decorator, IEnumerable<Action<OperatorsDecorator<TMacro, TModel>>> actions)
+        {
+            foreach(var a in actions)
+            {
+                a.Invoke(decorator);
+                _ = decorator.AppendLine();
+            }
+
+            return decorator.GetSelf();
         }
     }
 }

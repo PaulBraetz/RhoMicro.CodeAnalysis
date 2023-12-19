@@ -8,29 +8,20 @@ using System.Threading;
 sealed class Constructors(TargetDataModel model) : ExpansionBase(model, Macro.Constructors)
 {
     protected override void Expand(ExpandingMacroBuilder builder)
-    {
-        var target = Model.Symbol;
-        var annotations = Model.Annotations;
-
-        _ = builder.AppendLine("#region Constructors")
-            .AppendJoin(annotations.AllRepresentableTypes, (b, e, t) =>
+    => _ = (builder % "#region Constructors")
+            .AppendJoin(Model.Annotations.AllRepresentableTypes, (b, e, t) =>
             {
+                var ops = b.WithOperators(builder.CancellationToken);
                 var accessibility = Model.GetSpecificAccessibility(e);
 
-                _ = (b.GetOperators(builder.CancellationToken) +
-                    accessibility + ' ' + target.Name + '(')
-                    .AppendFull(e) /
-                    " value){";
+                _ = ops * accessibility * ' ' * Model.Symbol.Name * '(' * e.Names.FullTypeName % " value){";
 
-                if(annotations.AllRepresentableTypes.Count > 1)
-                    _ = b.Append("__tag = ").Append(e.GetCorrespondingTag(Model)).AppendLine(';');
-                var result = b.Append(
-                    e.Storage.InstanceVariableAssignmentExpressionAppendix,
-                    ("value", "this")
-                    , builder.CancellationToken) /
-                    ";}";
+                if(Model.Annotations.AllRepresentableTypes.Count > 1)
+                    _ = ops * "__tag = " * e.GetCorrespondingTag(Model) % ';';
 
-                return result;
-            }, builder.CancellationToken).AppendLine("#endregion");
-    }
+                _ = ops * (b => e.Storage.InstanceVariableAssignmentExpression(b, "value", "this")) % ";}";
+
+                return ops;
+            }, builder.CancellationToken)
+        .WithOperators(builder.CancellationToken) % "#endregion";
 }

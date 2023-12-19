@@ -8,78 +8,70 @@ using System.Threading;
 
 static class ToStringFunction
 {
-    private static void AppendDetailed(ExpandingMacroBuilder builder, TargetDataModel model)
+    private static void DetailedImpl(ExpandingMacroBuilder builder, TargetDataModel model)
     {
         var target = model.Symbol;
         var attributes = model.Annotations.AllRepresentableTypes;
 
-        _ = builder -
-            "#region ToString" -
-             "#nullable enable" +
-             (Extensions.DocCommentAppendix, "Returns a string representation of the current instance.") -
-            "public override String? ToString(){var stringRepresentation = " +
+        _ = builder *
+            "#region ToString" /
+            "#nullable enable" /
+            (Docs.Summary, "Returns a string representation of the current instance.") *
+            "public override String? ToString(){var stringRepresentation = " *
             (SimpleToStringExpressionAppendix, model);
 
         _ = builder * "; var result = $\"" * target.Name * '(';
 
         _ = (attributes.Count == 1 ?
             builder * '<' * attributes[0].Names.SimpleTypeName * '>' :
-            builder.AppendJoin(
-                " | ",
+            builder * (b => b.AppendJoin(
+                '|',
                 attributes,
-                (b, a, t) => b.GetOperators(t) *
-                    "{(" *
-                    "__tag == " *
-                    a.GetCorrespondingTag(model) *
-                    '?' *
-                    "\"<").Append(a.Names.SafeAlias).Append(">\"".Append(':')
-                    .Append('\"').Append(a.Names.SafeAlias).Append("\")}"),
-                cancellationToken)) *
-            "){{{stringRepresentation}}}\"; return result;}" /
-            "#nullable restore" /
+                (b, a, t) => b.WithOperators(t) *
+                    "{(" * "__tag == " * a.GetCorrespondingTag(model) * '?' *
+                    "\"<" * a.Names.SafeAlias * ">\"" * ':' *
+                    '\"' * a.Names.SafeAlias * "\")}",
+                builder.CancellationToken))) %
+            "){{{stringRepresentation}}}\"; return result;}" %
+            "#nullable restore" %
             "#endregion";
     }
-    private static void AppendSimple(IExpandingMacroStringBuilder<Macro> builder, TargetDataModel model, CancellationToken cancellationToken)
+    private static void SimpleImpl(ExpandingMacroBuilder builder, TargetDataModel model)
     {
-        _ = builder.Append("#nullable enable") /
-            "/// <summary>" /
-            "/// Returns a string representation of the current instance." /
-            "/// </summary>" *
+        _ = builder *
+            "#nullable enable" /
+            (Docs.Summary, "Returns a string representation of the current instance.") *
             "public override String? ToString() => ";
 
-        SimpleToStringExpressionAppendix(builder, model, cancellationToken);
+        SimpleToStringExpressionAppendix(builder, model);
 
-        _ = builder.AppendLine(';') /
-            "#nullable restore";
+        _ = builder % ';' % "#nullable restore";
     }
-    private static void AppendNone(IExpandingMacroStringBuilder<Macro> _0, TargetDataModel _1, CancellationToken _2) { }
 
-    private static void SimpleToStringExpressionAppendix(IExpandingMacroStringBuilder<Macro> builder, TargetDataModel model, CancellationToken cancellationToken)
+    private static void SimpleToStringExpressionAppendix(ExpandingMacroBuilder builder, TargetDataModel model)
     {
         var attributes = model.Annotations;
 
         _ = attributes.AllRepresentableTypes.Count == 1 ?
-            builder.Append(attributes.AllRepresentableTypes[0].Storage.ToStringInvocationAppendix, cancellationToken) :
-            builder.Append("__tag switch{")
-                .AppendJoin(
-                attributes.AllRepresentableTypes,
-                (b, a, t) => b.Append(a.CorrespondingTag) *
-                    " => ".Append(a.Storage.ToStringInvocationAppendix, t)
-                    .AppendLine(','),
-                cancellationToken) *
-                "_ => ".AppendLine(ConstantSources.InvalidTagStateThrow)
-                .AppendLine('}');
+            builder * attributes.AllRepresentableTypes[0].Storage.ToStringInvocation :
+            builder * "__tag switch{" *
+                (b => b.AppendJoin(
+                    attributes.AllRepresentableTypes,
+                    (b, a, t) => b.WithOperators(t) *
+                        a.GetCorrespondingTag(model) * " => " * a.Storage.ToStringInvocation * ',',
+                b.CancellationToken)) *
+                "_ => " * ConstantSources.InvalidTagStateThrow / '}';
     }
 
     public static IMacroExpansion<Macro> Create(TargetDataModel model)
     {
-        Appendix<Macro, TargetDataModel> appendix = model.Annotations.Settings.ToStringSetting switch
+        Action<ExpandingMacroBuilder, TargetDataModel> appendix = model.Annotations.Settings.ToStringSetting switch
         {
-            ToStringSetting.Simple => AppendSimple,
-            ToStringSetting.Detailed => AppendDetailed,
-            _ => AppendNone
+            ToStringSetting.Simple => SimpleImpl,
+            ToStringSetting.Detailed => DetailedImpl,
+            _ => static (b, m) => { } //append none
         };
-        var result = MacroExpansion.Create(Macro.ToString, (b, t) => appendix.Invoke(b, model, t));
+        var result = MacroExpansion.Create(Macro.ToString, (b, t) => appendix.Invoke(b.WithOperators(t), model));
 
         return result;
     }

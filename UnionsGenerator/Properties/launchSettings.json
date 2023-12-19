@@ -1,8 +1,8 @@
 {
   "profiles": {
-    "Profile 1": {
+    "Tests": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\TestApp\\TestApp.csproj"
+      "targetProject": "..\\UtilityGenerators.Library.Tests\\UtilityGenerators.Library.Tests.csproj"
     }
   }
 }

@@ -22,10 +22,10 @@ public sealed class Analyzer : DiagnosticAnalyzer
         context.EnableConcurrentExecution();
         context.RegisterSyntaxNodeAction(static c =>
         {
-            if(c.IsGeneratedCode || c.Node is not TypeDeclarationSyntax targetDeclaration)
+            if(!Util.IsSymbolCandidate(c.Node, c.SemanticModel))
                 return;
 
-            var model = TargetDataModel.Create(targetDeclaration, c.SemanticModel);
+            var model = TargetDataModel.Create((TypeDeclarationSyntax)c.Node, c.SemanticModel);
 
             DiagnosticsAccumulator.Create(model)
                 .DiagnoseNonHiddenSeverities()

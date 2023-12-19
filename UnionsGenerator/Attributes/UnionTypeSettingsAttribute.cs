@@ -38,9 +38,10 @@ enum ToStringSetting
 /// Defines settings for annotating the target with an instance of <see cref="System.Runtime.InteropServices.StructLayoutAttribute"/>.
 /// </summary>
 enum LayoutSetting
-{    /// <summary>
-     /// Generate an annotation optimized for size.
-     /// </summary>
+{
+    /// <summary>
+    /// Generate an annotation optimized for size.
+    /// </summary>
     Small,
     /// <summary>
     /// Do not generate any annotations.

@@ -7,52 +7,40 @@ using System.Threading;
 
 sealed class Factories(TargetDataModel model) : ExpansionBase(model, Macro.Factories)
 {
-    public override void Expand(ExpandingMacroBuilder builder)
+    protected override void Expand(ExpandingMacroBuilder builder)
     {
         var representableTypes = Model.Annotations.AllRepresentableTypes;
         var target = Model.Symbol;
         var settings = Model.Annotations.Settings;
 
-        _ = builder /
-            "#region Factories"
+        _ = (builder % "#region Factories")
             .AppendJoin(
                 representableTypes,
-                (b, a, t) => b *
-                    "public static ").AppendOpen(target).Append(" Create(").AppendFull(a).AppendLine(" value) => new(value);" /
-                    "/// <summary>" *
-                    "/// Creates a new instance of ").AppendCommentRef(target).AppendLine("." /
-                    "/// </summary>" *
-                    "public static ".AppendOpen(target).Append(' ').Append(a.Names.CreateFromFunctionName).Append('(')
-                    .AppendFull(a).AppendLine(" value) => new(value);"),
-                cancellationToken) *
-            "public static Boolean TryCreate<"
-            .Append(settings.GenericTValueName) *
-            ">("
-            .Append(settings.GenericTValueName) *
-            " value, out ").AppendOpen(target).AppendLine(" instance){"
-            .AppendTypeSwitchStatement(
+                (b, a, t) => b.WithOperators(t) *
+                    (Docs.Summary, b => _ = b * "Creates a new instance of " * target.CommentRef * ".") /
+                    "public static " * target.ToMinimalOpenString() * " Create(" * a.Names.FullTypeName * " value) => new(value);" /
+                    (Docs.Summary, b => _ = b * "Creates a new instance of " * target.CommentRef * ".") /
+                    "public static " * target.ToMinimalOpenString() * ' ' * a.Names.CreateFromFunctionName * '(' * a.Names.FullTypeName % " value) => new(value);")
+            .WithOperators(builder.CancellationToken) *
+            "public static Boolean TryCreate<" * settings.GenericTValueName * ">(" *
+            settings.GenericTValueName * " value, out " * target.ToMinimalOpenString() %
+            " instance){" * (b => Extensions.TypeSwitchStatement(
+                b,
                 representableTypes,
-                (b, t) => b.AppendFullString((b, t) => b.Append("typeof(").Append(settings.GenericTValueName).Append(')'), t),
-                static t => t.Names,
-                (b, v, t) => b.Append("instance = new(")
-                    .AppendUnsafeConvert(settings.GenericTValueName, v.Names.FullTypeName, "value", t) *
-                    ");return true;",
-                static (b, t) => b.Append("instance = default; return false;"),
-                cancellationToken)
-            .AppendLine('}') *
-            "public static ").AppendOpen(target).AppendLine(" Create<"
-            .Append(settings.GenericTValueName) *
-            ">("
-            .Append(settings.GenericTValueName) /
-            " value){"
-            .AppendTypeSwitchStatement(
-                representableTypes,
-                (b, t) => b.AppendFullString((b, t) => b.Append("typeof(").Append(settings.GenericTValueName).Append(')'), t),
+                b => _ = b * (b => Extensions.UtilFullString(b, (b) => _ = b * "typeof(" * settings.GenericTValueName * ')')),
                 t => t.Names,
-                (b, v, t) => b.Append("return new(").AppendUnsafeConvert(settings.GenericTValueName, v.Names.FullTypeName, "value", t).Append(");"),
-                (b, t) => b.AppendInvalidCreationThrow($"\"{target.ToFullOpenString()}\"", "value", t).Append(';'),
-                cancellationToken)
-            .AppendLine('}') /
+                (b, v) => _ = b * "instance = new(" * (b => Extensions.UtilUnsafeConvert(b, settings.GenericTValueName, v.Names.FullTypeName, "value")) * ");return true;",
+                b => _ = b * "instance = default; return false;")) * '}' /
+            "public static " * target.ToMinimalOpenString() * " Create<" * settings.GenericTValueName * ">(" *
+            settings.GenericTValueName * " value){" *
+            (b => Extensions.TypeSwitchStatement(
+                b,
+                representableTypes,
+                b => _ = b * (b => Extensions.UtilFullString(b, b => _ = b * "typeof(" * settings.GenericTValueName * ')')),
+                t => t.Names,
+                (b, v) => _ = b * "return new(" * (b => Extensions.UtilUnsafeConvert(b, settings.GenericTValueName, v.Names.FullTypeName, "value")) * ");",
+                b => _ = b * (b => Extensions.InvalidCreationThrow(b, $"\"{target.ToFullOpenString()}\"", "value")) * ';')) %
+            '}' %
             "#endregion";
     }
 }

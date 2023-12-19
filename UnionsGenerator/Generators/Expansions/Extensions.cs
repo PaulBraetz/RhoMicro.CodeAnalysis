@@ -6,11 +6,64 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using RhoMicro.CodeAnalysis.UtilityGenerators.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Generators;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
-
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Transactions;
 
+static class Docs
+{
+    public static void Inherit(ExpandingMacroBuilder builder) =>
+        _ = builder % "/// <inheritdoc/>";
+
+    public static void Summary(ExpandingMacroBuilder builder, Action<ExpandingMacroBuilder> summary) =>
+        _ = builder *
+            "/// <summary>" /
+            "/// " % summary %
+            "/// </summary>";
+    public static void Summary(ExpandingMacroBuilder builder, String summary) =>
+        _ = builder *
+            "/// <summary>" /
+            "/// " % summary %
+            "/// </summary>";
+    public static void Summary(ExpandingMacroBuilder builder, Action<ExpandingMacroBuilder> summary, Action<ExpandingMacroBuilder> returns) =>
+        _ = builder *
+            (Summary, summary) *
+            "/// <returns>" /
+            "/// " % returns %
+            "/// </returns>";
+    public static void Summary(ExpandingMacroBuilder builder, Action<ExpandingMacroBuilder> summary, IEnumerable<(String Name, Action<ExpandingMacroBuilder> Summary)> typeParameters) =>
+        _ = builder *
+            (Summary, summary) *
+            typeParameters.Select(p => (Action<ExpandingMacroBuilder>)(b => _ = b *
+            "/// <typeparam name=\"" * p.Name * "\">" /
+            "/// " % p.Summary %
+            "/// </typeparam>"));
+
+    public static void MethodSummary(ExpandingMacroBuilder builder, Action<ExpandingMacroBuilder> summary, IEnumerable<(String Name, Action<ExpandingMacroBuilder> Summary)> parameters) =>
+        _ = builder *
+            (Summary, summary) *
+            parameters.Select(p => (Action<ExpandingMacroBuilder>)(b => _ = b *
+            "/// <param name=\"" * p.Name * "\">" /
+            "/// " % p.Summary %
+            "/// </param>"));
+    public static void MethodSummary(ExpandingMacroBuilder builder, Action<ExpandingMacroBuilder> summary, IEnumerable<(String Name, Action<ExpandingMacroBuilder> Summary)> parameters, IEnumerable<(String Name, Action<ExpandingMacroBuilder> Summary)> typeParameters) =>
+        _ = builder *
+            (Summary, summary, typeParameters) *
+            parameters.Select(p => (Action<ExpandingMacroBuilder>)(b => _ = b *
+            "/// <param name=\"" * p.Name * "\">" /
+            "/// " % p.Summary %
+            "/// </param>"));
+    public static void MethodSummary(ExpandingMacroBuilder builder, Action<ExpandingMacroBuilder> summary, IEnumerable<(String Name, Action<ExpandingMacroBuilder> Summary)> parameters, Action<ExpandingMacroBuilder> returns) =>
+        _ = builder *
+            (b => MethodSummary(b, summary, parameters)) *
+            "/// <returns>" /
+            "/// " % returns %
+            "/// </returns>";
+    public static void MethodSummary(ExpandingMacroBuilder builder, Action<ExpandingMacroBuilder> summary, IEnumerable<(String Name, Action<ExpandingMacroBuilder> Summary)> parameters, IEnumerable<(String Name, Action<ExpandingMacroBuilder> Summary)> typeParameters, Action<ExpandingMacroBuilder> returns) =>
+        _ = builder *
+            (b => MethodSummary(b, summary, parameters, typeParameters)) *
+            "/// <returns>" /
+            "/// " % returns %
+            "/// </returns>";
+}
 internal static class Extensions
 {
     public static void ForEach<T>(this IEnumerable<T> values, Action<T> handler)
@@ -56,7 +109,7 @@ internal static class Extensions
             var members = symbol.GetMembers();
             foreach(var member in members)
             {
-                if(member is IFieldSymbol field)
+                if(member is IFieldSymbol field && !field.IsStatic)
                 {
                     //is field type uninitialized in cache?
                     if(!_valueTypeCache.ContainsKey(field.Type))
@@ -177,50 +230,6 @@ internal static class Extensions
                     .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted);
     public static String ToTypeString(this ITypeSymbol symbol) => symbol.ToDisplayString(_toTypeStringFormat);
 
-    public static String GetContainingClassHead(this ITypeSymbol nestedType)
-    {
-        var resultBuilder = new StringBuilder();
-        var headers = getContainingTypes(nestedType)
-            .Select(s => s.TypeKind switch
-            {
-                TypeKind.Class => "class ",
-                TypeKind.Struct => "struct ",
-                TypeKind.Interface => "interface ",
-                _ => null
-            } + s.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.WithGenericsOptions(SymbolDisplayGenericsOptions.IncludeTypeParameters)))
-            .Where(k => k != null)
-            .Aggregate(
-                resultBuilder,
-                (b, s) => b.Append("partial ").Append(s).Append('{'));
-
-        var result = resultBuilder.ToString();
-
-        return result;
-
-        static IEnumerable<ITypeSymbol> getContainingTypes(ITypeSymbol symbol)
-        {
-            if(symbol.ContainingType != null)
-                return getContainingTypes(symbol.ContainingType).Append(symbol.ContainingType);
-
-            return Array.Empty<ITypeSymbol>();
-        }
-    }
-    public static String GetContainingClassTail(this ITypeSymbol nestedType)
-    {
-        var resultBuilder = new StringBuilder();
-        var containingType = nestedType.ContainingType;
-        while(containingType != null)
-        {
-            _ = resultBuilder.Append('}');
-
-            containingType = containingType.ContainingType;
-        }
-
-        var result = resultBuilder.ToString();
-
-        return result;
-    }
-
     //source: https://stackoverflow.com/a/58853591
     private static readonly Regex _camelCasePattern =
         new(@"([A-Z])([A-Z]+|[a-z0-9_]+)($|[A-Z]\w*)", RegexOptions.Compiled);
@@ -243,8 +252,9 @@ internal static class Extensions
     {
         var result = value.ToCamelCase();
         if(result.StartsWith("__"))
+        {
             return result;
-        else if(result.StartsWith("_"))
+        } else if(result.StartsWith("_"))
         {
             return $"_{result}";
         }
@@ -278,20 +288,10 @@ internal static class Extensions
     public static Boolean IsPartial(this TypeDeclarationSyntax declarationSyntax) =>
         declarationSyntax.Modifiers.Any(SyntaxKind.PartialKeyword);
 
-    public static ExpandingMacroBuilder GetOperators(this IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken) =>
-        builder.GetOperators<Macro, TargetDataModel>(cancellationToken);
+    public static ExpandingMacroBuilder WithOperators(this IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken) =>
+        builder.WithOperators<Macro, TargetDataModel>(cancellationToken);
 
-    public static void DocCommentAppendix(ExpandingMacroBuilder builder, String summary)
-    {
-        _ = summary.Contains('\n') ?
-            builder *
-            "/// <summary>" /
-            "/// " * summary /
-            "</summary>" :
-            builder * "/// <summary>" * summary / "</summary>";
-    }
-
-    public static ExpandingMacroBuilder AppendContainingClassHead(this ExpandingMacroBuilder builder, ITypeSymbol nestedType)
+    public static void ContainingClassHead(ExpandingMacroBuilder builder, ITypeSymbol nestedType)
     {
         var headers = getContainingTypes(nestedType)
             .Select(s => s.TypeKind switch
@@ -304,9 +304,7 @@ internal static class Extensions
             .Where(k => k != null)
             .Aggregate(
                 builder,
-                (b, s) => b.Append("partial ").Append(s).AppendLine('{'));
-
-        return builder;
+                (b, s) => b * "partial " * s % '{');
 
         static IEnumerable<ITypeSymbol> getContainingTypes(ITypeSymbol symbol)
         {
@@ -318,158 +316,116 @@ internal static class Extensions
             }
         }
     }
-    public static ExpandingMacroBuilder AppendContainingClassTail(this ExpandingMacroBuilder builder, ITypeSymbol nestedType)
+    public static void ContainingClassTail(ExpandingMacroBuilder builder, ITypeSymbol nestedType)
     {
         var containingType = nestedType.ContainingType;
         while(containingType != null)
         {
-            _ = builder.AppendLine('}');
+            _ = builder % '}';
 
             containingType = containingType.ContainingType;
         }
-
-        return builder;
     }
 
-    public static ExpandingMacroBuilder AppendFull(this ExpandingMacroBuilder builder, RepresentableTypeModel data) => builder + data.Names.FullTypeName;
-    public static ExpandingMacroBuilder AppendFull(this ExpandingMacroBuilder builder, ISymbol symbol) =>
-        builder.Append(symbol.ToFullOpenString());
-    public static ExpandingMacroBuilder AppendOpen(this ExpandingMacroBuilder builder, ISymbol symbol) =>
-        builder.Append(symbol.ToMinimalOpenString());
-    public static ExpandingMacroBuilder AppendCommentRef(this ExpandingMacroBuilder builder, ISymbol symbol) =>
-        builder.Append("<see cref=\"").Append(symbol.ToFullOpenString().Replace('<', '{').Replace('>', '}')).Append("\"/>");
-    public static ExpandingMacroBuilder AppendCommentRef(this ExpandingMacroBuilder builder, RepresentableTypeModel data) =>
-        builder.Append(data.DocCommentRef);
-    public static ExpandingMacroBuilder AppendCommentRef(this ExpandingMacroBuilder builder, TargetDataModel data) =>
-        builder.AppendCommentRef(data.Symbol);
+    public static void CommentRef(this ISymbol symbol, ExpandingMacroBuilder builder) =>
+        _ = builder * "<see cref=\"" * symbol.ToFullOpenString().Replace('<', '{').Replace('>', '}') * "\"/>";
+    public static void CommentRef(this RepresentableTypeModel data, ExpandingMacroBuilder builder) =>
+        _ = builder * data.DocCommentRef;
+    public static void CommentRef(this TargetDataModel data, ExpandingMacroBuilder builder) =>
+        data.Symbol.CommentRef(builder);
 
-    public static ExpandingMacroBuilder AppendSwitchExpression<T>(
-    this ExpandingMacroBuilder builder,
+    public static void SwitchExpression<T>(
+    ExpandingMacroBuilder builder,
     IReadOnlyCollection<T> values,
-    Appendix<Macro> value,
-    Appendix<Macro, T> @case,
-    Appendix<Macro, T> body,
-    Appendix<Macro> defaultBody,
-    CancellationToken cancellationToken) =>
-       builder.Append(value, cancellationToken) /
-        " switch"
-        .AppendLine('{')
+    Action<ExpandingMacroBuilder> value,
+    Action<ExpandingMacroBuilder, T> @case,
+    Action<ExpandingMacroBuilder, T> body,
+    Action<ExpandingMacroBuilder> defaultBody) =>
+       _ = (builder * value / " switch" % '{')
         .AppendJoin(
            values,
-           (b, v, t) => b.Append(@case, v, t).Append(" => ").Append(body, v, t).AppendLine(','),
-           cancellationToken) *
-        "_ => "
-        .Append(defaultBody, cancellationToken)
-        .AppendLine('}');
-    public static ExpandingMacroBuilder AppendTypeSwitchExpression<T>(
-    this ExpandingMacroBuilder builder,
+           (b, v, t) => _ = b.WithOperators(builder.CancellationToken) * (b => @case(b, v)) * " => " * (b => body(b, v)) % ',',
+           builder.CancellationToken)
+        .WithOperators(builder.CancellationToken) *
+        "_ => " * defaultBody / String.Empty % '}';
+    public static void TypeSwitchExpression<T>(
+    ExpandingMacroBuilder builder,
     IReadOnlyCollection<T> values,
-    Appendix<Macro> valueTypeExpression,
-    Appendix<Macro, T> @case,
-    Appendix<Macro, T> body,
-    Appendix<Macro> defaultBody,
-    CancellationToken cancellationToken) =>
-    builder.AppendSwitchExpression(
+    Action<ExpandingMacroBuilder> valueType,
+    Action<ExpandingMacroBuilder, T> @case,
+    Action<ExpandingMacroBuilder, T> body,
+    Action<ExpandingMacroBuilder> defaultBody) =>
+    SwitchExpression(
+        builder,
         values,
-        (b, t) => b.Append(valueTypeExpression, t),
-        (b, v, t) => b.Append('"').Append(@case, v, t).Append('"'),
+        (b) => _ = b * valueType,
+        (b, v) => _ = b * '"' * (b => @case(b, v)) * '"',
         body,
-        defaultBody,
-        cancellationToken);
-    public static ExpandingMacroBuilder AppendSwitchStatement<T>(
-        this ExpandingMacroBuilder builder,
+        defaultBody);
+    public static void SwitchStatement<T>(
+        ExpandingMacroBuilder builder,
         IReadOnlyCollection<T> values,
-        Appendix<Macro> value,
-        Appendix<Macro, T> @case,
-        Appendix<Macro, T> body,
-        Appendix<Macro> defaultBody,
-        CancellationToken cancellationToken) => builder.Append("switch(")
-        .Append(value, cancellationToken)
-        .AppendLine(')')
-        .AppendLine('{')
+        Action<ExpandingMacroBuilder> value,
+        Action<ExpandingMacroBuilder, T> @case,
+        Action<ExpandingMacroBuilder, T> body,
+        Action<ExpandingMacroBuilder> defaultBody) =>
+        _ = (builder * "switch(" * value % ')' % '{')
         .AppendJoin(
             values,
-            (b, v, t) => b.Append("case ").Append(@case, v, t).AppendLine(':').AppendLine('{').Append(body, v, t).AppendLine('}'),
-            cancellationToken) *
-        "default:{"
-        .Append(defaultBody, cancellationToken)
-        .AppendLine('}')
-        .AppendLine('}');
-    public static ExpandingMacroBuilder AppendTypeSwitchStatement<T>(
-    this ExpandingMacroBuilder builder,
+            (b, v, t) => _ = b.WithOperators(t) * "case " * (b => @case(b, v)) * ':' / '{' / (b => body(b, v)) % '}',
+            builder.CancellationToken)
+        .WithOperators(builder.CancellationToken) *
+        "default:{" * defaultBody % '}' % '}';
+    public static void TypeSwitchStatement<T>(
+    ExpandingMacroBuilder builder,
     IReadOnlyCollection<T> values,
-    Appendix<Macro> valueTypeExpression,
+    Action<ExpandingMacroBuilder> valueTypeExpression,
     Func<T, RepresentableTypeNames> caseSelector,
-    Appendix<Macro, T> body,
-    Appendix<Macro> defaultBody,
-    CancellationToken cancellationToken) =>
-    builder.AppendSwitchStatement(
+    Action<ExpandingMacroBuilder, T> body,
+    Action<ExpandingMacroBuilder> defaultBody) =>
+    SwitchStatement(
+        builder,
         values,
         valueTypeExpression,
-        (b, v, t) => b.Append('"').Append(caseSelector.Invoke(v).FullTypeName).Append('"'),
+        (b, v) => _ = b * '"' * caseSelector.Invoke(v).FullTypeName * '"',
         body,
-        defaultBody,
-        cancellationToken);
+        defaultBody);
 
-    public static ExpandingMacroBuilder AppendUnsafeConvert(
-        this ExpandingMacroBuilder builder,
+    public static void UtilUnsafeConvert(
+        ExpandingMacroBuilder builder,
         String tFrom,
         String tTo,
-        String valueExpression,
-        CancellationToken _) =>
-        builder.Append("(global::RhoMicro.CodeAnalysis.UnionsGenerator.Generated.Util.UnsafeConvert<")
-        .Append(tFrom) *
-        ", "
-        .Append(tTo) *
-        ">("
-        .Append(valueExpression) *
-        "))";
-    public static ExpandingMacroBuilder AppendFullString(
-        this ExpandingMacroBuilder builder,
-        Appendix<Macro> typeExpression,
-        CancellationToken cancellationToken) =>
-        builder.Append($"(global::RhoMicro.CodeAnalysis.UnionsGenerator.Generated.Util.GetFullString(").Append(typeExpression, cancellationToken).Append("))");
-    public static ExpandingMacroBuilder AppendInvalidConversionThrow(
-        this ExpandingMacroBuilder builder,
-        String typeName,
-        CancellationToken _) =>
-        builder.Append("throw new global::System.InvalidOperationException($\"The union type instance cannot be converted to an instance of {").Append(typeName).Append("}.\")");
-    public static ExpandingMacroBuilder AppendInvalidCreationThrow(
-        this ExpandingMacroBuilder builder,
+        String valueExpression) =>
+        _ = builder * "(global::RhoMicro.CodeAnalysis.UnionsGenerator.Generated.Util.UnsafeConvert<" * tFrom * ", " * tTo * ">(" * valueExpression * "))";
+    public static void UtilFullString(
+        ExpandingMacroBuilder builder,
+        Action<ExpandingMacroBuilder> typeExpression) =>
+        _ = builder * $"(global::RhoMicro.CodeAnalysis.UnionsGenerator.Generated.Util.GetFullString(" * typeExpression * "))";
+    public static void InvalidConversionThrow(
+        ExpandingMacroBuilder builder,
+        String typeName) =>
+        _ = builder * "throw new global::System.InvalidOperationException($\"The union type instance cannot be converted to an instance of {" * typeName * "}.\")";
+    public static void InvalidCreationThrow(
+        ExpandingMacroBuilder builder,
         String unionTypeName,
-        String valueName,
-        CancellationToken _) =>
+        String valueName) =>
         builder.Append("throw new global::System.ArgumentException($\"The value provided for \\\"")
             .Append(valueName).Append("\\\" cannot be converted to an instance of {")
             .Append(unionTypeName).Append("}.\", \"").Append(valueName).Append("\")");
 
-    public static ExpandingMacroBuilder AppendUnknownConversion(
-    this ExpandingMacroBuilder builder,
+    public static void UnknownConversion(
+    ExpandingMacroBuilder builder,
     UnionDataModel targetUnionType,
     RepresentableTypeModel sourceData,
     RepresentableTypeModel targetData,
     String parameterName) =>
-    builder.Append('(')
-        .AppendFull(targetUnionType.Symbol)
-        .Append('.')
-        .Append(targetData.Names.CreateFromFunctionName)
-        .Append('(')
-        .Append(parameterName)
-        .Append('.')
-        .Append(sourceData.Names.AsPropertyName) *
-        "))";
-    public static ExpandingMacroBuilder AppendKnownConversion(
-        this ExpandingMacroBuilder builder,
+    _ = builder * '(' * targetUnionType.Symbol.ToFullOpenString() * '.' * targetData.Names.CreateFromFunctionName * '(' * parameterName * '.' * sourceData.Names.AsPropertyName * "))";
+    public static void KnownConversion(
+        ExpandingMacroBuilder builder,
         UnionDataModel targetUnionType,
         RepresentableTypeModel sourceData,
         RepresentableTypeModel targetData,
-        String parameterName,
-        CancellationToken cancellationToken) =>
-        builder.Append('(')
-            .AppendFull(targetUnionType.Symbol)
-            .Append('.')
-            .Append(targetData.Names.CreateFromFunctionName)
-            .Append('(')
-            .Append(sourceData.Storage.TypesafeInstanceVariableExpressionAppendix, parameterName, cancellationToken) *
-            "))";
+        String parameterName) =>
+        _ = builder * '(' * targetUnionType.Symbol.ToFullOpenString() * '.' * targetData.Names.CreateFromFunctionName *
+        '(' * (sourceData.Storage.TypesafeInstanceVariableExpression, parameterName) * "))";
 }

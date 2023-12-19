@@ -5,10 +5,9 @@ using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
 using System.Threading;
 
-sealed class Fields(TargetDataModel model)
-    : ExpansionBase(model, Macro.Fields)
+sealed class Fields(TargetDataModel model) : ExpansionBase(model, Macro.Fields)
 {
-    public override void Expand(ExpandingMacroBuilder builder)
+    protected override void Expand(ExpandingMacroBuilder builder)
     {
         var representableTypes = Model.Annotations.AllRepresentableTypes;
         var host = new StrategySourceHost(Model);
@@ -25,18 +24,18 @@ sealed class Fields(TargetDataModel model)
         tag;
         TODO: implement comprehensive sorting refactor (analysis of value type container required)
         */
-        _ = builder.Append(host.ReferenceTypeContainerFieldAppendix, cancellationToken)
-            .Append(host.DedicatedReferenceFieldsAppendix, cancellationToken)
-            .Append(host.ValueTypeContainerFieldAppendix, cancellationToken)
-            .Append(host.DedicatedPureValueTypeFieldsAppendix, cancellationToken)
-            .Append(host.AppendDedicatedImpureAndUnknownFields, cancellationToken);
+        _ = builder % [host.ReferenceTypeContainerField,
+            host.DedicatedReferenceFields,
+            host.ValueTypeContainerField,
+            host.DedicatedPureValueTypeFields,
+            host.DedicatedImpureAndUnknownFields];
 
         if(representableTypes.Count > 1)
         {
-            _ = builder.AppendLine("[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]") *
-                "private readonly ").Append(model.TagTypeName).AppendLine(" __tag;";
+            _ = builder * "[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]" /
+                "private readonly " * Model.TagTypeName % " __tag;";
         }
 
-        _ = builder.AppendLine("#endregion");
+        _ = builder % "#endregion";
     }
 }

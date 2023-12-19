@@ -120,131 +120,80 @@ abstract partial class StorageStrategy
     }
     #endregion
     #region Template Methods
-    public abstract void InstanceVariableExpressionAppendix(
-        IExpandingMacroStringBuilder<Macro> builder,
-        String instance,
-        CancellationToken cancellationToken);
-    public abstract void TypesafeInstanceVariableExpressionAppendix(
-        IExpandingMacroStringBuilder<Macro> builder,
-        String instance,
-        CancellationToken cancellationToken);
-    public abstract void AppendConvertedInstanceVariableExpression(
-        IExpandingMacroStringBuilder<Macro> builder,
-        (String targetType, String instance) model,
-        CancellationToken cancellationToken);
-    public abstract void InstanceVariableAssignmentExpressionAppendix(
-        IExpandingMacroStringBuilder<Macro> builder,
-        (String valueExpression, String instance) model,
-        CancellationToken cancellationToken);
+    public abstract void InstanceVariableExpression(
+        ExpandingMacroBuilder builder,
+        String instance);
+    public abstract void TypesafeInstanceVariableExpression(
+        ExpandingMacroBuilder builder,
+        String instance);
+    public abstract void ConvertedInstanceVariableExpression(
+        ExpandingMacroBuilder builder,
+        String targetType,
+        String instance);
+    public abstract void InstanceVariableAssignmentExpression(
+        ExpandingMacroBuilder builder,
+        String valueExpression,
+        String instance);
     #endregion
 
-    public void EqualsInvocationAppendix(
-        IExpandingMacroStringBuilder<Macro> builder,
-        (String instance, String otherInstance) model,
-        CancellationToken cancellationToken) =>
+    public void EqualsInvocation(
+        ExpandingMacroBuilder builder,
+        String instance,
+        String otherInstance) =>
         _ = TypeNature is RepresentableTypeNature.ImpureValueType
             or RepresentableTypeNature.PureValueType
-            ? builder
-                .Append('(')
-                .Append(
-                    TypesafeInstanceVariableExpressionAppendix,
-                    model.instance,
-                    cancellationToken)
-                .Append(".Equals(")
-                .Append(
-                    TypesafeInstanceVariableExpressionAppendix,
-                    model.otherInstance,
-                    cancellationToken)
-                .Append("))")
-            : builder
-                .Append('(')
-                .Append(
-                    InstanceVariableExpressionAppendix,
-                    model.instance,
-                    cancellationToken)
-                .Append(" == null ? ")
-                .Append(
-                    InstanceVariableExpressionAppendix,
-                    model.otherInstance,
-                    cancellationToken)
-                .Append(" == null : ")
-                .Append(
-                    InstanceVariableExpressionAppendix,
-                    model.otherInstance,
-                    cancellationToken)
-                .Append(" != null && ")
-                .Append(
-                    TypesafeInstanceVariableExpressionAppendix,
-                    model.instance,
-                    cancellationToken)
-                .Append(".Equals(")
-                .Append(
-                    TypesafeInstanceVariableExpressionAppendix,
-                    model.otherInstance,
-                    cancellationToken)
-                .Append("))");
+            ? builder * '(' * (TypesafeInstanceVariableExpression, instance) * ".Equals(" * (TypesafeInstanceVariableExpression, otherInstance) * "))"
+            : builder * '(' * (InstanceVariableExpression, instance) * " == null ? " /
+                (InstanceVariableExpression, otherInstance) * " == null : " /
+                (InstanceVariableExpression, otherInstance) * " != null && " *
+                (TypesafeInstanceVariableExpression, instance) * ".Equals(" * (TypesafeInstanceVariableExpression, otherInstance) * "))";
 
-    public void EqualsInvocationAppendix(
-        IExpandingMacroStringBuilder<Macro> builder,
-        String otherInstance,
-        CancellationToken cancellationToken) =>
-        EqualsInvocationAppendix(builder, ("this", otherInstance), cancellationToken);
+    public void EqualsInvocation(
+        ExpandingMacroBuilder builder,
+        String otherInstance) =>
+        EqualsInvocation(builder, "this", otherInstance);
 
-    public void InstanceVariableExpressionAppendix(
-        IExpandingMacroStringBuilder<Macro> builder,
-        CancellationToken cancellationToken) =>
-        InstanceVariableExpressionAppendix(builder, "this", cancellationToken);
-    public void GetHashCodeInvocationAppendix(
-        IExpandingMacroStringBuilder<Macro> builder,
-        String instance,
-        CancellationToken cancellationToken) =>
+    public void InstanceVariableExpression(
+        ExpandingMacroBuilder builder) =>
+        InstanceVariableExpression(builder, "this");
+    public void GetHashCodeInvocation(
+        ExpandingMacroBuilder builder,
+        String instance) =>
        _ = TypeNature is RepresentableTypeNature.PureValueType
             or RepresentableTypeNature.ImpureValueType
-            ? builder.Append('(')
-                .Append(TypesafeInstanceVariableExpressionAppendix, instance, cancellationToken)
-                .Append(".GetHashCode())")
-            : builder.Append('(')
-                .Append(InstanceVariableExpressionAppendix, instance, cancellationToken)
-                .Append("?.GetHashCode() ?? 0)");
-    public void GetHashCodeInvocationAppendix(
-        IExpandingMacroStringBuilder<Macro> builder,
-        CancellationToken cancellationToken) =>
-        GetHashCodeInvocationAppendix(builder, "this", cancellationToken);
+            ? builder * '(' * (TypesafeInstanceVariableExpression, instance) * ".GetHashCode())"
+            : builder * '(' * (InstanceVariableExpression, instance) * "?.GetHashCode() ?? 0)";
+    public void GetHashCodeInvocation(
+        ExpandingMacroBuilder builder) =>
+        GetHashCodeInvocation(builder, "this");
 
-    public void TypesafeInstanceVariableExpressionAppendix(
-        IExpandingMacroStringBuilder<Macro> builder,
-        CancellationToken cancellationToken) => TypesafeInstanceVariableExpressionAppendix(builder, "this", cancellationToken);
+    public void TypesafeInstanceVariableExpression(
+        ExpandingMacroBuilder builder) => TypesafeInstanceVariableExpression(builder, "this");
 
-    public void ConvertedInstanceVariableExpressionAppendix(
-        IExpandingMacroStringBuilder<Macro> builder,
-        String targetType,
-        CancellationToken cancellationToken) => AppendConvertedInstanceVariableExpression(builder, (targetType, "this"), cancellationToken);
+    public void ConvertedInstanceVariableExpression(
+        ExpandingMacroBuilder builder,
+        String targetType) => ConvertedInstanceVariableExpression(builder, targetType, "this");
 
-    public void InstanceVariableAssignmentExpressionAppendix(
-        IExpandingMacroStringBuilder<Macro> builder,
-        String valueExpression,
-        CancellationToken cancellationToken) => InstanceVariableAssignmentExpressionAppendix(builder, (valueExpression, "this"), cancellationToken);
+    public void InstanceVariableAssignmentExpression(
+        ExpandingMacroBuilder builder,
+        String valueExpression) => InstanceVariableAssignmentExpression(builder, valueExpression, "this");
 
-    public void ToStringInvocationAppendix(
-        IExpandingMacroStringBuilder<Macro> builder,
-        String instance,
-        CancellationToken cancellationToken)
+    public void ToStringInvocation(
+        ExpandingMacroBuilder builder,
+        String instance)
     {
-        _ = builder.Append('(')
-            .Append(InstanceVariableExpressionAppendix, instance, cancellationToken);
+        _ = builder * '(' * (InstanceVariableExpression, instance);
 
         if(TypeNature is RepresentableTypeNature.ReferenceType
             or RepresentableTypeNature.UnknownType)
         {
-            _ = builder.Append('?');
+            _ = builder * '?';
         }
 
-        _ = builder.Append(".ToString())");
+        _ = builder * ".ToString())";
     }
-    public void ToStringInvocationAppendix(
-        IExpandingMacroStringBuilder<Macro> builder,
-        CancellationToken cancellationToken) =>
-        ToStringInvocationAppendix(builder, "this", cancellationToken);
+    public void ToStringInvocation(ExpandingMacroBuilder builder) =>
+        ToStringInvocation(builder, "this");
 
     public abstract void Visit(StrategySourceHost host);
 }

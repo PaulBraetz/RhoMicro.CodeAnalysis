@@ -11,6 +11,6 @@ abstract class ExpansionBase : MacroExpansion<Macro>
         => Model = model;
     protected TargetDataModel Model { get; }
     public sealed override void Expand(IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken) =>
-        Expand(builder.GetOperators<Macro, TargetDataModel>(cancellationToken));
+        Expand(builder.WithOperators(cancellationToken));
     protected abstract void Expand(ExpandingMacroBuilder builder);
 }

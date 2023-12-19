@@ -10,44 +10,34 @@ using System.Threading;
 
 sealed class Match(TargetDataModel model) : ExpansionBase(model, Macro.Match)
 {
-    public override void Expand(ExpandingMacroBuilder builder)
+    protected override void Expand(ExpandingMacroBuilder builder)
     {
         var representableTypes = Model.Annotations.AllRepresentableTypes;
         var target = Model.Symbol;
         var settings = Model.Annotations.Settings;
 
-        _ = builder.AppendLine("#region Match") *
-            "public ").Append(settings.MatchTypeName).Append(" Match<").Append(settings.MatchTypeName).Append(">("
-            .AppendJoin(
-                representableTypes.Select((t, i) => (Type: t, Index: i)),
-                (b, a, t) => b.Append("global::System.Func<")
-                    .AppendFull(a.Type) *
-                    ", "
-                    .Append(settings.MatchTypeName) *
-                    "> on"
-                    .Append(a.Type.Names.SafeAlias)
-                    .AppendLine(a.Index == representableTypes.Count - 1 ? String.Empty : ","),
-                cancellationToken) /
+        _ = builder * "#region Match" /
+            "public " * settings.MatchTypeName * " Match<" * settings.MatchTypeName * ">(" *
+            (b => b.AppendJoin(
+                ',',
+                representableTypes,
+                (b, a, t) => b.WithOperators(t) *
+                    "global::System.Func<" * a.Names.FullTypeName * ", " * settings.MatchTypeName * "> on" * a.Names.SafeAlias,
+                b.CancellationToken)) *
             ") =>";
 
-        builder = representableTypes.Count == 1
-            ? builder.Append("on")
-                .Append(representableTypes[0].Names.SafeAlias) *
-                ".Invoke("
-                .Append(representableTypes[0].Storage.TypesafeInstanceVariableExpressionAppendix, cancellationToken) /
-                ");"
-            : builder.AppendLine("__tag switch{")
-                .AppendJoin(
-                representableTypes,
-                (b, a, t) => b.Append(a.CorrespondingTag) /
-                    " => " *
-                    "on").Append(a.Names.SafeAlias).Append(".Invoke("
-                    .Append(a.Storage.TypesafeInstanceVariableExpressionAppendix, t).AppendLine("),"),
-                cancellationToken) /
-                "_ =>"
-                .AppendLine(ConstantSources.InvalidTagStateThrow) /
-                "};";
+        _ = representableTypes.Count == 1 ?
+            builder * "on" * representableTypes[0].Names.SafeAlias * ".Invoke(" *
+            representableTypes[0].Storage.TypesafeInstanceVariableExpression % ");" :
+            builder * "__tag switch{" *
+                (b => b.AppendJoin(
+                    representableTypes,
+                    (b, a, t) => b.WithOperators(t) *
+                        a.GetCorrespondingTag(Model) * " => " * "on" * a.Names.SafeAlias * ".Invoke(" *
+                        a.Storage.TypesafeInstanceVariableExpression % "),",
+                b.CancellationToken)) /
+                "_ =>" * ConstantSources.InvalidTagStateThrow % "};";
 
-        _ = builder.AppendLine("#endregion");
+        _ = builder % "#endregion";
     }
 }

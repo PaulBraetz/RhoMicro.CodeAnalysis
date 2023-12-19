@@ -13,9 +13,9 @@ sealed class StrategySourceHost(TargetDataModel target)
 {
     private readonly TargetDataModel _target = target;
 
-    private readonly List<(Action<IExpandingMacroStringBuilder<Macro>, CancellationToken> Factory, String TypeName)> _dedicatedReferenceFieldAdditions = [];
-    private readonly List<(Action<IExpandingMacroStringBuilder<Macro>, CancellationToken> Factory, String TypeName)> _dedicatedPureValueTypeFieldAdditions = [];
-    private readonly List<(Action<IExpandingMacroStringBuilder<Macro>, CancellationToken> Factory, String TypeName)> _dedicatedImpureAndUnknownFieldAdditions = [];
+    private readonly List<(Action<ExpandingMacroBuilder> Factory, String TypeName)> _dedicatedReferenceFieldAdditions = [];
+    private readonly List<(Action<ExpandingMacroBuilder> Factory, String TypeName)> _dedicatedPureValueTypeFieldAdditions = [];
+    private readonly List<(Action<ExpandingMacroBuilder> Factory, String TypeName)> _dedicatedImpureAndUnknownFieldAdditions = [];
     public void AddDedicatedField(StorageStrategy strategy) =>
         (strategy.TypeNature switch
         {
@@ -23,17 +23,14 @@ sealed class StrategySourceHost(TargetDataModel target)
             RepresentableTypeNature.PureValueType => _dedicatedPureValueTypeFieldAdditions,
             _ => _dedicatedImpureAndUnknownFieldAdditions
         }).Add(
-            (Factory: (b, t) =>
-            b.AppendLine("[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]")
-                .AppendLine("private readonly ")
-                .Append(strategy.FullTypeName).Append(' ')
-                .Append(strategy.SafeAlias.ToGeneratedCamelCase())
-                .AppendLine(';'),
+            (Factory: (b) =>
+            _ = b / "[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]" /
+                "private readonly " * strategy.FullTypeName * ' ' * strategy.SafeAlias.ToGeneratedCamelCase() * ';',
             TypeName: strategy.FullTypeName));
 
-    public void DedicatedReferenceFieldsAppendix(IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken) =>
-        _dedicatedReferenceFieldAdditions.ForEach(t => t.Factory.Invoke(builder, cancellationToken));
-    public void DedicatedPureValueTypeFieldsAppendix(IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken) =>
+    public void DedicatedReferenceFields(ExpandingMacroBuilder builder) =>
+        _dedicatedReferenceFieldAdditions.ForEach(t => t.Factory.Invoke(builder));
+    public void DedicatedPureValueTypeFields(ExpandingMacroBuilder builder) =>
         _dedicatedPureValueTypeFieldAdditions.OrderByDescending(static t =>
         {
             var pureValueType = Type.GetType(t.TypeName, false);
@@ -41,77 +38,66 @@ sealed class StrategySourceHost(TargetDataModel target)
                 Marshal.SizeOf(pureValueType) :
                 Int32.MaxValue;
             return size;
-        }).ForEach(t => t.Factory.Invoke(builder, cancellationToken));
-    public void AppendDedicatedImpureAndUnknownFields(IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken) =>
-        _dedicatedImpureAndUnknownFieldAdditions.ForEach(t => t.Factory.Invoke(builder, cancellationToken));
+        }).ForEach(t => t.Factory.Invoke(builder));
+    public void DedicatedImpureAndUnknownFields(ExpandingMacroBuilder builder) =>
+        _dedicatedImpureAndUnknownFieldAdditions.ForEach(t => t.Factory.Invoke(builder));
 
     private Boolean _referenceFieldRequired;
     public void AddReferenceTypeContainerField() => _referenceFieldRequired = true;
-    public void ReferenceTypeContainerFieldAppendix(IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken)
+    public void ReferenceTypeContainerField(ExpandingMacroBuilder builder)
     {
         if(!_referenceFieldRequired)
             return;
 
-        cancellationToken.ThrowIfCancellationRequested();
-
-        _ = builder
-            .AppendLine("[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]")
-            .AppendLine("private readonly global::System.Object __referenceTypeContainer;");
+        _ = builder *
+            "[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]" /
+            "private readonly global::System.Object __referenceTypeContainer;";
     }
 
     private Boolean _valueTypeContainerTypeRequired;
     public void AddValueTypeContainerType() => _valueTypeContainerTypeRequired = true;
     public void AddValueTypeContainerField() => _valueTypeContainerTypeRequired = true;
-    private readonly List<Appendix<Macro>> _valueTypeFieldAdditions = [];
+    private readonly List<Action<ExpandingMacroBuilder>> _valueTypeFieldAdditions = [];
     public void AddValueTypeVontainerInstanceFieldAndCtor(StorageStrategy strategy) =>
-        _valueTypeFieldAdditions.Add((b, t) =>
+        _valueTypeFieldAdditions.Add((b) =>
         {
             if(!_target.Symbol.IsGenericType)
-                _ = b.AppendLine("[global::System.Runtime.InteropServices.FieldOffset(0)]");
+                _ = b % "[global::System.Runtime.InteropServices.FieldOffset(0)]";
 
-            _ = b.Append("public readonly ").Append(strategy.FullTypeName).Append(' ')
-                .Append(strategy.SafeAlias).AppendLine(';')
-                .Append("public ")
-                .Append(_target.ValueTypeContainerName)
-                .Append('(').Append(strategy.FullTypeName)
-                .AppendLine(" value) => ")
-                .Append(strategy.SafeAlias).AppendLine(" = value;");
+            _ = b * "public readonly " * strategy.FullTypeName * ' ' * strategy.SafeAlias * ';' /
+                "public " * _target.ValueTypeContainerName * '(' * strategy.FullTypeName * " value) => " /
+                strategy.SafeAlias % " = value;";
         });
 
-    public void ValueTypeContainerFieldAppendix(IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken)
+    public void ValueTypeContainerField(ExpandingMacroBuilder builder)
     {
         if(!_valueTypeContainerTypeRequired)
             return;
 
-        cancellationToken.ThrowIfCancellationRequested();
-
-        _ = builder
-            .AppendLine("[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]")
-            .AppendLine("private readonly ")
-            .Append(_target.ValueTypeContainerName)
-            .Append(" __valueTypeContainer;");
+        _ = builder * "[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]" /
+            "private readonly " * _target.ValueTypeContainerName % " __valueTypeContainer;";
     }
 
-    public void ValueTypeContainerTypeAppendix(ExpandingMacroBuilder builder)
+    public void ValueTypeContainerType(ExpandingMacroBuilder builder)
     {
         if(!_valueTypeContainerTypeRequired)
             return;
 
-        _ = builder +
-            (Extensions.DocCommentAppendix, "Helper types for storing value types efficiently.");
+        _ = builder * (Docs.Summary, "Helper types for storing value types efficiently.");
 
         if(!_target.Symbol.IsGenericType)
-            _ = builder.AppendLine("[global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]");
+            _ = builder % "[global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]";
 
-        _ = builder
-                .AppendLine("[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]")
-                .AppendLine("readonly struct ")
-                .Append(_target.ValueTypeContainerName)
-                .AppendLine('{')
-                .AppendJoin(
+        _ = builder *
+                "[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]" /
+                "readonly struct " * _target.ValueTypeContainerName % '{' *
+                (b => b.AppendJoin(
                     _valueTypeFieldAdditions,
-                    (b, a, t) => b.Append(a, t),
-                    cancellationToken)
-                .AppendLine('}');
+                    (b, a, t) =>
+                    {
+                        a.Invoke(b.WithOperators(builder.CancellationToken));
+                        return b;
+                    },
+                    b.CancellationToken)) % '}';
     }
 }

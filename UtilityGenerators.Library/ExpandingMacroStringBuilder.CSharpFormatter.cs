@@ -78,7 +78,7 @@ partial class ExpandingMacroStringBuilder
                 .GetText(cancellationToken)
                 .ToString();
         /// <inheritdoc/>
-        public override String ToString() => Build(default);
+        public override String ToString() => _decoratedBuilder.ToString();
         /// <inheritdoc/>
         public override Boolean Equals(Object? obj) => Equals(obj as CSharpFormatter<TMacro>);
         /// <inheritdoc/>

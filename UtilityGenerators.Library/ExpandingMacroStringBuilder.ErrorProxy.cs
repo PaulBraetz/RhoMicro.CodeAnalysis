@@ -84,6 +84,8 @@ partial class ExpandingMacroStringBuilder
             return proxy;
         }
         /// <inheritdoc/>
+        public override String ToString() => _proxied.ToString();
+        /// <inheritdoc/>
         public override Boolean Equals(Object? obj) =>
             Equals(obj as ErrorProxy<TMacro, TModel>);
         /// <inheritdoc/>

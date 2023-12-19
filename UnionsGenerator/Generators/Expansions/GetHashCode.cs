@@ -7,33 +7,31 @@ using System.Threading;
 
 sealed class GetHashCode(TargetDataModel model) : ExpansionBase(model, Macro.GetHashcode)
 {
-    public override void Expand(ExpandingMacroBuilder builder)
+    protected override void Expand(ExpandingMacroBuilder builder)
     {
         var annotations = Model.Annotations;
         var target = Model.Symbol;
 
-        _ = builder.AppendLine("#region GetHashcode") /
+        _ = builder * "#region GetHashcode" /
             "public override Int32 GetHashCode() => ";
 
         if(annotations.AllRepresentableTypes.Count > 1)
         {
-            _ = builder.Append("__tag switch{")
-                .AppendJoin(
+            _ = builder * "__tag switch{" *
+                (b => b.AppendJoin(
                     annotations.AllRepresentableTypes,
-                    (b, a, t) => b.Append(a.CorrespondingTag) *
-                        " => "
-                        .Append(a.Storage.GetHashCodeInvocationAppendix, t)
-                        .AppendLine(','),
-                    cancellationToken) /
-                "_ => ".Append(ConstantSources.InvalidTagStateThrow)
-                .Append('}');
+                    (b, a, t) => _ = b.WithOperators(builder.CancellationToken) *
+                        a.GetCorrespondingTag(Model) * " => " * a.Storage.GetHashCodeInvocation * ',',
+                    b.CancellationToken)) /
+                "_ => " * ConstantSources.InvalidTagStateThrow * '}';
 
         } else if(annotations.AllRepresentableTypes.Count == 1)
         {
-            var storage = annotations.AllRepresentableTypes[0].Storage;
-            _ = builder.Append(storage.GetHashCodeInvocationAppendix, cancellationToken);
+            _ = builder * annotations.AllRepresentableTypes[0].Storage.GetHashCodeInvocation;
         }
 
-        _ = builder.AppendLine(';').AppendLine("#endregion");
+        _ = builder % 
+            ';' % 
+            "#endregion";
     }
 }

@@ -7,51 +7,53 @@ using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
 using System;
 using System.Threading;
+using System.Linq;
 
 sealed class Switch(TargetDataModel model) : ExpansionBase(model, Macro.Switch)
 {
-    public override void Expand(ExpandingMacroBuilder builder)
+    protected override void Expand(ExpandingMacroBuilder builder)
     {
         var representableTypes = Model.Annotations.AllRepresentableTypes;
         var target = Model.Symbol;
 
-        _ = builder.AppendLine("#region Switch")
-            .AppendJoin(
+        _ = builder * "#region Switch" /
+            (b => Docs.MethodSummary(
+                builder: b,
+                summary: b => _ = b * "Invokes a handler based on the type of value being represented.",
+                parameters: representableTypes.Select<RepresentableTypeModel, (String Name, Action<ExpandingMacroBuilder> Summary)>(a => (
+                    Name: a.Names.SafeAlias,
+                    Summary: b => _ = b * "The handler to invoke if the union is currently representing an instance of " * a.CommentRef * '.')))) *
+            (b => b.AppendJoin(
                 representableTypes,
-                (b, a, t) => b.Append("/// <param name=\"on").Append(a.Names.SafeAlias) *
-                "\">The handler to invoke if the union is currently representing an instance of "
-                .AppendCommentRef(a).AppendLine(".</param>"),
-                cancellationToken) *
-            "public void Switch("
-            .AppendJoin(
-                representableTypes.Select((t, i) => (Type: t, Index: i)),
-                (b, a, t) => b.Append("global::System.Action<")
-                    .AppendFull(a.Type) *
-                    "> on"
-                    .Append(a.Type.Names.SafeAlias)
-                    .AppendLine(a.Index == representableTypes.Count - 1 ? String.Empty : ","),
-                cancellationToken) *
+                (b, a, t) => b.WithOperators(t) *
+                    "/// <param name=\"on" * a.Names.SafeAlias *
+                    "\">" *
+                    a.CommentRef * ".</param>",
+                b.CancellationToken)) /
+            "public void Switch(" *
+            (b => b.AppendJoin(
+                ',',
+                representableTypes,
+                (b, a, t) => b.WithOperators(t) *
+                    "global::System.Action<" * a.Names.FullTypeName * "> on" * a.Names.SafeAlias,
+                b.CancellationToken)) *
             "){";
 
-        _ = (representableTypes.Count == 1
-            ? builder.Append("on")
-                .Append(representableTypes[0].Names.SafeAlias) *
-                ".Invoke("
-                .Append(representableTypes[0].Storage.TypesafeInstanceVariableExpressionAppendix, cancellationToken)
-                .AppendLine(')')
-            : builder.AppendLine("switch(__tag){")
-                .AppendJoin(
-                representableTypes,
-                (b, a, t) => b.Append("case ")
-                    .Append(a.CorrespondingTag)
-                    .AppendLine(':') *
-                    "on").Append(a.Names.SafeAlias).Append(".Invoke("
-                    .Append(a.Storage.TypesafeInstanceVariableExpressionAppendix, t).AppendLine(");return;"),
-                cancellationToken) /
-                "default:"
-                .Append(ConstantSources.InvalidTagStateThrow) *
-                ";}") /
-                ";}" /
-                "#endregion";
+        _ = representableTypes.Count == 1
+            ? builder *
+                "on" * representableTypes[0].Names.SafeAlias * ".Invoke(" * representableTypes[0].Storage.TypesafeInstanceVariableExpression * ')'
+            : builder *
+                "switch(__tag){" /
+                (b => b.AppendJoin(
+                    representableTypes,
+                    (b, a, t) => b.WithOperators(t) *
+                        "case " * a.GetCorrespondingTag(Model) * ':' /
+                        "on" * a.Names.SafeAlias * ".Invoke(" * a.Storage.TypesafeInstanceVariableExpression % ");return;",
+                    b.CancellationToken)) /
+                "default:" * ConstantSources.InvalidTagStateThrow * ";}";
+
+        _ = builder %
+            ";}" %
+            "#endregion";
     }
 }

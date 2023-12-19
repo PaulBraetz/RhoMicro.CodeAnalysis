@@ -73,7 +73,7 @@ static partial class ExpandingMacroStringBuilder
     }
 
     /// <summary>
-    /// Registers a expansion provider to the builder.
+    /// Registers an expansion provider to the builder.
     /// </summary>
     /// <typeparam name="TMacro">The type of macro to support.</typeparam>
     /// <param name="builder">The builder to register the provider to.</param>
@@ -159,7 +159,7 @@ static partial class ExpandingMacroStringBuilder
     /// This token will be ambiently passed to calls backing the operators provided.
     /// </param>
     /// <returns>The new decorator.</returns>
-    public static OperatorsDecorator<TMacro> GetOperators<TMacro>(this IExpandingMacroStringBuilder<TMacro> builder, CancellationToken cancellationToken) =>
+    public static OperatorsDecorator<TMacro> WithOperators<TMacro>(this IExpandingMacroStringBuilder<TMacro> builder, CancellationToken cancellationToken) =>
         OperatorsDecorator<TMacro>.Create(builder, cancellationToken);
     /// <summary>
     /// Creates a decorator around the provided builder enabling the use of operators instead of append, append macro and receive.
@@ -172,7 +172,7 @@ static partial class ExpandingMacroStringBuilder
     /// This token will be ambiently passed to calls backing the operators provided.
     /// </param>
     /// <returns>The new decorator.</returns>
-    public static OperatorsDecorator<TMacro, TModel> GetOperators<TMacro, TModel>(this IExpandingMacroStringBuilder<TMacro> builder, CancellationToken cancellationToken) =>
+    public static OperatorsDecorator<TMacro, TModel> WithOperators<TMacro, TModel>(this IExpandingMacroStringBuilder<TMacro> builder, CancellationToken cancellationToken) =>
         OperatorsDecorator<TMacro, TModel>.Create(builder, cancellationToken);
     #region Append Value
     /// <summary>
@@ -306,7 +306,7 @@ static partial class ExpandingMacroStringBuilder
     }
     /// <summary>
     /// Applies an aggregation function over an enumeration. 
-    /// A expanding macro string builder is used as the initial accumulator value.
+    /// An expanding macro string builder is used as the initial accumulator value.
     /// </summary>
     /// <typeparam name="T">The type of element contained in the enumeration.</typeparam>
     /// <typeparam name="TMacro">The type of macro to support.</typeparam>
@@ -329,7 +329,7 @@ static partial class ExpandingMacroStringBuilder
     /// <summary>
     /// Applies an aggregation function over an enumeration, separating 
     /// aggregation results with the separator specified.
-    /// A expanding macro string builder is used as the initial accumulator value.
+    /// An expanding macro string builder is used as the initial accumulator value.
     /// </summary>
     /// <typeparam name="T">The type of element contained in the enumeration.</typeparam>
     /// <typeparam name="TMacro">The type of macro to support.</typeparam>
@@ -370,7 +370,7 @@ static partial class ExpandingMacroStringBuilder
     /// <summary>
     /// Applies an aggregation function over an enumeration, separating 
     /// aggregation results with the separator specified.
-    /// A expanding macro string builder is used as the initial accumulator value.
+    /// An expanding macro string builder is used as the initial accumulator value.
     /// </summary>
     /// <typeparam name="T">The type of element contained in the enumeration.</typeparam>
     /// <typeparam name="TMacro">The type of macro to support.</typeparam>
@@ -502,7 +502,7 @@ static partial class ExpandingMacroStringBuilder
     /// <summary>
     /// Applies an aggregation function over an enumeration, separating 
     /// aggregation results with the separator specified.
-    /// A expanding macro string builder is used as the initial accumulator macro.
+    /// An expanding macro string builder is used as the initial accumulator macro.
     /// </summary>
     /// <typeparam name="T">The type of element contained in the enumeration.</typeparam>
     /// <typeparam name="TMacro">The type of macro to support.</typeparam>

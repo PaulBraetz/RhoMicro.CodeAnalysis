@@ -7,57 +7,46 @@ using System.Threading;
 
 sealed class IsAsProperties(TargetDataModel model) : ExpansionBase(model, Macro.IsAsProperties)
 {
-    public override void Expand(ExpandingMacroBuilder builder)
+    protected override void Expand(ExpandingMacroBuilder builder)
     {
         var attributes = Model.Annotations.AllRepresentableTypes;
         var target = Model.Symbol;
         var settings = Model.Annotations.Settings;
 
-        _ = builder.AppendLine("#region IsAsProperties");
+        _ = builder % "#region IsAsProperties";
 #pragma warning restore IDE0045 // Convert to conditional expression
         if(attributes.Count > 1)
         {
             _ = builder.AppendJoin(
                  attributes,
-                 (b, a, t) => b.AppendLine("/// <summary>") *
-                 "/// Gets a value indicating whether this instance is representing a value of type "
-                 .Append(a.DocCommentRef).AppendLine('.') /
-                 "/// </summary>" *
-                 "public global::System.Boolean ".Append(a.Names.IsPropertyName) *
-                 " => __tag == ".Append(a.CorrespondingTag).AppendLine(';') /
-                 "/// <summary>" *
-                 "/// Attempts to retrieve the value represented by this instance as a "
-                 .Append(a.DocCommentRef).AppendLine('.') /
-                 "/// </summary>" *
-                 "/// <exception cref=\"global::System.InvalidOperationException\">Thrown if the instance is not representing a value of type "
-                 .Append(a.DocCommentRef).AppendLine(".</exception>") *
-                 "public ".AppendFull(a)
-                 .Append(' ').Append(a.Names.AsPropertyName) *
-                 " => __tag == ".Append(a.CorrespondingTag).Append('?')
-                 .Append(a.Storage.TypesafeInstanceVariableExpressionAppendix, t)
-                 .Append(':')
-                 .AppendInvalidConversionThrow($"typeof({a.Names.FullTypeName}).Name", t).AppendLine(';'),
-                 cancellationToken);
+                 (b, a, t) => b.WithOperators(builder.CancellationToken) *
+                 (Docs.Summary, b => _ = b *
+                    "Gets a value indicating whether this instance is representing a value of type " * a.DocCommentRef * '.') *
+                 "public global::System.Boolean " * a.Names.IsPropertyName *
+                 " => __tag == " * a.GetCorrespondingTag(Model) * ';' /
+                 (Docs.Summary, b => _ = b *
+                 "Attempts to retrieve the value represented by this instance as a " * a.DocCommentRef * '.') *
+                 "/// <exception cref=\"global::System.InvalidOperationException\">Thrown if the instance is not representing a value of type " * a.DocCommentRef * ".</exception>" /
+                 "public " * a.Names.FullTypeName * ' ' * a.Names.AsPropertyName * " => __tag == " *
+                 a.GetCorrespondingTag(Model) * '?' *
+                 a.Storage.TypesafeInstanceVariableExpression * ':' *
+                 (Extensions.InvalidConversionThrow, $"typeof({a.Names.FullTypeName}).Name") % ';',
+                 builder.CancellationToken);
         } else
         {
             var attribute = attributes[0];
 
-            _ = builder.AppendLine("/// <summary>") *
-                 "/// Gets a value indicating whether this instance is representing a value of type <c>"
-                 .Append(attribute.DocCommentRef).AppendLine("</c>.") /
-                 "/// </summary>" *
-                 "public global::System.Boolean Is".Append(attribute.Names.SafeAlias) /
-                 " => true;" /
+            _ = builder *
+                (Docs.Summary, b => _ = b *
+                "Gets a value indicating whether this instance is representing a value of type " * attribute.DocCommentRef * ".") /
+                 "public global::System.Boolean Is" * attribute.Names.SafeAlias * " => true;" /
 
-                 "/// <summary>" *
-                 "/// Retrieves the value represented by this instance as a <c>"
-                 .Append(attribute.DocCommentRef).AppendLine("</c>.") /
-                 "/// </summary>" *
-                 "public ".AppendFull(attribute) *
-                 " As".Append(attribute.Names.SafeAlias) *
-                 " => ".Append(attribute.Storage.TypesafeInstanceVariableExpressionAppendix, cancellationToken).AppendLine(';');
+                 (Docs.Summary, b => _ = b *
+                 "Retrieves the value represented by this instance as a " * attribute.DocCommentRef * ".") /
+                 "public " * attribute.Names.FullTypeName * " As" * attribute.Names.SafeAlias * " => " *
+                 attribute.Storage.TypesafeInstanceVariableExpression % ';';
         }
 
-        _ = builder.AppendLine("#endregion");
+        _ = builder % "#endregion";
     }
 }
