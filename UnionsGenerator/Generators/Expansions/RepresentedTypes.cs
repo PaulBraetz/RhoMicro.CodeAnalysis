@@ -11,7 +11,7 @@ sealed class RepresentedTypes(TargetDataModel model) : ExpansionBase(model, Macr
     {
         var attributes = Model.Annotations.AllRepresentableTypes;
         _ = builder * "#region GetRepresentedType" /
-            (Docs.Summary, "Gets the types of value this union type can represent.") *
+            (Docs.Summary, b => _ = b * "Gets the types of value this union type can represent.") *
             """
             public static global::System.Collections.Generic.IReadOnlyList<Type> RepresentableTypes { get; } = 
                 new global::System.Type[]
@@ -24,7 +24,7 @@ sealed class RepresentedTypes(TargetDataModel model) : ExpansionBase(model, Macr
                     "typeof(" * a.Names.FullTypeName * ')',
                 b.CancellationToken)) /
             "};" /
-            (Docs.Summary, "Gets the type of value represented by this instance.") *
+            (Docs.Summary, b => _ = b * "Gets the type of value represented by this instance.") *
             "public Type RepresentedType => ";
 
 #pragma warning disable IDE0045 // Convert to conditional expression

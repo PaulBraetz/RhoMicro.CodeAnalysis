@@ -13,4 +13,5 @@ abstract class ExpansionBase : MacroExpansion<Macro>
     public sealed override void Expand(IExpandingMacroStringBuilder<Macro> builder, CancellationToken cancellationToken) =>
         Expand(builder.WithOperators(cancellationToken));
     protected abstract void Expand(ExpandingMacroBuilder builder);
+
 }

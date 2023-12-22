@@ -31,7 +31,8 @@ enum Macro
     Equals,
     ToString,
     Conversion,
-    Tail
+    Tail,
+    UnionConversion
 }
 [Generator(LanguageNames.CSharp)]
 internal class UnionsGenerator : IIncrementalGenerator
@@ -41,7 +42,7 @@ internal class UnionsGenerator : IIncrementalGenerator
         //TODO: implement model for efficient equality
         //TODO: implement incremental model building?
         var providers = context.SyntaxProvider.ForUnionTypeAttribute(
-            static (n, t) => Util.IsSyntaxCandidate(n),
+            static (n, t) => Util.IsGeneratorTarget(n),
             static (c, t) =>
             {
                 var model = TargetDataModel.Create((TypeDeclarationSyntax)c.TargetNode, c.SemanticModel);
@@ -63,9 +64,10 @@ internal class UnionsGenerator : IIncrementalGenerator
                         .Receive(new IsAsProperties(model), t)
                         .Receive(new IsAsFunctions(model), t)
                         .Receive(new Match(model), t)
-                        .Receive(new Expansions.Switch(model), t)
                         .Receive(new GetHashCode(model), t)
                         .Receive(new Equals(model), t)
+                        .Receive(new ConversionFunctions(model), t)
+                        .Receive(new Expansions.Switch(model), t)
                         .Receive(ToStringFunction.Create(model), t)
                         .Receive(Expansions.Conversion.Create(model), t),
                     configureDiagnosticsAccumulator: d => d
@@ -82,6 +84,7 @@ internal class UnionsGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(providers, static (c, t) => t.source.AddToContext(c, t.hintName));
         context.RegisterPostInitializationOutput(static c => c.AddSource("Util.g.cs", ConstantSources.Util));
+        context.RegisterPostInitializationOutput(static c => c.AddSource($"{nameof(UnionFactoryAttribute)}.g.cs", UnionFactoryAttribute.SourceText));
         context.RegisterPostInitializationOutput(static c => c.AddSource($"{nameof(UnionTypeAttribute)}.g.cs", UnionTypeAttribute.SourceText));
         context.RegisterPostInitializationOutput(static c => c.AddSource($"{nameof(RelationAttribute)}.g.cs", RelationAttribute.SourceText));
         context.RegisterPostInitializationOutput(static c => c.AddSource($"{nameof(UnionTypeSettingsAttribute)}.g.cs", UnionTypeSettingsAttribute.SourceText));

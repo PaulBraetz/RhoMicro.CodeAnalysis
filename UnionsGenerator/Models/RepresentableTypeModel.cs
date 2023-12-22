@@ -18,6 +18,8 @@ sealed class RepresentableTypeModel(
     RepresentableTypeNames names,
     StorageStrategy storage)
 {
+    public FactoryModel Factory { get; set; }
+
     public readonly UnionTypeAttribute Attribute = attribute;
     public readonly INamedTypeSymbol Target = target;
     public readonly String DocCommentRef = commentRef;

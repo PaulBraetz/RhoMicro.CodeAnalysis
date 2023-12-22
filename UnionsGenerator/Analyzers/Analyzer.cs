@@ -19,10 +19,10 @@ public sealed class Analyzer : DiagnosticAnalyzer
         _ = context ?? throw new ArgumentNullException(nameof(context));
 
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
-        context.EnableConcurrentExecution();
+        //context.EnableConcurrentExecution();
         context.RegisterSyntaxNodeAction(static c =>
         {
-            if(!Util.IsSymbolCandidate(c.Node, c.SemanticModel))
+            if(c.IsGeneratedCode || !Util.IsAnalysisCandidate(c.Node, c.SemanticModel))
                 return;
 
             var model = TargetDataModel.Create((TypeDeclarationSyntax)c.Node, c.SemanticModel);

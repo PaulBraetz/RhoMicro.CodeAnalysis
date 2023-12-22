@@ -58,11 +58,14 @@ sealed class AnnotationDataModel
                 g.Key ?
                 g.OrderBy(a => a.Names.FullTypeName) :
                 g.OrderBy(a => a.Names.FullTypeName))
-            .SelectMany(g => g);
+            .SelectMany(g => g)
+            .ToList();
 
         // reference types
         // value types
         // generic params
+
+        FactoryModel.ConfigureModels(target, orderedRepresentableTypes);
 
         List<RepresentableTypeModel> allRepresentableTypes = [];
         List<RepresentableTypeModel> representableReferenceTypes = [];

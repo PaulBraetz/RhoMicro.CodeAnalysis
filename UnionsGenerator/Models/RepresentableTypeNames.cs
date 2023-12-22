@@ -21,7 +21,7 @@ sealed class RepresentableTypeNames(
     public readonly String TypeStringName = typeStringName;
     public readonly String AsPropertyName = $"As{safeAlias}";
     public readonly String IsPropertyName = $"Is{safeAlias}";
-    public readonly String CreateFromFunctionName = $"CreateFrom{safeAlias}";
+    public readonly String GeneratedFactoryName = $"CreateFrom{safeAlias}";
 
     public static RepresentableTypeNames Create(UnionTypeAttribute attribute)
     {

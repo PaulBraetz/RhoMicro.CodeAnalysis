@@ -81,7 +81,7 @@ static class Conversion
 
             if(allAttributes.Count > 1)
             {
-                _ = builder * ':' * (Extensions.InvalidConversionThrow, $"typeof({representableType.Names.FullTypeName}).Name");
+                _ = builder * ':' * (InvalidConversionThrow, $"typeof({representableType.Names.FullTypeName}).Name");
             }
 
             _ = builder * ';';
@@ -130,7 +130,7 @@ static class Conversion
 
         if(targetTypeMap.Count == 1)
         {
-            Extensions.UnknownConversion(
+            UnknownConversion(
                 builder,
                 model,
                 relationTypeMap.Single().Value,
@@ -138,13 +138,13 @@ static class Conversion
                 "relatedUnion");
         } else
         {
-            Extensions.TypeSwitchExpression(
+            TypeSwitchExpression(
                 builder,
                 targetTypeMap,
-                (b) => _ = b.WithOperators(builder.CancellationToken) * (b => Extensions.UtilFullString(b, b => _ = b * "relatedUnion.RepresentedType")),
+                (b) => _ = b.WithOperators(builder.CancellationToken) * (b => UtilFullString(b, b => _ = b * "relatedUnion.RepresentedType")),
                 (b, m) => _ = b * m.Value.Names.TypeStringName,
-                (b, m) => _ = b.WithOperators(builder.CancellationToken) * (b => Extensions.UnknownConversion(b, model, relationTypeMap[m.Key], m.Value, "relatedUnion")),
-                (b) => _ = b.WithOperators(builder.CancellationToken) % (Extensions.InvalidConversionThrow, $"typeof({model.Symbol.ToFullOpenString()})"));
+                (b, m) => _ = b.WithOperators(builder.CancellationToken) * (b => UnknownConversion(b, model, relationTypeMap[m.Key], m.Value, "relatedUnion")),
+                (b) => _ = b.WithOperators(builder.CancellationToken) % (InvalidConversionThrow, $"typeof({model.Symbol.ToFullOpenString()})"));
         }
 
         _ = builder % ';';
@@ -159,7 +159,7 @@ static class Conversion
 
         if(relationTypeMap.Count == 1)
         {
-            Extensions.KnownConversion(
+            KnownConversion(
                 builder,
                 relation,
                 targetTypeMap.Single().Value,
@@ -168,13 +168,13 @@ static class Conversion
             _ = builder.AppendLine();
         } else
         {
-            Extensions.SwitchExpression(
+            SwitchExpression(
                 builder,
                 relationTypeMap,
                 (b) => _ = b * "union.__tag",
                 (b, kvp) => _ = b * targetTypeMap[kvp.Key].GetCorrespondingTag(model),
-                (b, kvp) => _ = b * (b => Extensions.KnownConversion(b, relation, targetTypeMap[kvp.Key], kvp.Value, "union")),
-                (b) => _ = b % (Extensions.InvalidConversionThrow, $"typeof({relation.Symbol.ToFullOpenString()})"));
+                (b, kvp) => _ = b * (b => KnownConversion(b, relation, targetTypeMap[kvp.Key], kvp.Value, "union")),
+                (b) => _ = b % (InvalidConversionThrow, $"typeof({relation.Symbol.ToFullOpenString()})"));
         }
 
         _ = builder % ';';

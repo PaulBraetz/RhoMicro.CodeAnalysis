@@ -22,12 +22,14 @@ internal sealed class TargetDataModel : UnionDataModel
         SemanticModel = semanticModel;
 
         ValueTypeContainerName = $"__{Symbol.ToIdentifierCompatString()}_ValueTypeContainer";
+        ConversionFunctionsTypeName = $"__{Symbol.ToIdentifierCompatString()}_ConversionFunctions";
     }
 
     public readonly TypeDeclarationSyntax TargetDeclaration;
     public readonly SemanticModel SemanticModel;
     public readonly String ValueTypeContainerName;
     public readonly String TagTypeName = "__Tag";
+    public readonly String ConversionFunctionsTypeName;
 
     public static TargetDataModel Create(TypeDeclarationSyntax targetDeclaration, SemanticModel semanticModel)
     {

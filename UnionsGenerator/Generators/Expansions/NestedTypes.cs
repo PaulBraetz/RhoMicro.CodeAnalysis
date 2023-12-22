@@ -10,14 +10,14 @@ sealed class NestedTypes(TargetDataModel model)
 {
     protected override void Expand(ExpandingMacroBuilder builder)
     {
-        _ = builder % 
+        _ = builder %
             "#region Nested Types";
 
         var representableTypes = Model.Annotations.AllRepresentableTypes;
         if(representableTypes.Count > 1)
         {
             _ = (builder *
-                (Docs.Summary, "Defines tags to discriminate between representable types.") *
+                (Docs.Summary, b => _ = b * "Defines tags to discriminate between representable types.") *
                 ConstantSources.EditorBrowsableNever /
                 "enum " * Model.TagTypeName % " : Byte {")
                 .AppendJoin(

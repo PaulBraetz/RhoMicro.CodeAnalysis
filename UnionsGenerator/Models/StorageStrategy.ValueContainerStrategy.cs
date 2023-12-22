@@ -22,7 +22,7 @@ abstract partial class StorageStrategy
             ExpandingMacroBuilder builder,
             String targetType,
             String instance) =>
-            Extensions.UtilUnsafeConvert(builder, FullTypeName, targetType, $"{instance}.__valueTypeContainer.{SafeAlias}");
+            UtilUnsafeConvert(builder, FullTypeName, targetType, $"{instance}.__valueTypeContainer.{SafeAlias}");
         public override void TypesafeInstanceVariableExpression(
             ExpandingMacroBuilder builder,
             String instance) =>

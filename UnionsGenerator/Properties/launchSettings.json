@@ -3,6 +3,10 @@
     "Tests": {
       "commandName": "DebugRoslynComponent",
       "targetProject": "..\\UtilityGenerators.Library.Tests\\UtilityGenerators.Library.Tests.csproj"
+    },
+    "TestApp": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\TestApp\\TestApp.csproj"
     }
   }
 }

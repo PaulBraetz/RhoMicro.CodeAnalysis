@@ -2,9 +2,9 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>netstandard2.0</TargetFramework>
 	</PropertyGroup>
-	
+
 	<PropertyGroup>
 		<AssemblyName>$(MSBuildProjectName)</AssemblyName>
 		<AssemblyName Condition="'$(SolutionName)'!=''">$(SolutionName).$(MSBuildProjectName)</AssemblyName>
@@ -23,10 +23,9 @@
 		<PackageReference Include="Microsoft.CodeAnalysis" Version="4.8.0" />
 
 		<ProjectReference Include="..\UtilityGenerators\UtilityGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-		
+
 		<!--<ProjectReference Include="..\CopyToGenerator\CopyToGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />-->
 
-		<!--<ProjectReference Include="..\UnionsGenerator\UnionsGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />-->
-		<!--<ProjectReference Include="..\UnionsGenerator.Abstractions\UnionsGenerator.Abstractions.csproj" />-->
+		<ProjectReference Include="..\UnionsGenerator\UnionsGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 </Project>

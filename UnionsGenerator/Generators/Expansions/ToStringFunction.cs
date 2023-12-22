@@ -16,7 +16,7 @@ static class ToStringFunction
         _ = builder *
             "#region ToString" /
             "#nullable enable" /
-            (Docs.Summary, "Returns a string representation of the current instance.") *
+            (Docs.Summary, b => _ = b * "Returns a string representation of the current instance.") *
             "public override String? ToString(){var stringRepresentation = " *
             (SimpleToStringExpressionAppendix, model);
 
@@ -40,7 +40,7 @@ static class ToStringFunction
     {
         _ = builder *
             "#nullable enable" /
-            (Docs.Summary, "Returns a string representation of the current instance.") *
+            (Docs.Summary, b => _ = b * "Returns a string representation of the current instance.") *
             "public override String? ToString() => ";
 
         SimpleToStringExpressionAppendix(builder, model);

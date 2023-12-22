@@ -30,7 +30,7 @@ sealed class IsAsProperties(TargetDataModel model) : ExpansionBase(model, Macro.
                  "public " * a.Names.FullTypeName * ' ' * a.Names.AsPropertyName * " => __tag == " *
                  a.GetCorrespondingTag(Model) * '?' *
                  a.Storage.TypesafeInstanceVariableExpression * ':' *
-                 (Extensions.InvalidConversionThrow, $"typeof({a.Names.FullTypeName}).Name") % ';',
+                 (InvalidConversionThrow, $"typeof({a.Names.FullTypeName}).Name") % ';',
                  builder.CancellationToken);
         } else
         {

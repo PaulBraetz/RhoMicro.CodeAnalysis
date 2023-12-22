@@ -83,7 +83,7 @@ sealed class StrategySourceHost(TargetDataModel target)
         if(!_valueTypeContainerTypeRequired)
             return;
 
-        _ = builder * (Docs.Summary, "Helper types for storing value types efficiently.");
+        _ = builder * (Docs.Summary, b => _ = b * "Helper types for storing value types efficiently.");
 
         if(!_target.Symbol.IsGenericType)
             _ = builder % "[global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]";
