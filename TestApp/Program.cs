@@ -1,14 +1,10 @@
 namespace TestApp;
 
-using System.Reflection;
 using RhoMicro.CodeAnalysis;
-
-using System.Collections.Concurrent;
-using System.Linq.Expressions;
 
 internal class Program
 {
-    private static void Main(String[] _)
+    private static void Main(String[] _0)
     {
         Union u = "Hello, World!";
         var ou = OtherUnion.Create(u);

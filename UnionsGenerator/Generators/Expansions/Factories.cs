@@ -55,14 +55,14 @@ sealed class Factories(TargetDataModel model) : ExpansionBase(model, Macro.Facto
                     return false;
                 }
         """ * "weakMatch = " * Model.ConversionFunctionsTypeName * ".Cache.GetOrAdd(sourceType, t =>{" *
-        "var tupleType = typeof(global::System.ValueTuple<global::System.Boolean, " * Model.Symbol.Name * ">);" *
+        "var tupleType = typeof(global::System.ValueTuple<global::System.Boolean, " * Model.Symbol.ToMinimalOpenString() * ">);" *
         """
                     var matchMethod = sourceType.GetMethod(
                         nameof(Match),
                          global::System.Reflection.BindingFlags.Instance | global::System.Reflection.BindingFlags.Public)?
                          .MakeGenericMethod(tupleType) ??
                          throw new global::System.Exception("Unable to locate match function on source union type. This indicates a bug in the marker detection algorithm.");
-        """ * "var targetFactoryMap = typeof(" * Model.Symbol.Name * ").GetMethods()" *
+        """ * "var targetFactoryMap = typeof(" * Model.Symbol.ToMinimalOpenString() * ").GetMethods()" *
         """
                         .Where(c => c.CustomAttributes.Any(a => a.AttributeType == typeof(global::RhoMicro.CodeAnalysis.UnionFactoryAttribute)))
                         .ToDictionary(c => c.GetParameters()[0].ParameterType);
@@ -91,7 +91,7 @@ sealed class Factories(TargetDataModel model) : ExpansionBase(model, Macro.Facto
                     return result;
                 });
             }
-        """ * "var match = (global::System.Func<TValue, (global::System.Boolean, " * Model.Symbol.Name * ")>)weakMatch;" *
+        """ * "var match = (global::System.Func<TValue, (global::System.Boolean, " * Model.Symbol.ToMinimalOpenString() * ")>)weakMatch;" *
         """    
             var matchResult = match.Invoke(value);
             if(!matchResult.Item1)
@@ -108,16 +108,16 @@ sealed class Factories(TargetDataModel model) : ExpansionBase(model, Macro.Facto
         _ = builder * "var sourceType = typeof(TValue);" /
             "if(!" * Model.ConversionFunctionsTypeName * ".Cache.TryGetValue(sourceType, out var weakMatch)){" /
             "if(!global::RhoMicro.CodeAnalysis.UnionsGenerator.Generated.Util.IsMarked(sourceType)){" /
-            (b => InvalidCreationThrow(b, $"typeof({Model.Symbol.Name})", "value")) * ';' /
+            (b => InvalidCreationThrow(b, $"typeof({Model.Symbol.ToMinimalOpenString()})", "value")) * ';' /
             "}weakMatch = " * Model.ConversionFunctionsTypeName * ".Cache.GetOrAdd(sourceType, t =>" /
-            "{var tupleType = typeof(global::System.ValueTuple<global::System.Boolean, " * Model.Symbol.Name * ">);" /
+            "{var tupleType = typeof(global::System.ValueTuple<global::System.Boolean, " * Model.Symbol.ToMinimalOpenString() * ">);" /
             """
                     var matchMethod = sourceType.GetMethod(
                             nameof(Match), 
                             global::System.Reflection.BindingFlags.Instance | global::System.Reflection.BindingFlags.Public)?
                         .MakeGenericMethod(tupleType) ?? 
                         throw new global::System.Exception("Unable to locate match function on source union type. This indicates a bug in the marker detection algorithm.");
-            """ * "var targetFactoryMap = typeof(" * Model.Symbol.Name * ')' *
+            """ * "var targetFactoryMap = typeof(" * Model.Symbol.ToMinimalOpenString() * ')' *
             """
                     .GetMethods()
                     .Where(c => c.CustomAttributes.Any(a => a.AttributeType == typeof(global::RhoMicro.CodeAnalysis.UnionFactoryAttribute)))
@@ -140,13 +140,13 @@ sealed class Factories(TargetDataModel model) : ExpansionBase(model, Macro.Facto
                 });
             }
             """ *
-            "var match = (global::System.Func<TValue, (global::System.Boolean, " * Model.Symbol.Name * ")>)weakMatch;" *
+            "var match = (global::System.Func<TValue, (global::System.Boolean, " * Model.Symbol.ToMinimalOpenString() * ")>)weakMatch;" *
             """
             var matchResult = match.Invoke(value);
             if(!matchResult.Item1)
             {
             """ *
-            (b => InvalidCreationThrow(b, $"typeof({Model.Symbol.Name})", "value")) * ';' *
+            (b => InvalidCreationThrow(b, $"typeof({Model.Symbol.ToMinimalOpenString()})", "value")) * ';' *
             """
             }
             return matchResult.Item2;

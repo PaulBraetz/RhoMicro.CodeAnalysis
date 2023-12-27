@@ -112,11 +112,21 @@ static partial class ConstantSources
             }
         }
         public static Boolean IsMarked(Type type) => type.CustomAttributes.Any(a => a.AttributeType.FullName == typeof(UnionTypeAttribute).FullName);
+    
+        private static readonly global::System.Collections.Concurrent.ConcurrentDictionary<(Type, Type), Object> _conversionImplementations = new();
         public static TTo UnsafeConvert<TFrom, TTo>(in TFrom from)
         {
-            var copy = from;
+            var impl = (global::System.Func<TFrom, TTo>)_conversionImplementations.GetOrAdd((typeof(TFrom), typeof(TTo)), k =>
+            {
+                var param = global::System.Linq.Expressions.Expression.Parameter(k.Item1);
+                var castExpr = global::System.Linq.Expressions.Expression.Convert(param, k.Item2);
+                var lambda = global::System.Linq.Expressions.Expression.Lambda(castExpr, param).Compile();
 
-            return global::System.Runtime.CompilerServices.Unsafe.As<TFrom, TTo>(ref copy);
+                return lambda;
+            });
+            var result = impl.Invoke(from);
+
+            return result;
         }
     }
     """;
