@@ -4,6 +4,7 @@ using RhoMicro.CodeAnalysis.UtilityGenerators.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
 using System.Threading;
+using System.Xml.Linq;
 
 sealed class Equals(TargetDataModel model) : ExpansionBase(model, Macro.Equals)
 {
@@ -40,8 +41,8 @@ sealed class Equals(TargetDataModel model) : ExpansionBase(model, Macro.Equals)
 
         if(Model.Symbol.IsValueType)
         {
-            _ = builder * "public static Boolean operator ==(" * Model.Symbol.Name * " a, " * Model.Symbol.Name * " b) => a.Equals(b);" /
-                "public static Boolean operator !=(" * Model.Symbol.Name * " a, " * Model.Symbol.Name / " b) => !(a == b);";
+            _ = builder * "public static Boolean operator ==(" * Model.Symbol.ToMinimalOpenString() * " a, " * Model.Symbol.ToMinimalOpenString() * " b) => a.Equals(b);" /
+                "public static Boolean operator !=(" * Model.Symbol.ToMinimalOpenString() * " a, " * Model.Symbol.ToMinimalOpenString() / " b) => !(a == b);";
         }
 
         _ = builder % "#endregion";
