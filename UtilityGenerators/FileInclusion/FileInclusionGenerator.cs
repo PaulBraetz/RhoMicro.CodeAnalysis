@@ -32,6 +32,8 @@ public sealed class FileInclusionGenerator : IIncrementalGenerator
     static readonly Regex _rawStringLiteralBraces = new("({|})*", RegexOptions.Compiled);
     static readonly Regex _rawStringLiteralQuotes = new("(\"*)", RegexOptions.Compiled);
 
+    static readonly IEqualityComparer<(String sourceText, String path)> _sourceTupleComparer =
+        new EqualityComparerStrategy<(String, String path)>((x, y) => x.path == y.path, obj => obj.path.GetHashCode());
     /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -39,15 +41,15 @@ public sealed class FileInclusionGenerator : IIncrementalGenerator
             _attributeMetadataName,
             (node, ct) => true,
             (ctx, ct) => (sourcetext: ctx.TargetNode.SyntaxTree.ToString(), path: ctx.TargetNode.SyntaxTree.FilePath))
+            .Collect()
+            .SelectMany((a, ct) => a.Distinct(_sourceTupleComparer))
             .Select((t, ct) =>
             {
                 var (sourceText, path) = t;
 
-                var hintName = CreateHintName(path);
+                var hintName = $"{Path.GetFileNameWithoutExtension(path)}_{Guid.NewGuid()}.g.cs";
 
-                var result = (hintName, sourceText);
-
-                return result;
+                return (hintName, sourceText);
             })
             .Select((t, ct) =>
             {
@@ -146,6 +148,5 @@ public sealed class FileInclusionGenerator : IIncrementalGenerator
         context.RegisterPostInitializationOutput(c => c.AddSource(_attributeHintName, _attributeSource));
     }
 
-    static String CreateHintName(String path) => $"{Path.GetFileNameWithoutExtension(path)}_{Guid.NewGuid()}.g.cs";
     static String StringRepeat(Char c, Int32 count) => String.Concat(Enumerable.Repeat(c, count));
 }
