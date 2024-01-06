@@ -11,32 +11,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
-static class Conversion
+sealed class Conversion(TargetDataModel model) : ExpansionBase(model, Macro.Conversion)
 {
-    public static IMacroExpansion<Macro> Create(TargetDataModel model)
-    {
-        var omissions = model.OperatorOmissions.AllOmissions;
-
-        var result = MacroExpansion.Create(
-            Macro.Conversion,
-            (b, t) => b
-                .AppendLine("#region Conversions")
-                .AppendJoin(
-                model.Annotations.AllRepresentableTypes.Where(a => !omissions.Contains(a)),
-                (b, a, t) => b.WithOperators(t) * (b => _representableTypeConversion(b, a, model)),
-                t)
-                .AppendJoin(model.Annotations.Relations.Select(r => r.ExtractData(model)),
-                (b, r, t) =>
-                {
-                    _ = b.WithOperators(t) * (b => _relationConversion(b, r, model));
-                    return b;
-                },
-                t)
-                .AppendLine("#endregion"));
-
-        return result;
-    }
-
     static readonly Action<ExpandingMacroBuilder, RepresentableTypeModel, TargetDataModel> _representableTypeConversion = (
         ExpandingMacroBuilder builder,
         RepresentableTypeModel representableType,
@@ -181,4 +157,20 @@ static class Conversion
 
         _ = builder.AppendLine("#endregion");
     };
+
+    protected override void Expand(ExpandingMacroBuilder builder)
+    {
+        var omissions = Model.OperatorOmissions.AllOmissions;
+        _ = builder %
+            "#region Conversions" %
+            (b => b.AppendJoin(
+                Model.Annotations.AllRepresentableTypes.Where(a => !omissions.Contains(a)),
+                (IExpandingMacroStringBuilder<Macro> b, RepresentableTypeModel a, CancellationToken t) => b.WithOperators(t) * (b => _representableTypeConversion(b, a, Model)),
+                b.CancellationToken)) %
+            (b => b.AppendJoin(
+                Model.Annotations.Relations.Select(r => r.ExtractData(Model)),
+                (IExpandingMacroStringBuilder<Macro> b, RelationTypeModel r, CancellationToken t) => b.WithOperators(t) * (b => _relationConversion(b, r, Model)),
+                b.CancellationToken)) %
+            "#endregion";
+    }
 }

@@ -32,7 +32,7 @@ enum Macro
     ToString,
     Conversion,
     Tail,
-    UnionConversion
+    ConversionFunctionsCache
 }
 [Generator(LanguageNames.CSharp)]
 internal class UnionsGenerator : IIncrementalGenerator
@@ -51,7 +51,6 @@ internal class UnionsGenerator : IIncrementalGenerator
                     model,
                     configureSourceTextBuilder: b => b.AppendHeader("RhoMicro.CodeAnalysis.UnionsGenerator")
                         .AppendMacros(t)
-                        //on the phone
                         .Format()
                         .WithOperators<Macro, TargetDataModel>(t)
                         .Receive(new Head(model), t)
@@ -66,10 +65,10 @@ internal class UnionsGenerator : IIncrementalGenerator
                         .Receive(new Match(model), t)
                         .Receive(new GetHashCode(model), t)
                         .Receive(new Equals(model), t)
-                        .Receive(new ConversionFunctions(model), t)
+                        .Receive(new ConversionFunctionsCache(model), t)
                         .Receive(new Expansions.Switch(model), t)
                         .Receive(ToStringFunction.Create(model), t)
-                        .Receive(Expansions.Conversion.Create(model), t),
+                        .Receive(new Expansions.Conversion(model), t),
                     configureDiagnosticsAccumulator: d => d
                         .ReportNonHiddenSeverities()
                         .DiagnoseNonHiddenSeverities()

@@ -7,13 +7,13 @@
 		<developmentDependency>true</developmentDependency>
 		<NoPackageAnalysis>true</NoPackageAnalysis>
 		<IsRoslynComponent>true</IsRoslynComponent>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Description>
-			Generates types that help with source code generators and analyzers.
-		</Description>
+		<Description>Generates utilities for lexing and parsing domain specific languages, little languages etc.</Description>
 		<PackageTags>Source Generator</PackageTags>
 	</PropertyGroup>
 
@@ -22,18 +22,17 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="Library\Generator\**" />
-	  <EmbeddedResource Remove="Library\Generator\**" />
-	  <None Remove="Library\Generator\**" />
-	</ItemGroup>
-	
-	<ItemGroup>
 		<PackageReference Update="NETStandard.Library" PrivateAssets="all" />
-		<PackageReference Include="Microsoft.CodeAnalysis" Version="*" />
+		<PackageReference Include="Microsoft.CodeAnalysis" Version="4.8.0" />
+		<PackageReference Include="PolySharp" Version="*">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Remove=".editorconfig"></None>
+		<ProjectReference Include="..\UtilityGenerators\UtilityGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\UnionsGenerator\UnionsGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -42,8 +41,8 @@
 		<None Include="LICENSE.txt" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
 	</ItemGroup>
 
-	<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-	  <Exec Command="Library\Generator\UtilityGenerators.Library.Generator.exe ../UtilityGenerators.Library Library/LibraryGenerator.g.cs" ConsoleToMsBuild="true" />
-	</Target>
+	<ItemGroup>
+	  <Folder Include="Parsing\" />
+	</ItemGroup>
 
 </Project>

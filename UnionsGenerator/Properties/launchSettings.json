@@ -7,6 +7,10 @@
     "TestApp": {
       "commandName": "DebugRoslynComponent",
       "targetProject": "..\\TestApp\\TestApp.csproj"
+    },
+    "DslGenerator": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\DslGenerator\\DslGenerator.csproj"
     }
   }
 }

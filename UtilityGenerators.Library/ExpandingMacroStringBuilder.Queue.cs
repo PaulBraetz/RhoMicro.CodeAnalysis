@@ -173,6 +173,7 @@ partial class ExpandingMacroStringBuilder
             if(node == _first)
             {
                 _first = null;
+                _first = node.Next;
             }
 
             if(node == _last)

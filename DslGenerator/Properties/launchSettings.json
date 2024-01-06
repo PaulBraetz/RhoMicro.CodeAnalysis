@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TestApp": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\DslGenerator.TestApp\\DslGenerator.TestApp.csproj"
+    }
+  }
+}

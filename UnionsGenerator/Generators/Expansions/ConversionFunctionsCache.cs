@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-sealed class ConversionFunctions(TargetDataModel model) : ExpansionBase(model, Macro.UnionConversion)
+sealed class ConversionFunctionsCache(TargetDataModel model) : ExpansionBase(model, Macro.ConversionFunctionsCache)
 {
     protected override void Expand(ExpandingMacroBuilder builder)
     {

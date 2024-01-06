@@ -1,0 +1,2 @@
+﻿testname = "the only legal value"? / # here is a comment
+		   "the other legal value"; # and another comment

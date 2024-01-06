@@ -1,14 +1,20 @@
 <Project>
 	<PropertyGroup>
-		<AutoIncrementedAssemblyRevision>268</AutoIncrementedAssemblyRevision>
+		<AutoIncrementedAssemblyRevision>326</AutoIncrementedAssemblyRevision>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
+		<IsTestProject>true</IsTestProject>
 	</PropertyGroup>
 
 	<PropertyGroup Label="VersionInfo">
-		<Version>12.0.7</Version>
+		<Version>12.0.10</Version>
 		<ReleaseAssemblyVersion >$(Version).0</ReleaseAssemblyVersion>
+		<TestProjectAssemblyVersion >$(ReleaseAssemblyVersion)</TestProjectAssemblyVersion>
 		<DebugAssemblyVersion >$(Version).$(AutoIncrementedAssemblyRevision)</DebugAssemblyVersion>
 		<AssemblyVersion Condition="$(Configuration) == 'Debug'">$(DebugAssemblyVersion)</AssemblyVersion>
 		<AssemblyVersion Condition="$(Configuration) == 'Release'">$(ReleaseAssemblyVersion)</AssemblyVersion>
+		<AssemblyVersion Condition="$(IsTestProject) == true">$(TestProjectAssemblyVersion)</AssemblyVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Label="AnalysisInfo">
@@ -40,11 +46,26 @@
 		<RootNamespace>$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
 		<RootNamespace Condition="'$(SolutionName)'!=''">$(SolutionName).$(MSBuildProjectName)</RootNamespace>
 
-		<WarningsAsErrors Condition="$(IsTestProject)==false">$(WarningsAsErrors);1591;CA1819</WarningsAsErrors>
+		<WarningsAsErrors Condition="$(IsTestProject)!=true">$(WarningsAsErrors);1591;CA1819</WarningsAsErrors>
 		<WarningsAsErrors>$(WarningsAsErrors);NU1605;1573;1712;CA1825;CA1062;nullable</WarningsAsErrors>
 	</PropertyGroup>
+
+	<ItemGroup Condition="$(IsTestProject)!=true" >
+		<InternalsVisibleTo Include="$(MSBuildProjectName).Tests.$(TestProjectAssemblyVersion)"/>
+		<InternalsVisibleTo Condition="'$(SolutionName)'!=''"
+							Include="$(SolutionName).$(MSBuildProjectName).Tests.$(TestProjectAssemblyVersion)"/>
+	</ItemGroup>
 
 	<ItemGroup>
 		<None Remove=".editorconfig"></None>
 	</ItemGroup>
+
+	<Target Name="RemoveDirectories" BeforeTargets="PreBuildEvent">
+		<RemoveDir Directories="$(OutputDirectory);$(DebugDirectory);" />
+		<ItemGroup>
+			<OldProjectPackages Include="$(SolutionDir)\dist\nuget\$(PackageId)*.*" />
+		</ItemGroup>
+		<Delete Files="@(OldProjectPackages)"/>
+		<Message Text="Cleaned project and dist artifacts." Importance="high" />
+	</Target>
 </Project>
