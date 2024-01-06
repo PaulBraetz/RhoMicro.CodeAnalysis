@@ -9,8 +9,11 @@ using System.Runtime.CompilerServices;
 using static Lexemes;
 using static DiagnosticDescriptors;
 
-sealed class Tokenizer(DiagnosticsCollection diagnostics)
+sealed partial class Tokenizer(DiagnosticsCollection diagnostics)
 {
+    [UnionType(typeof(Token))]
+    [UnionType(typeof(TokenType))]
+    readonly partial struct TokenOrType;
     private readonly DiagnosticsCollection _diagnostics = diagnostics;
 
     public ImmutableArray<Token> Tokenize(SourceText sourceText, CancellationToken cancellationToken)
@@ -29,118 +32,10 @@ sealed class Tokenizer(DiagnosticsCollection diagnostics)
             scanToken();
         }
 
+        addToken(Tokens.Eof);
+
         var result = tokens.ToImmutable();
         return result;
-
-        Boolean isAtEnd() => current >= source!.Length;
-        Char advance()
-        {
-            advancePure();
-            return source![current - 1];
-        }
-
-        void advancePure()
-        {
-            character++;
-            current++;
-        }
-
-        void resetLexemeStart() => start = current;
-        void addToken(TokenType type)
-        {
-            tokens!.Add(new Token(type, getLexeme()));
-            resetLexemeStart();
-        }
-
-        Boolean isAlpha(Char? c) => c is not null and (>= 'a' and <= 'z' or >= 'A' and <= 'Z' or '_');
-        Lexeme getLexeme() => new StringSlice(source!, start, current - start);
-        Char? lookAhead(Int32 lookAheadOffset = 0) => current + lookAheadOffset >= source!.Length ? null : source![current + lookAheadOffset];
-        Char? lookBehind(Int32 lookBehindOffset = 0) => current - lookBehindOffset < 1 ? null : source![current - 1 - lookBehindOffset];
-        Location getLocation() =>
-            sourceText.MatchLocation(
-                additionalText =>
-                {
-                    var sourceText = additionalText.GetText(cancellationToken);
-                    if(sourceText == null)
-                    {
-                        return Location.None;
-                    }
-
-                    var path = additionalText.Path;
-                    var lineSpan = new LinePositionSpan(
-                        new LinePosition(line, character),
-                        new LinePosition(line, character));
-                    var textSpan = sourceText.Lines.GetTextSpan(lineSpan);
-                    var location = Location.Create(path, textSpan, lineSpan);
-                    return location;
-                });
-        Boolean match(Char expected)
-        {
-            if(isAtEnd() || source![current] != expected)
-                return false;
-            current++;
-            return true;
-        }
-
-        Boolean nextIsNewLine() =>
-            lookAhead() switch
-            {
-                NewLine => true,
-                CarriageReturn => true,
-                _ => false
-            };
-        void comment()
-        {
-            addToken(TokenType.Hash);
-            advancePure(); //consume semicolon
-            while(!nextIsNewLine())
-                advancePure();
-
-            addToken(TokenType.Comment);
-        }
-
-        void consumeWhitespace(Char expected)
-        {
-            while(lookAhead() == expected)
-                advancePure();
-
-            addToken(TokenType.Whitespace);
-        }
-
-        void terminal()
-        {
-            addToken(TokenType.Quote);
-
-            while((lookAhead() != Quote || lookBehind() == Escape) && !isAtEnd())
-            {
-                if(lookAhead() == NewLine)
-                {
-                    line++;
-                }
-
-                advancePure();
-            }
-
-            if(isAtEnd())
-            {
-                _diagnostics.Add(UnterminatedTerminal, getLocation(), getLexeme());
-                return;
-            }
-
-            addToken(TokenType.Terminal);
-
-            //consume terminating quote
-            advancePure();
-            addToken(TokenType.Quote);
-        }
-
-        void name()
-        {
-            while(isAlpha(lookAhead()))
-                advancePure();
-
-            addToken(TokenType.Name);
-        }
 
         void scanToken()
         {
@@ -197,9 +92,17 @@ sealed class Tokenizer(DiagnosticsCollection diagnostics)
                     break;
                 default:
                     if(isAlpha(c))
+                    {
                         name();
-                    else
+                    } else if(isDigit(c))
+                    {
+                        specificRepetition();
+                    } else
+                    {
+                        addToken(TokenType.Unknown);
                         _diagnostics.Add(UnexpectedCharacter, getLocation(), getLexeme());
+                    }
+
                     break;
             }
 
@@ -209,6 +112,134 @@ sealed class Tokenizer(DiagnosticsCollection diagnostics)
                 character = 0;
                 addToken(TokenType.NewLine);
             }
+        }
+
+        Boolean isAtEnd(Int32 lookaheadOffset = 0) => current + lookaheadOffset >= source!.Length;
+        Char advance()
+        {
+            advancePure();
+            return source![current - 1];
+        }
+
+        void specificRepetition()
+        {
+            while(isDigit(lookAhead()))
+                advancePure();
+            addToken(TokenType.SpecificRepetition);
+        }
+
+        void advancePure()
+        {
+            character++;
+            current++;
+        }
+
+        void resetLexemeStart() => start = current;
+        void addToken(TokenOrType tokenOrType)
+        {
+            var token = tokenOrType.Match(
+                token => token,
+                type => new Token(type, getLexeme()));
+            tokens!.Add(token);
+            resetLexemeStart();
+        }
+
+        Boolean isDigit(Char? c) => c is not null and >= '0' and <= '9';
+        Boolean isAlpha(Char? c) => c is not null and (>= 'a' and <= 'z' or >= 'A' and <= 'Z' or '_');
+        Lexeme getLexeme() => new StringSlice(source!, start, current - start);
+        Char? lookAhead(Int32 lookAheadOffset = 0) => current + lookAheadOffset >= source!.Length ? null : source![current + lookAheadOffset];
+        Char? lookBehind(Int32 lookBehindOffset = 0) => current - lookBehindOffset < 1 ? null : source![current - 1 - lookBehindOffset];
+        Location getLocation() =>
+            sourceText.MatchLocation(
+                additionalText =>
+                {
+                    var sourceText = additionalText.GetText(cancellationToken);
+                    if(sourceText == null)
+                    {
+                        return Location.None;
+                    }
+
+                    var path = additionalText.Path;
+                    var lineSpan = new LinePositionSpan(
+                        new LinePosition(line, character),
+                        new LinePosition(line, character));
+                    var textSpan = sourceText.Lines.GetTextSpan(lineSpan);
+                    var location = Location.Create(path, textSpan, lineSpan);
+                    return location;
+                });
+        Boolean match(Char expected)
+        {
+            if(isAtEnd() || source![current] != expected)
+                return false;
+            current++;
+            return true;
+        }
+
+        Boolean isAtNewLine() =>
+            lookAhead() switch
+            {
+                NewLine => true,
+                CarriageReturn => true,
+                _ => false
+            };
+        void comment()
+        {
+            addToken(TokenType.Hash);
+            advancePure(); //consume hash
+
+            if(isAtNewLine() || isAtEnd())
+                return;
+
+            while(!isAtNewLine() && !isAtEnd(1))
+                advancePure();
+
+            if(!isAtNewLine())
+                advancePure(); //consume last comment char
+
+            addToken(TokenType.Comment);
+        }
+
+        void consumeWhitespace(Char expected)
+        {
+            while(lookAhead() == expected)
+                advancePure();
+
+            addToken(TokenType.Whitespace);
+        }
+
+        void terminal()
+        {
+            addToken(TokenType.Quote);
+
+            while((lookAhead() != Quote || lookBehind() == Escape) && !isAtEnd())
+            {
+                if(lookAhead() == NewLine)
+                {
+                    line++;
+                }
+
+                advancePure();
+            }
+
+            if(isAtEnd())
+            {
+                _diagnostics.Add(UnterminatedTerminal, getLocation(), getLexeme());
+                return;
+            }
+
+            addToken(TokenType.Terminal);
+
+            //consume terminating quote
+            advancePure();
+            addToken(TokenType.Quote);
+        }
+
+        void name()
+        {
+            while(isAlpha(lookAhead()))
+                advancePure();
+
+            addToken(TokenType.Name);
         }
     }
 }

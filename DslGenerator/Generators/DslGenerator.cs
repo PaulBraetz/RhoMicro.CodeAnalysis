@@ -2,6 +2,7 @@ namespace RhoMicro.CodeAnalysis.DslGenerator.Generators;
 
 using Microsoft.CodeAnalysis;
 
+using RhoMicro.CodeAnalysis.Generated;
 using RhoMicro.CodeAnalysis.DslGenerator.Lexing;
 
 /// <summary>
@@ -25,5 +26,6 @@ public sealed class DslGenerator : IIncrementalGenerator
             .Select((tokens, ct) => $"/*\n{String.Join("\n\nNext Grammar\n\n", tokens)}\n*/");
 
         context.RegisterSourceOutput(provider, (ctx, tokens) => ctx.AddSource("Tokens.txt", tokens));
+        IncludedFileSources.RegisterToContext(context);
     }
 }

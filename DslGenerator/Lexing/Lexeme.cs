@@ -25,4 +25,10 @@ readonly partial struct Lexeme : IEquatable<String>, IEquatable<Char>, IEquatabl
             thisString => thisString == s);
     public Boolean Equals(StringSlice s) =>
         Match(s.Equals, s.Equals, s.Equals);
+    public String ToEscapedString() =>
+        ToString()?
+        .Replace("\n", "\\n")
+        .Replace("\r", "\\r")
+        .Replace("\t", "\\t")
+        ?? String.Empty;
 }

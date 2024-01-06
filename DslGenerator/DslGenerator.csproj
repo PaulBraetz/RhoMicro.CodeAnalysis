@@ -36,6 +36,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="bin\Debug\netstandard2.0\\RhoMicro.CodeAnalysis.DslGenerator.12.0.10.340.dll" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="README.md" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
 		<None Include="LICENSE.txt" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />

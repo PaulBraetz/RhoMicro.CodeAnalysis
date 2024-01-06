@@ -1,6 +1,6 @@
 <Project>
 	<PropertyGroup>
-		<AutoIncrementedAssemblyRevision>326</AutoIncrementedAssemblyRevision>
+		<AutoIncrementedAssemblyRevision>353</AutoIncrementedAssemblyRevision>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
@@ -8,7 +8,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup Label="VersionInfo">
-		<Version>12.0.10</Version>
+		<Version>12.1.1</Version>
 		<ReleaseAssemblyVersion >$(Version).0</ReleaseAssemblyVersion>
 		<TestProjectAssemblyVersion >$(ReleaseAssemblyVersion)</TestProjectAssemblyVersion>
 		<DebugAssemblyVersion >$(Version).$(AutoIncrementedAssemblyRevision)</DebugAssemblyVersion>

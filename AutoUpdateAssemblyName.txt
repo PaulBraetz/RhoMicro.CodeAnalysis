@@ -1,4 +1,5 @@
-Applications/TestApp
 Generators/UtilityGenerators.Library.Tests
 Generators/UnionsGenerator
 Generators/DslGenerator
+Applications/TestApp
+Applications/DslGenerator.TestApp

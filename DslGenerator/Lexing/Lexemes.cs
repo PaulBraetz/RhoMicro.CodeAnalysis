@@ -4,6 +4,7 @@ static class Lexemes
 {
     public const Char Equal = '=';
     public const Char Alternative = '/';
+    public const String IncrementalAlternative = "=/";
     public const Char GroupOpen = '(';
     public const Char GroupClose = ')';
     public const Char VariableRepetition = '*';
@@ -17,4 +18,5 @@ static class Lexemes
     public const Char CarriageReturn = '\r';
     public const Char Escape = '\\';
     public const Char Hash = '#';
+    public const String Eof = "";
 }

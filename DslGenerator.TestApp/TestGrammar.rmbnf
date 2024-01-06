@@ -1,2 +1,2 @@
-﻿testname = "the only legal value"? / # here is a comment
-		   "the other legal value"; # and another comment
+﻿testname = ["is this the only legal value?"] / # here is a comment
+		   *"no, it's not :)"; # and another comment

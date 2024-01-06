@@ -40,7 +40,7 @@ partial class LibraryGenerator
                     .ToImmutableArray();
 
                 return result;
-            }).WithComparer(ImmutableArrayEqualityComparer<(String, String)>.Default)
+            }).WithComparer(ImmutableArrayCollectionEqualityComparer<(String, String)>.Default)
             .SelectMany((i, t) => i)
             .Collect()
             .Select(static (v, t) => v.Distinct().ToList())
