@@ -37,8 +37,14 @@ internal static partial class Diagnostics
         GenericViolationStrategy = 22,
         GenericRelation = 23,
         BidirectionalRelation = 24,
-        DuplicateRelation = 25
+        DuplicateRelation = 25,
+        SelfReference = 26,
+        Inheritance = 27
     }
+    public static Diagnostic Inheritance(Location location) =>
+        Create(Id.Inheritance, location);
+    public static Diagnostic SelfReference(Location location) =>
+        Create(Id.SelfReference, location);
     public static Diagnostic DuplicateRelation(Location location, String relationName) =>
         Create(Id.DuplicateRelation, location, relationName);
     public static Diagnostic BidirectionalRelation(Location location, String relationName) =>

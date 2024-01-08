@@ -14,7 +14,7 @@ sealed class IsAsProperties(TargetDataModel model) : ExpansionBase(model, Macro.
         var settings = Model.Annotations.Settings;
 
         _ = builder % "#region IsAsProperties";
-#pragma warning restore IDE0045 // Convert to conditional expression
+        
         if(attributes.Count > 1)
         {
             _ = builder.AppendJoin(

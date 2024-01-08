@@ -19,7 +19,7 @@ public sealed class Analyzer : DiagnosticAnalyzer
         _ = context ?? throw new ArgumentNullException(nameof(context));
 
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
-        //context.EnableConcurrentExecution();
+        context.EnableConcurrentExecution();
         context.RegisterSyntaxNodeAction(static c =>
         {
             if(c.IsGeneratedCode || !Util.IsAnalysisCandidate(c.Node, c.SemanticModel))
@@ -27,11 +27,12 @@ public sealed class Analyzer : DiagnosticAnalyzer
 
             var model = TargetDataModel.Create((TypeDeclarationSyntax)c.Node, c.SemanticModel);
 
-            DiagnosticsAccumulator.Create(model)
-                .DiagnoseNonHiddenSeverities()
-                .ReportNonHiddenSeverities()
-                .Receive(Providers.All, c.CancellationToken)
-                .ReportDiagnostics(c.ReportDiagnostic);
+            var accumulator = DiagnosticsAccumulator.Create(model)
+                            .DiagnoseNonHiddenSeverities()
+                            .ReportNonHiddenSeverities()
+                            .Receive(Providers.All, c.CancellationToken);
+
+            accumulator.ReportDiagnostics(c.ReportDiagnostic);
         }, SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordDeclaration, SyntaxKind.RecordStructDeclaration);
     }
 

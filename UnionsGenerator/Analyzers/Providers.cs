@@ -297,6 +297,33 @@ internal static class Providers
         _ = duplicates.Select(d => Diagnostics.AliasCollision(location, d))
                 .Aggregate(diagnostics, (b, d) => b.Add(d));
     });
+    public static IDiagnosticProvider<TargetDataModel> SelfReference =
+        DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
+        {
+            var targetName = model.Symbol.ToFullOpenString();
+            var hasSelfReference = model.Annotations.AllRepresentableTypes
+                .Any(t => t.Names.FullTypeName == targetName);
+            if(!hasSelfReference)
+                return;
+
+            var location = model.TargetDeclaration.GetLocation();
+            var diagnostic = Diagnostics.SelfReference(location);
+            _ = diagnostics.Add(diagnostic);
+        });
+    public static IDiagnosticProvider<TargetDataModel> Inheritance =
+        DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
+        {
+            if(model.Symbol.BaseType == null ||
+               model.Symbol.BaseType.SpecialType == SpecialType.System_Object ||
+               model.Symbol.BaseType.SpecialType == SpecialType.System_ValueType)
+            {
+                return;
+            }
+
+            var location = model.TargetDeclaration.GetLocation();
+            var diagnostic = Diagnostics.Inheritance(location);
+            _ = diagnostics.Add(diagnostic);
+        });
 
     public static IEnumerable<IDiagnosticProvider<TargetDataModel>> All = new[]
     {
@@ -316,6 +343,8 @@ internal static class Providers
             NonRecord,
             //UnionTypeAttribute,
             UniqueUnionTypeAttributes,
-            AliasCollisions
+            AliasCollisions,
+            SelfReference,
+            Inheritance
     };
 }

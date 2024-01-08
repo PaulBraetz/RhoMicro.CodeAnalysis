@@ -10,6 +10,10 @@ using System.Text;
 sealed class Head(TargetDataModel model)
     : ExpansionBase(model, Macro.Head)
 {
+    public static Head CreateEmissionHead(TargetDataModel model) => new(model) { IsEmission = true };
+
+    private Boolean IsEmission { get; init; }
+
     public static void ContainingClassHead(ExpandingMacroBuilder builder, ITypeSymbol nestedType)
     {
         _ = getContainingTypes(nestedType)
@@ -46,9 +50,22 @@ sealed class Head(TargetDataModel model)
         }
 
         _ = builder / (ContainingClassHead, Model.Symbol);
+        if(!IsEmission)
+        {
+            _ = builder /
+                Model.Annotations.Settings.TypeDeclarationPreface;
+            if(Model.Annotations.Settings.GenerateJsonConverter)
+            {
+                _ = builder /
+                    "[global::System.Text.Json.Serialization.JsonConverter(typeof(" * Model.Symbol.ToMinimalOpenString() * ".JsonConverter))]";
+            }
 
-        if(Model.Annotations.Settings.Layout == LayoutSetting.Small && !Model.Symbol.IsGenericType)
-            _ = builder / String.Empty % "[global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Sequential, Pack = 1)]";
+            if(Model.Annotations.Settings.Layout == LayoutSetting.Small && !Model.Symbol.IsGenericType)
+            {
+                _ = builder /
+                    String.Empty % "[global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Sequential, Pack = 1)]";
+            }
+        }
 
         _ = builder *
             SyntaxFacts.GetText(Model.Symbol.DeclaredAccessibility) *
@@ -57,10 +74,15 @@ sealed class Head(TargetDataModel model)
                 "struct " :
                 "class ") %
             Model.Symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat
-            .WithGenericsOptions(SymbolDisplayGenericsOptions.IncludeTypeParameters)) *
-            ": global::System.IEquatable<" *
-            Model.Symbol.ToMinimalOpenString() *
-            '>' %
-            '{';
+            .WithGenericsOptions(SymbolDisplayGenericsOptions.IncludeTypeParameters));
+
+        if(!IsEmission)
+        {
+            _ = builder * ": global::System.IEquatable<" *
+               Model.Symbol.ToMinimalOpenString() %
+               '>';
+        }
+
+        _ = builder % '{';
     }
 }

@@ -66,6 +66,16 @@ static partial class DiagnosticsAccumulator
         .ReportSeverity(DiagnosticSeverity.Warning)
         .ReportSeverity(DiagnosticSeverity.Error);
     /// <summary>
+    /// Applies a filter to the accumulator that reports only diagnostics whose location is <see cref="Location.None"/>.
+    /// </summary>
+    /// <typeparam name="TModel">The type of model to diagnose.</typeparam>
+    /// <param name="accumulator">The accumulator to apply the filter to.</param>
+    /// <returns>A reference to the filtered accumulator, for chaining of further method calls.</returns>
+    public static IDiagnosticsAccumulator<TModel> ReportOnlyNoneLocations<TModel>(this IDiagnosticsAccumulator<TModel> accumulator) =>
+        accumulator is LocationFilter<TModel> filter ?
+            filter :
+            new LocationFilter<TModel>(accumulator);
+    /// <summary>
     /// Applies a filter to the diagnostic accumulator that reports only diagnostics with registered severities.
     /// This will cause diagnostics without a registered severity not to be reported, however they will still be added to the accumulator.
     /// Calls to this filter may be chained for registering a set of reportable severities.

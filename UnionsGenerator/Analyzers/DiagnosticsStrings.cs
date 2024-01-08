@@ -56,7 +56,9 @@ internal static partial class Diagnostics
 {Id.UnknownGenericParameterName , new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:"The targeted union type contains an unknown parameter name `{0}`. It could not be located in the type parameter list.",title:"Unknown Generic Parameter Name") },
 {Id.GenericRelation, new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:"Relations may not be declared between generic types.",title:"Generic Relation") },
 {Id.BidirectionalRelation, new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:"The bidirectional relation with {0} will be ignored.",title:"Bidirectional Relation") },
-{Id.DuplicateRelation, new DiagnosticInfo(severity: DiagnosticSeverity.Warning,message:"The duplicate relation with {0} will be ignored.",title:"Duplicate Relation") }
+{Id.DuplicateRelation, new DiagnosticInfo(severity: DiagnosticSeverity.Warning,message:"The duplicate relation with {0} will be ignored.",title:"Duplicate Relation") },
+{Id.SelfReference, new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:"Union types may not reference themselves.",title:"Self Reference") },
+{Id.Inheritance, new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:"Inheritance on union types is not supported yet. Try working around this restriction by adding the base type to the unions list of representable types.",title:"Inheritance") }
 };
 
     public static readonly IReadOnlyList<DiagnosticDescriptor> Descriptors =

@@ -24,7 +24,7 @@ public sealed class FileInclusionGenerator : IIncrementalGenerator
         using System;
         namespace RhoMicro.CodeAnalysis
         {
-            [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Delegate, AllowMultiple = false, Inherited = false)]
+            [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Delegate, AllowMultiple = true, Inherited = false)]
             internal sealed class IncludeFileAttribute : Attribute
             { }
         }

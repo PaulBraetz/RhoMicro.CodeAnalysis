@@ -25,10 +25,10 @@ sealed class Factories(TargetDataModel model) : ExpansionBase(model, Macro.Facto
             "public static Boolean TryCreate<" * settings.GenericTValueName * ">(" *
             settings.GenericTValueName * " value, out " * target.ToMinimalOpenString() %
             " instance){instance = default;" * (b => TypeSwitchStatement(
-                b,
-                representableTypes,
-                b => _ = b * (b => UtilFullString(b, (b) => _ = b * "typeof(" * settings.GenericTValueName * ')')),
-                t => t.Names,
+                builder: b,
+                values: representableTypes,
+                valueTypeExpression: b => _ = b * (b => UtilFullString(b, (b) => _ = b * "typeof(" * settings.GenericTValueName * ')')),
+                caseSelector: t => t.Names,
                 (b, v) => _ = b * "instance = " * v.Factory.Name * '(' * (b => UtilUnsafeConvert(b, settings.GenericTValueName, v.Names.FullTypeName, "value")) * ");return true;",
                 TryCreateDefaultCase)) * '}' /
             "public static " * target.ToMinimalOpenString() * " Create<" * settings.GenericTValueName * ">(" *

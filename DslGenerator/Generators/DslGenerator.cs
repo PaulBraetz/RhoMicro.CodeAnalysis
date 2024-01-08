@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 
 using RhoMicro.CodeAnalysis.Generated;
 using RhoMicro.CodeAnalysis.DslGenerator.Lexing;
+using RhoMicro.CodeAnalysis.DslGenerator.Grammar;
 
 /// <summary>
 /// Generates utilities for domain specific languages.

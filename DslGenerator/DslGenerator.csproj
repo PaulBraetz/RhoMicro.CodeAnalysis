@@ -18,7 +18,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<DefineConstants>$(DefineConstants);GENERATOR</DefineConstants>
+		<DefineConstants>$(DefineConstants);DSL_GENERATOR</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>

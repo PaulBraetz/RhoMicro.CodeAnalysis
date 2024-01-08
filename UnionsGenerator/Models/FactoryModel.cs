@@ -10,14 +10,12 @@ using System.Linq.Expressions;
 
 internal readonly struct FactoryModel
 {
-    private FactoryModel(String fullValueName, Boolean requiresGeneration, String name)
+    private FactoryModel(Boolean requiresGeneration, String name)
     {
-        FullValueName = fullValueName;
         RequiresGeneration = requiresGeneration;
         Name = name;
     }
 
-    public readonly String FullValueName;
     public readonly Boolean RequiresGeneration;
     public readonly String Name;
 
@@ -41,10 +39,10 @@ internal readonly struct FactoryModel
             if(customFactoryNameMap.TryGetValue(representableTypeName, out var factoryName))
             {
                 _ = customFactoryNameMap.Remove(representableTypeName);
-                representableType.Factory = new(representableTypeName, false, factoryName);
+                representableType.Factory = new(false, factoryName);
             } else
             {
-                representableType.Factory = new(representableTypeName, true, representableType.Names.GeneratedFactoryName);
+                representableType.Factory = new(true, representableType.Names.GeneratedFactoryName);
             }
         }
     }

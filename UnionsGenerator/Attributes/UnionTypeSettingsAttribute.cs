@@ -116,6 +116,14 @@ sealed partial class UnionTypeSettingsAttribute : Attribute
     private String _matchTypeName = "TResult";
 
     /// <summary>
+    /// Gets or sets a value indicating whether the generated source code should be available as a string constant on the union type itself.
+    /// </summary>
+    public Boolean EmitGeneratedSourceCode { get; set; }
+    /// <summary>
+    /// Gets or sets a raw code preface to prepend before the generated type declaration.
+    /// </summary>
+    public String TypeDeclarationPreface { get; set; } = String.Empty;
+    /// <summary>
     /// Gets or sets a setting defining how to generate an implementation <see cref="Object.ToString"/>.
     /// </summary>
     public ToStringSetting ToStringSetting { get; set; }
@@ -158,6 +166,13 @@ sealed partial class UnionTypeSettingsAttribute : Attribute
         get => _matchTypeName;
         set => SetReservedName(ref _matchTypeName, value);
     }
+    /// <summary>
+    /// Gets or sets a value indicating whether to generate a custom converter type 
+    /// for <c>System.Text.Json</c> deserialization. If set, this will also cause
+    /// the union type to be annotated with the <c>JsonConverter</c> attribute.
+    /// </summary>
+    public Boolean GenerateJsonConverter { get; set; }
+
     private void SetReservedName(ref String field, String newValue)
     {
         if(field != null)

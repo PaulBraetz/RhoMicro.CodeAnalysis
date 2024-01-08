@@ -1,7 +1,5 @@
 ﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
 
-using MsSourceText = Microsoft.CodeAnalysis.Text.SourceText;
-
 using System;
 using Microsoft.CodeAnalysis;
 using System.Text;
