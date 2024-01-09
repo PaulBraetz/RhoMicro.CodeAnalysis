@@ -1,41 +1,42 @@
-﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
+﻿#pragma warning disable IDE2003 // Blank line required between block and subsequent statement
+#pragma warning disable CA1822 // Mark members as static
+namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
+using RhoMicro.CodeAnalysis.DslGenerator.Analysis;
 
 using static Lexemes;
-using static DiagnosticDescriptors;
+using static RhoMicro.CodeAnalysis.DslGenerator.Analysis.DiagnosticDescriptors;
 
-sealed partial class Tokenizer(DiagnosticsCollection diagnostics)
+partial class Tokenizer
 {
     [UnionType(typeof(Token))]
     [UnionType(typeof(TokenType))]
     readonly partial struct TokenOrType;
-    private readonly DiagnosticsCollection _diagnostics = diagnostics;
 
-    public ImmutableArray<Token> Tokenize(SourceText sourceText, CancellationToken cancellationToken)
+    public TokenizeResult Tokenize(SourceText sourceText, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        //TODO: optimize waste
-        var tokens = ImmutableArray.CreateBuilder<Token>();
+        var tokensBuilder = ImmutableArray.CreateBuilder<Token>();
+        var diagnostics = new DiagnosticsCollection();
         var source = sourceText.ToString(cancellationToken);
+        var isUnknown = false;
         var (start, current, line, character) = (0, 0, 0, 0);
 
         while(!isAtEnd())
         {
             cancellationToken.ThrowIfCancellationRequested();
-            resetLexemeStart();
             scanToken();
         }
 
         addToken(Tokens.Eof);
 
-        var result = tokens.ToImmutable();
-        return result;
+        var tokens = tokensBuilder.ToImmutable();
+        return new(tokens, diagnostics);
 
         void scanToken()
         {
@@ -43,29 +44,29 @@ sealed partial class Tokenizer(DiagnosticsCollection diagnostics)
             switch(c)
             {
                 case Equal:
-                    //check for incremental alternative "=/"
-                    var type = match(Alternative) ?
-                        TokenType.IncrementalAlternative :
-                        TokenType.Equal;
-                    addToken(type);
+                    addToken(TokenType.Equal);
                     break;
                 case Alternative:
-                    addToken(TokenType.Alternative);
+                    //check for incremental alternative "/="
+                    var type = match(Equal) ?
+                        TokenType.SlashEqual :
+                        TokenType.Slash;
+                    addToken(type);
                     break;
                 case GroupOpen:
-                    addToken(TokenType.GroupOpen);
+                    addToken(TokenType.ParenLeft);
                     break;
                 case GroupClose:
-                    addToken(TokenType.GroupClose);
+                    addToken(TokenType.ParenRight);
                     break;
                 case VariableRepetition:
-                    addToken(TokenType.VariableRepetition);
+                    addToken(TokenType.Star);
                     break;
                 case OptionalSequenceOpen:
-                    addToken(TokenType.OptionalSequenceOpen);
+                    addToken(TokenType.BracketLeft);
                     break;
                 case OptionalSequenceClose:
-                    addToken(TokenType.OptionalSequenceClose);
+                    addToken(TokenType.BracketRight);
                     break;
                 case Semicolon:
                     addToken(TokenType.Semicolon);
@@ -80,6 +81,7 @@ sealed partial class Tokenizer(DiagnosticsCollection diagnostics)
                     addNewLine();
                     break;
                 case CarriageReturn:
+                    closeUnknown();
                     if(lookAhead() == NewLine)
                         advancePure();
                     addNewLine();
@@ -99,8 +101,7 @@ sealed partial class Tokenizer(DiagnosticsCollection diagnostics)
                         specificRepetition();
                     } else
                     {
-                        addToken(TokenType.Unknown);
-                        _diagnostics.Add(UnexpectedCharacter, getLocation(), getLexeme());
+                        openUnknown();
                     }
 
                     break;
@@ -108,42 +109,61 @@ sealed partial class Tokenizer(DiagnosticsCollection diagnostics)
 
             void addNewLine()
             {
+                closeUnknown();
                 line++;
                 character = 0;
                 addToken(TokenType.NewLine);
             }
         }
-
         Boolean isAtEnd(Int32 lookaheadOffset = 0) => current + lookaheadOffset >= source!.Length;
         Char advance()
         {
             advancePure();
             return source![current - 1];
         }
-
         void specificRepetition()
         {
+            closeUnknown();
+
             while(isDigit(lookAhead()))
                 advancePure();
-            addToken(TokenType.SpecificRepetition);
+            addToken(TokenType.Number);
         }
-
         void advancePure()
         {
             character++;
             current++;
         }
-
+        void regressPure()
+        {
+            character--;
+            current--;
+        }
+        void openUnknown() => isUnknown = true;
+        void closeUnknown()
+        {
+            if(isUnknown)
+            {
+                if(!isAtEnd())
+                    regressPure();
+                isUnknown = false;
+                addToken(TokenType.Unknown);
+                diagnostics!.Add(UnexpectedCharacter, getLocation());
+                if(!isAtEnd())
+                    advancePure();
+            }
+        }
         void resetLexemeStart() => start = current;
         void addToken(TokenOrType tokenOrType)
         {
+            closeUnknown();
+
             var token = tokenOrType.Match(
                 token => token,
-                type => new Token(type, getLexeme()));
-            tokens!.Add(token);
+                type => new Token(type, getLexeme(), getLocation()));
+            tokensBuilder!.Add(token);
             resetLexemeStart();
         }
-
         Boolean isDigit(Char? c) => c is not null and >= '0' and <= '9';
         Boolean isAlpha(Char? c) => c is not null and (>= 'a' and <= 'z' or >= 'A' and <= 'Z' or '_');
         Lexeme getLexeme() => new StringSlice(source!, start, current - start);
@@ -174,7 +194,6 @@ sealed partial class Tokenizer(DiagnosticsCollection diagnostics)
             current++;
             return true;
         }
-
         Boolean isAtNewLine() =>
             lookAhead() switch
             {
@@ -198,19 +217,19 @@ sealed partial class Tokenizer(DiagnosticsCollection diagnostics)
 
             addToken(TokenType.Comment);
         }
-
         void consumeWhitespace(Char expected)
         {
+            closeUnknown();
+
             while(lookAhead() == expected)
                 advancePure();
 
             addToken(TokenType.Whitespace);
         }
-
         void terminal()
         {
             addToken(TokenType.Quote);
-
+            var containsCharacters = false;
             while((lookAhead() != Quote || lookBehind() == Escape) && !isAtEnd())
             {
                 if(lookAhead() == NewLine)
@@ -219,23 +238,28 @@ sealed partial class Tokenizer(DiagnosticsCollection diagnostics)
                 }
 
                 advancePure();
+                containsCharacters = true;
+            }
+
+            if(containsCharacters)
+            {
+                addToken(TokenType.Terminal);
             }
 
             if(isAtEnd())
             {
-                _diagnostics.Add(UnterminatedTerminal, getLocation(), getLexeme());
+                diagnostics.Add(UnterminatedTerminal, getLocation(), getLexeme());
                 return;
             }
-
-            addToken(TokenType.Terminal);
 
             //consume terminating quote
             advancePure();
             addToken(TokenType.Quote);
         }
-
         void name()
         {
+            closeUnknown();
+
             while(isAlpha(lookAhead()))
                 advancePure();
 

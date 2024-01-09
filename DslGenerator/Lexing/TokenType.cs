@@ -1,19 +1,18 @@
 ﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
-
 enum TokenType
 {
     Unknown,
     Name,
     Equal,
     Whitespace,
-    Alternative,
-    IncrementalAlternative,
-    GroupOpen,
-    GroupClose,
-    VariableRepetition,
-    SpecificRepetition,
-    OptionalSequenceOpen,
-    OptionalSequenceClose,
+    Slash,
+    SlashEqual,
+    ParenLeft,
+    ParenRight,
+    Star,
+    Number,
+    BracketLeft,
+    BracketRight,
     Hash,
     Semicolon,
     Comment,

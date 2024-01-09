@@ -8,10 +8,7 @@ internal class Program
 {
     private static void Main(String[] _0)
     {
-        Test(null!);
-        Test("Hello World");
-        Test((String)null!);
-        Test(12345);
+
     }
 
     private static void Test(Union before)

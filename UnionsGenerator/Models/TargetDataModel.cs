@@ -15,7 +15,8 @@ internal sealed class TargetDataModel : UnionDataModel
         SemanticModel semanticModel,
         AnnotationDataModel annotations,
         OperatorOmissionModel operatorOmissions,
-        INamedTypeSymbol symbol)
+        INamedTypeSymbol symbol,
+        Boolean implementsEquals)
         : base(annotations, operatorOmissions, symbol)
     {
         TargetDeclaration = targetDeclaration;
@@ -23,6 +24,7 @@ internal sealed class TargetDataModel : UnionDataModel
 
         ValueTypeContainerName = $"__{Symbol.ToIdentifierCompatString()}_ValueTypeContainer";
         ConversionFunctionsTypeName = $"__{Symbol.ToIdentifierCompatString()}_ConversionFunctions";
+        ImplementsEquals = implementsEquals;
     }
 
     public readonly TypeDeclarationSyntax TargetDeclaration;
@@ -30,6 +32,7 @@ internal sealed class TargetDataModel : UnionDataModel
     public readonly String ValueTypeContainerName;
     public readonly String TagTypeName = "__Tag";
     public readonly String ConversionFunctionsTypeName;
+    public readonly Boolean ImplementsEquals;
 
     public static TargetDataModel Create(TypeDeclarationSyntax targetDeclaration, SemanticModel semanticModel)
     {
@@ -40,12 +43,21 @@ internal sealed class TargetDataModel : UnionDataModel
 
         var (annotations, omissions) = CreateModels(targetSymbol);
 
+        var implementsEquals = targetSymbol.GetMembers()
+            .OfType<IMethodSymbol>()
+            .Any(s =>
+                s.Name == nameof(Equals) &&
+                s.Parameters.Length == 1 &&
+                s.Parameters[0].Type.Equals(targetSymbol, SymbolEqualityComparer.Default) &&
+                targetSymbol.Equals(s.ContainingSymbol, SymbolEqualityComparer.Default));
+
         var result = new TargetDataModel(
             targetDeclaration,
             semanticModel,
             annotations,
             omissions,
-            targetSymbol);
+            targetSymbol,
+            implementsEquals);
 
         return result;
     }

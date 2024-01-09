@@ -1,10 +1,8 @@
 namespace RhoMicro.CodeAnalysis.DslGenerator.Generators;
 
 using Microsoft.CodeAnalysis;
-
 using RhoMicro.CodeAnalysis.Generated;
 using RhoMicro.CodeAnalysis.DslGenerator.Lexing;
-using RhoMicro.CodeAnalysis.DslGenerator.Grammar;
 
 /// <summary>
 /// Generates utilities for domain specific languages.
@@ -16,17 +14,17 @@ public sealed class DslGenerator : IIncrementalGenerator
     /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var tokenizer = new Tokenizer([]);
         var provider = context.AdditionalTextsProvider
             .Where(text => Path.GetExtension(text.Path) == _grammarFileExtension)
-            .Select((text, ct) => tokenizer.Tokenize(text, ct))
-            .WithComparer(CollectionEqualityComparer<Token>.Instance)
-            .Select((tokens, ct) => String.Concat(tokens))
-            .Collect()
-            .WithComparer(CollectionEqualityComparer<String>.Instance)
-            .Select((tokens, ct) => $"/*\n{String.Join("\n\nNext Grammar\n\n", tokens)}\n*/");
+            .Select((text, ct) => new Tokenizer().Tokenize(text, ct))
+            /*.Select((tokenizeResult, ct) => (tokenizeResult, new Parser().Parse(tokenizeResult.Tokens, ct)))*/;
 
-        context.RegisterSourceOutput(provider, (ctx, tokens) => ctx.AddSource("Tokens.txt", tokens));
+        context.RegisterSourceOutput(provider, (ctx, tokenizationResult) =>
+        {
+            var (tokens, diagnostics) = tokenizationResult;
+            ctx.AddSource("Tokens.g.cs", $"//{String.Concat(tokens)}");
+            diagnostics.ReportToContext(ctx);
+        });
         IncludedFileSources.RegisterToContext(context);
     }
 }

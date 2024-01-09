@@ -9,6 +9,11 @@ sealed class GetHashCode(TargetDataModel model) : ExpansionBase(model, Macro.Get
 {
     protected override void Expand(ExpandingMacroBuilder builder)
     {
+        if(Model.ImplementsEquals)
+        {
+            return;
+        }
+
         var annotations = Model.Annotations;
         var target = Model.Symbol;
 
@@ -30,8 +35,8 @@ sealed class GetHashCode(TargetDataModel model) : ExpansionBase(model, Macro.Get
             _ = builder * annotations.AllRepresentableTypes[0].Storage.GetHashCodeInvocation;
         }
 
-        _ = builder % 
-            ';' % 
+        _ = builder %
+            ';' %
             "#endregion";
     }
 }

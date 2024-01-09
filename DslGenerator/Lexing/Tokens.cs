@@ -3,13 +3,13 @@
 static class Tokens
 {
     public static Token Equal { get; } = new(TokenType.Equal, Lexemes.Equal);
-    public static Token Alternative { get; } = new(TokenType.Alternative, Lexemes.Alternative);
-    public static Token IncrementalAlternative { get; } = new(TokenType.IncrementalAlternative, Lexemes.IncrementalAlternative);
-    public static Token GroupOpen { get; } = new(TokenType.GroupOpen, Lexemes.GroupOpen);
-    public static Token GroupClose { get; } = new(TokenType.GroupClose, Lexemes.GroupClose);
-    public static Token VariableRepetition { get; } = new(TokenType.VariableRepetition, Lexemes.VariableRepetition);
-    public static Token OptionalSequenceOpen { get; } = new(TokenType.OptionalSequenceOpen, Lexemes.OptionalSequenceOpen);
-    public static Token OptionalSequenceClose { get; } = new(TokenType.OptionalSequenceClose, Lexemes.OptionalSequenceClose);
+    public static Token Alternative { get; } = new(TokenType.Slash, Lexemes.Alternative);
+    public static Token IncrementalAlternative { get; } = new(TokenType.SlashEqual, Lexemes.IncrementalAlternative);
+    public static Token GroupOpen { get; } = new(TokenType.ParenLeft, Lexemes.GroupOpen);
+    public static Token GroupClose { get; } = new(TokenType.ParenRight, Lexemes.GroupClose);
+    public static Token VariableRepetition { get; } = new(TokenType.Star, Lexemes.VariableRepetition);
+    public static Token OptionalSequenceOpen { get; } = new(TokenType.BracketLeft, Lexemes.OptionalSequenceOpen);
+    public static Token OptionalSequenceClose { get; } = new(TokenType.BracketRight, Lexemes.OptionalSequenceClose);
     public static Token Hash { get; } = new(TokenType.Hash, Lexemes.Hash);
     public static Token Semicolon { get; } = new(TokenType.Semicolon, Lexemes.Semicolon);
     public static Token NewLine { get; } = new(TokenType.NewLine, Lexemes.NewLine);

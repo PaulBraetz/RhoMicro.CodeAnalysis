@@ -1,6 +1,8 @@
-﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
+﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Analysis;
 
 using Microsoft.CodeAnalysis;
+
+using RhoMicro.CodeAnalysis.DslGenerator.Lexing;
 
 using System;
 using System.Collections;
@@ -10,14 +12,15 @@ sealed class DiagnosticsCollection : IReadOnlyList<Diagnostic>
 {
     private readonly List<Diagnostic> _diagnostics = [];
 
-    public void Add(DiagnosticDescriptor descriptor, Location location, Lexeme lexeme)
+    public void ReportToContext(SourceProductionContext context)
     {
-        var lineSpan = location.GetLineSpan();
-        var line = lineSpan.StartLinePosition.Line;
-        var character = lineSpan.Span.Start.Character;
-
-        _diagnostics.Add(Diagnostic.Create(descriptor, location, line, character, lexeme));
+        foreach(var diagnostic in _diagnostics)
+        {
+            context.ReportDiagnostic(diagnostic);
+        }
     }
+    public void Add(DiagnosticDescriptor descriptor, Location location, params Object[] messageArgs) =>
+        _diagnostics.Add(Diagnostic.Create(descriptor, location, messageArgs));
 
     public Diagnostic this[Int32 index] => ((IReadOnlyList<Diagnostic>)_diagnostics)[index];
 
