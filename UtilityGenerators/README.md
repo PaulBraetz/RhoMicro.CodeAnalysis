@@ -11,7 +11,7 @@ Currently, there are two generators contained within:
 # Installation
 
 ```xml
-<PackageReference Include="RhoMicro.CodeAnalysis.GeneratorUtilities" Version="*">
+<PackageReference Include="RhoMicro.CodeAnalysis.UtilityGenerators" Version="*">
     <PrivateAssets>all</PrivateAssets>
     <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 </PackageReference>
