@@ -1,9 +1,14 @@
-﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
+﻿#if DSL_GENERATOR
+namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
+#else
+#pragma warning disable
+#nullable enable
+namespace RhoMicro.CodeAnalysis.DslGenerator.Generated.Lexing;
+#endif
 
-using Microsoft.CodeAnalysis.VisualBasic;
-
-using System.Runtime.CompilerServices;
-
+#if DSL_GENERATOR
+[IncludeFile]
+#endif
 [UnionType(typeof(String))]
 [UnionType(typeof(Char))]
 [UnionType(typeof(StringSlice))]
@@ -13,6 +18,8 @@ readonly partial struct Lexeme : IEquatable<String>, IEquatable<Char>, IEquatabl
     public static Lexeme Empty { get; } = String.Empty;
     public Boolean Equals(Lexeme other) =>
         Match(other.Equals, other.Equals, other.Equals);
+    public override Int32 GetHashCode() =>
+        Match(v => v.GetHashCode(), v => v.GetHashCode(), v => v.GetHashCode());
     public Boolean Equals(Char c) =>
         Match(
             s => s.Equals(c),

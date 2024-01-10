@@ -1,8 +1,16 @@
-﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
+﻿#if DSL_GENERATOR
+namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
+#else
+#pragma warning disable
+#nullable enable
+namespace RhoMicro.CodeAnalysis.DslGenerator.Generated.Lexing;
+#endif
 
 using System.Diagnostics;
-using System.Drawing;
 
+#if DSL_GENERATOR
+[IncludeFile]
+#endif
 [DebuggerDisplay("{DebuggerDisplayString()}")]
 readonly record struct StringSlice(String Source, Int32 Start, Int32 Length) : IEquatable<String>, IEquatable<Char>
 {

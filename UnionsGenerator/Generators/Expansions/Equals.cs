@@ -21,7 +21,8 @@ sealed class Equals(TargetDataModel model) : ExpansionBase(model, Macro.Equals)
 
         if(Model.ImplementsEquals)
         {
-            _ = builder % String.Empty %
+            _ = builder %
+                AppendOperators %
                 "#endregion";
 
             return;
@@ -50,12 +51,17 @@ sealed class Equals(TargetDataModel model) : ExpansionBase(model, Macro.Equals)
 
         _ = builder % ';';
 
+        AppendOperators(builder);
+
+        _ = builder % "#endregion";
+    }
+
+    private void AppendOperators(ExpandingMacroBuilder builder)
+    {
         if(Model.Symbol.IsValueType)
         {
             _ = builder * "public static Boolean operator ==(" * Model.Symbol.ToMinimalOpenString() * " a, " * Model.Symbol.ToMinimalOpenString() * " b) => a.Equals(b);" /
                 "public static Boolean operator !=(" * Model.Symbol.ToMinimalOpenString() * " a, " * Model.Symbol.ToMinimalOpenString() / " b) => !(a == b);";
         }
-
-        _ = builder % "#endregion";
     }
 }

@@ -9,7 +9,7 @@ sealed class GetHashCode(TargetDataModel model) : ExpansionBase(model, Macro.Get
 {
     protected override void Expand(ExpandingMacroBuilder builder)
     {
-        if(Model.ImplementsEquals)
+        if(Model.ImplementsGetHashCode)
         {
             return;
         }

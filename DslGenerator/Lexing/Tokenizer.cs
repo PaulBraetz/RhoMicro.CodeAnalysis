@@ -1,27 +1,40 @@
-﻿#pragma warning disable IDE2003 // Blank line required between block and subsequent statement
-#pragma warning disable CA1822 // Mark members as static
+﻿#if DSL_GENERATOR
 namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
+#else
+#pragma warning disable
+#nullable enable
+namespace RhoMicro.CodeAnalysis.DslGenerator.Generated.Lexing;
+#endif
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-
-using System.Collections.Immutable;
+#if DSL_GENERATOR
+using static RhoMicro.CodeAnalysis.DslGenerator.Analysis.DiagnosticDescriptors;
+using RhoMicro.CodeAnalysis.DslGenerator.Grammar;
 using RhoMicro.CodeAnalysis.DslGenerator.Analysis;
+#else
+using static RhoMicro.CodeAnalysis.DslGenerator.Generated.Analysis.DiagnosticDescriptors;
+using RhoMicro.CodeAnalysis.DslGenerator.Generated.Grammar;
+using RhoMicro.CodeAnalysis.DslGenerator.Generated.Analysis;
+#endif
 
 using static Lexemes;
-using static RhoMicro.CodeAnalysis.DslGenerator.Analysis.DiagnosticDescriptors;
 
+#if DSL_GENERATOR
+[IncludeFile]
+#endif
 partial class Tokenizer
 {
     [UnionType(typeof(Token))]
     [UnionType(typeof(TokenType))]
     readonly partial struct TokenOrType;
-
-    public TokenizeResult Tokenize(SourceText sourceText, CancellationToken cancellationToken)
+    public TokenizeResult Tokenize(SourceText sourceText, CancellationToken cancellationToken
+#if DSL_GENERATOR
+        , String filePath
+#endif
+        )
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var tokensBuilder = ImmutableArray.CreateBuilder<Token>();
+        var tokens = new List<Token>();
         var diagnostics = new DiagnosticsCollection();
         var source = sourceText.ToString(cancellationToken);
         var isUnknown = false;
@@ -35,7 +48,6 @@ partial class Tokenizer
 
         addToken(Tokens.Eof);
 
-        var tokens = tokensBuilder.ToImmutable();
         return new(tokens, diagnostics);
 
         void scanToken()
@@ -115,12 +127,15 @@ partial class Tokenizer
                 addToken(TokenType.NewLine);
             }
         }
+
         Boolean isAtEnd(Int32 lookaheadOffset = 0) => current + lookaheadOffset >= source!.Length;
+
         Char advance()
         {
             advancePure();
             return source![current - 1];
         }
+
         void specificRepetition()
         {
             closeUnknown();
@@ -129,17 +144,21 @@ partial class Tokenizer
                 advancePure();
             addToken(TokenType.Number);
         }
+
         void advancePure()
         {
             character++;
             current++;
         }
+
         void regressPure()
         {
             character--;
             current--;
         }
+
         void openUnknown() => isUnknown = true;
+
         void closeUnknown()
         {
             if(isUnknown)
@@ -153,7 +172,9 @@ partial class Tokenizer
                     advancePure();
             }
         }
+
         void resetLexemeStart() => start = current;
+
         void addToken(TokenOrType tokenOrType)
         {
             closeUnknown();
@@ -161,32 +182,29 @@ partial class Tokenizer
             var token = tokenOrType.Match(
                 token => token,
                 type => new Token(type, getLexeme(), getLocation()));
-            tokensBuilder!.Add(token);
+            tokens!.Add(token);
             resetLexemeStart();
         }
-        Boolean isDigit(Char? c) => c is not null and >= '0' and <= '9';
-        Boolean isAlpha(Char? c) => c is not null and (>= 'a' and <= 'z' or >= 'A' and <= 'Z' or '_');
-        Lexeme getLexeme() => new StringSlice(source!, start, current - start);
-        Char? lookAhead(Int32 lookAheadOffset = 0) => current + lookAheadOffset >= source!.Length ? null : source![current + lookAheadOffset];
-        Char? lookBehind(Int32 lookBehindOffset = 0) => current - lookBehindOffset < 1 ? null : source![current - 1 - lookBehindOffset];
-        Location getLocation() =>
-            sourceText.MatchLocation(
-                additionalText =>
-                {
-                    var sourceText = additionalText.GetText(cancellationToken);
-                    if(sourceText == null)
-                    {
-                        return Location.None;
-                    }
 
-                    var path = additionalText.Path;
-                    var lineSpan = new LinePositionSpan(
-                        new LinePosition(line, character),
-                        new LinePosition(line, character));
-                    var textSpan = sourceText.Lines.GetTextSpan(lineSpan);
-                    var location = Location.Create(path, textSpan, lineSpan);
-                    return location;
-                });
+        Boolean isDigit(Char? c) => c is not null and >= '0' and <= '9';
+
+        Boolean isAlpha(Char? c) => c is not null && Utils.IsValidNameChar(c.Value);
+
+        Lexeme getLexeme() => new StringSlice(source!, start, current - start);
+
+        Char? lookAhead(Int32 lookAheadOffset = 0) => current + lookAheadOffset >= source!.Length ? null : source![current + lookAheadOffset];
+
+        Char? lookBehind(Int32 lookBehindOffset = 0) => current - lookBehindOffset < 1 ? null : source![current - 1 - lookBehindOffset];
+
+        Location getLocation() => Location.Create(
+            line,
+            character,
+            current
+#if DSL_GENERATOR
+            , filePath
+#endif
+            );
+
         Boolean match(Char expected)
         {
             if(isAtEnd() || source![current] != expected)
@@ -194,6 +212,7 @@ partial class Tokenizer
             current++;
             return true;
         }
+
         Boolean isAtNewLine() =>
             lookAhead() switch
             {
@@ -201,6 +220,7 @@ partial class Tokenizer
                 CarriageReturn => true,
                 _ => false
             };
+
         void comment()
         {
             addToken(TokenType.Hash);
@@ -217,6 +237,7 @@ partial class Tokenizer
 
             addToken(TokenType.Comment);
         }
+
         void consumeWhitespace(Char expected)
         {
             closeUnknown();
@@ -226,6 +247,7 @@ partial class Tokenizer
 
             addToken(TokenType.Whitespace);
         }
+
         void terminal()
         {
             addToken(TokenType.Quote);
@@ -256,6 +278,7 @@ partial class Tokenizer
             advancePure();
             addToken(TokenType.Quote);
         }
+
         void name()
         {
             closeUnknown();

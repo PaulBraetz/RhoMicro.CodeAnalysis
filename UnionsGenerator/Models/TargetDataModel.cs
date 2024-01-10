@@ -16,7 +16,8 @@ internal sealed class TargetDataModel : UnionDataModel
         AnnotationDataModel annotations,
         OperatorOmissionModel operatorOmissions,
         INamedTypeSymbol symbol,
-        Boolean implementsEquals)
+        Boolean implementsEquals,
+        Boolean implementsGetHashCode)
         : base(annotations, operatorOmissions, symbol)
     {
         TargetDeclaration = targetDeclaration;
@@ -25,6 +26,7 @@ internal sealed class TargetDataModel : UnionDataModel
         ValueTypeContainerName = $"__{Symbol.ToIdentifierCompatString()}_ValueTypeContainer";
         ConversionFunctionsTypeName = $"__{Symbol.ToIdentifierCompatString()}_ConversionFunctions";
         ImplementsEquals = implementsEquals;
+        ImplementsGetHashCode = implementsGetHashCode;
     }
 
     public readonly TypeDeclarationSyntax TargetDeclaration;
@@ -33,6 +35,7 @@ internal sealed class TargetDataModel : UnionDataModel
     public readonly String TagTypeName = "__Tag";
     public readonly String ConversionFunctionsTypeName;
     public readonly Boolean ImplementsEquals;
+    public readonly Boolean ImplementsGetHashCode;
 
     public static TargetDataModel Create(TypeDeclarationSyntax targetDeclaration, SemanticModel semanticModel)
     {
@@ -51,13 +54,21 @@ internal sealed class TargetDataModel : UnionDataModel
                 s.Parameters[0].Type.Equals(targetSymbol, SymbolEqualityComparer.Default) &&
                 targetSymbol.Equals(s.ContainingSymbol, SymbolEqualityComparer.Default));
 
+        var implementsGetHashCode = targetSymbol.GetMembers()
+            .OfType<IMethodSymbol>()
+            .Any(s =>
+                s.Name == nameof(GetHashCode) &&
+                s.Parameters.Length == 0 &&
+                targetSymbol.Equals(s.ContainingSymbol, SymbolEqualityComparer.Default));
+
         var result = new TargetDataModel(
             targetDeclaration,
             semanticModel,
             annotations,
             omissions,
             targetSymbol,
-            implementsEquals);
+            implementsEquals,
+            implementsGetHashCode);
 
         return result;
     }

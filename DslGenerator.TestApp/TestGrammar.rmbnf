@@ -1,2 +1,6 @@
-﻿testname = ["is this the only legal value?"] / # here is a comment
+﻿TestGrammarName;
+
+testname = ["is this the only legal value?"] / # here is a comment
 		   *"no, it's not :)"; # and another comment
+
+testname /= 77here (is *some more) "ruley" [goodness]; # :)

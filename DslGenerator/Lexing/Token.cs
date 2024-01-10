@@ -1,7 +1,14 @@
-﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
+﻿#if DSL_GENERATOR
+namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
+#else
+#pragma warning disable
+#nullable enable
+namespace RhoMicro.CodeAnalysis.DslGenerator.Generated.Lexing;
+#endif
 
-using Microsoft.CodeAnalysis;
-
+#if DSL_GENERATOR
+[IncludeFile]
+#endif
 readonly record struct Token(TokenType Type, Lexeme Lexeme, Location Location)
 {
     public Token(TokenType type, Lexeme lexeme) : this(type, lexeme, Location.None) { }
@@ -12,4 +19,6 @@ readonly record struct Token(TokenType Type, Lexeme Lexeme, Location Location)
     public static Token CreateSpecificRepetition(Lexeme lexeme) => new(TokenType.Number, lexeme);
     public static Token CreateComment(Lexeme lexeme) => new(TokenType.Comment, lexeme);
     public static Token CreateTerminal(Lexeme lexeme) => new(TokenType.Terminal, lexeme);
+    public Boolean Equals(Token other) => Type == other.Type && Lexeme == other.Lexeme;
+    public override Int32 GetHashCode() => (Type, Lexeme).GetHashCode();
 }

@@ -1,5 +1,14 @@
-﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
+﻿#if DSL_GENERATOR
+namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
+#else
+#pragma warning disable
+#nullable enable
+namespace RhoMicro.CodeAnalysis.DslGenerator.Generated.Lexing;
+#endif
 
+#if DSL_GENERATOR
+[IncludeFile]
+#endif
 static class Tokens
 {
     public static Token Equal { get; } = new(TokenType.Equal, Lexemes.Equal);

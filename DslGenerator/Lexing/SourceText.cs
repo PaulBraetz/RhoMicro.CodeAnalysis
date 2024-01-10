@@ -1,19 +1,23 @@
-﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
+﻿#if DSL_GENERATOR
+namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
+#else
+#pragma warning disable
+#nullable enable
+namespace RhoMicro.CodeAnalysis.DslGenerator.Generated.Lexing;
+#endif
 
 using System;
-using Microsoft.CodeAnalysis;
 using System.Text;
 
+#if DSL_GENERATOR
+[IncludeFile]
+#endif
 [UnionType(typeof(String))]
 [UnionType(typeof(Stream))]
-[UnionType(typeof(AdditionalText))]
 readonly partial struct SourceText : IDisposable
 {
-    public Location MatchLocation(Func<AdditionalText, Location> onAdditionalText) =>
-        Match(onAdditionalText, s => Location.None, s => Location.None);
     public String ToString(CancellationToken cancellationToken) =>
         Match(
-            s => s.GetText(cancellationToken)?.ToString() ?? String.Empty,
             s =>
             {
                 cancellationToken.ThrowIfCancellationRequested();

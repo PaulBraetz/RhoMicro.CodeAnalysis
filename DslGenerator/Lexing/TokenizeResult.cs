@@ -1,14 +1,25 @@
-﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
+﻿#if DSL_GENERATOR
+namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
+#else
+#pragma warning disable
+#nullable enable
+namespace RhoMicro.CodeAnalysis.DslGenerator.Generated.Lexing;
+#endif
+
+#if DSL_GENERATOR
+using RhoMicro.CodeAnalysis.DslGenerator.Analysis;
+#else
+using RhoMicro.CodeAnalysis.DslGenerator.Generated.Analysis;
+#endif
 
 using System.Collections.Immutable;
+using System.Xml.Linq;
 
-using RhoMicro.CodeAnalysis.DslGenerator.Analysis;
-using RhoMicro.CodeAnalysis.UtilityGenerators;
-
-readonly record struct TokenizeResult(ImmutableArray<Token> Tokens, DiagnosticsCollection Diagnostics)
+#if DSL_GENERATOR
+[IncludeFile]
+#endif
+readonly record struct TokenizeResult(IReadOnlyList<Token> Tokens, DiagnosticsCollection Diagnostics)
 {
-    private static readonly IEqualityComparer<ImmutableArray<Token>> _comparer =
-        ImmutableArrayCollectionEqualityComparer<Token>.Default;
-    public Boolean Equals(TokenizeResult other) => _comparer.Equals(Tokens, other.Tokens);
-    public override Int32 GetHashCode() => _comparer.GetHashCode(Tokens);
+    public Boolean Equals(TokenizeResult other) => Tokens.SequenceEqual(other.Tokens);
+    public override Int32 GetHashCode() => Tokens.Aggregate(997021164, (hc, t) => hc * -1521134295 + t.GetHashCode());
 }
