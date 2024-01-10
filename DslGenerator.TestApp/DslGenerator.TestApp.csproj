@@ -14,6 +14,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Remove="Rmbnf.rmbnf" />
 		<None Remove="TestGrammar.rmbnf" />
 	</ItemGroup>
 
@@ -22,6 +23,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<AdditionalFiles Include="Rmbnf.rmbnf" />
 		<AdditionalFiles Include="TestGrammar.rmbnf" />
 	</ItemGroup>
 

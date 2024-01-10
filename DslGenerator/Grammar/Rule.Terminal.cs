@@ -20,7 +20,6 @@ partial record Rule
 {
     partial record Terminal
     {
-        public static Terminal Create(Token token) => Create(token.Lexeme);
         public static Terminal Create(Lexeme lexeme) => new(lexeme.ToString() ?? String.Empty);
     }
 }

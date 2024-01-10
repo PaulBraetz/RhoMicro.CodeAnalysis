@@ -96,6 +96,14 @@ public class ParserTests
                             b.Terminal("no, it's not :)"))
                     )),
                 Array.Empty<Int32>()
+            ],
+            [
+
+                "rule=\"\";",
+                new RuleListBuilder().New("rule", b =>
+                    b.Terminal(String.Empty)
+                ),
+                Array.Empty<Int32>()
             ]
         ];
     [Theory]

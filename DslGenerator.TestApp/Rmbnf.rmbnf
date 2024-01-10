@@ -1,0 +1,27 @@
+﻿RhoMicroBackusNaurForm;
+
+RuleList = [Name ";"] *RuleDefinition;
+Name = Alpha;
+RuleDefinition = Name "=" Rule ";";
+
+Rule = Binary / Unary / Primary;
+
+Binary = Concatenation / Alternative;
+Concatenation = Rule Whitespace Rule;
+Alternative = Rule "/" Rule;
+
+Unary = VariableRepetition / SpecificRepetition;
+VariableRepetition = "*" Rule;
+SpecificRepetition = Digit Rule;
+
+Primary = Grouping / OptionalGrouping / Terminal / Name;
+Grouping = "(" Rule ")";
+OptionalGrouping = "[" Rule "]";
+Terminal = "\"" TerminalValue "\"";
+
+Trivia = Whitespace / NewLine;
+Whitespace = " " / "\t" *Whitespace; # whitespace is grouped automatically
+NewLine = "\n" / "\r\n" / "\r";
+Alpha = "" *Alpha; # any number of letters or underscore (n>0)
+Digit = ("0" / "1" / "2" / "3" / "4" / "5" / "6" / "7" / "8" / "9") *Digit;
+TerminalValue = ""; # matches anything that is not an unescaped quote;

@@ -249,11 +249,16 @@ sealed class Parser
 
             discardTrivia();
             _ = consume(TokenType.Quote, "Expected '\"' before terminal.");
-            discardTrivia();
-            var terminal = consume(TokenType.Terminal, "Expected terminal after quote.");
-            discardTrivia();
-            _ = consume(TokenType.Quote, "Expected '\"' after terminal.");
-            return Rule.Terminal.Create(terminal);
+            var terminalValue = String.Empty;
+            if(!match(TokenType.Quote))
+            {
+                terminalValue = consume(TokenType.Terminal, "Expected terminal after quote.")
+                    .Lexeme.ToString() ?? String.Empty;
+                discardTrivia();
+                _ = consume(TokenType.Quote, "Expected '\"' after terminal.");
+            }
+
+            return Rule.Terminal.Create(terminalValue);
         }
 
         Boolean match(params TokenType[] types)
