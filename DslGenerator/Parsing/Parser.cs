@@ -1,5 +1,6 @@
 ﻿#if DSL_GENERATOR
 namespace RhoMicro.CodeAnalysis.DslGenerator.Parsing;
+#pragma warning disable CA1822 // Mark members as static
 #else
 #pragma warning disable
 #nullable enable
@@ -54,12 +55,27 @@ Terminal = "\"" any string, quotes must be escaped "\"";
 sealed class Parser
 {
     sealed class ParseException : Exception { }
+    public static Parser Instance { get; } = new();
+    public ParseResult Parse(SourceText sourceText, CancellationToken cancellationToken
+#if DSL_GENERATOR
+    , String filePath = ""
+#endif
+        ) =>
+        Parse(Tokenizer.Instance.Tokenize(sourceText, cancellationToken
+#if DSL_GENERATOR
+            , filePath
+#endif
+            ), cancellationToken);
     public ParseResult Parse(TokenizeResult tokenizeResult, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         var current = 0;
-        var (tokens, diagnostics) = tokenizeResult;
+        var (tokens, tokenizeDiagnostics) = tokenizeResult;
+        var diagnostics = new DiagnosticsCollection
+        {
+            tokenizeDiagnostics
+        };
 
         var ruleList = parseRuleList();
 

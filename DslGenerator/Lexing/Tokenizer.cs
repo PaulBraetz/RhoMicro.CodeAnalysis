@@ -1,5 +1,6 @@
 ﻿#if DSL_GENERATOR
 namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
+#pragma warning disable CA1822 // Mark members as static
 #else
 #pragma warning disable
 #nullable enable
@@ -26,9 +27,10 @@ partial class Tokenizer
     [UnionType(typeof(Token))]
     [UnionType(typeof(TokenType))]
     readonly partial struct TokenOrType;
+    public static Tokenizer Instance { get; } = new();
     public TokenizeResult Tokenize(SourceText sourceText, CancellationToken cancellationToken
 #if DSL_GENERATOR
-        , String filePath
+        , String filePath = ""
 #endif
         )
     {

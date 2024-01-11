@@ -73,7 +73,7 @@ public sealed class DslGenerator : IIncrementalGenerator
                     """
                     namespace RhoMicro.CodeAnalysis.DslGenerator.Generated.Grammar;
 
-                    static class RuleLists
+                    static class FileGeneratedRuleLists
                     {
 
                     """);
@@ -95,7 +95,7 @@ public sealed class DslGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(provider, (ctx, data) =>
         {
             var (source, diagnostics) = data;
-            ctx.AddSource("RuleLists.g.cs", source);
+            ctx.AddSource("FileGeneratedRuleLists.g.cs", source);
             diagnostics.ReportToContext(ctx);
         });
         IncludedFileSources.RegisterToContext(context);
