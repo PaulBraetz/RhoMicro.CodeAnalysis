@@ -1,12 +1,9 @@
-﻿#if DSL_GENERATOR
-namespace RhoMicro.CodeAnalysis.DslGenerator.Grammar;
-#else
-#pragma warning disable
-#nullable enable
-namespace RhoMicro.CodeAnalysis.DslGenerator.Generated.Grammar;
-#endif
+﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Grammar;
+
+using RhoMicro.CodeAnalysis.DslGenerator.Lexing;
 
 using System.Diagnostics;
+using System.Text;
 
 #if DSL_GENERATOR
 [IncludeFile]
@@ -14,20 +11,25 @@ using System.Diagnostics;
 [DebuggerDisplay("{ToDisplayString()}")]
 sealed partial record Name : SyntaxNode
 {
-    public Name(String value)
+    public Name(Token token) : this(token.Lexeme) { }
+    public Name(Lexeme lexeme) : this(lexeme.ToString() ?? String.Empty) { }
+#pragma warning disable IDE1006 // Naming Styles
+    public Name(String Value)
+#pragma warning restore IDE1006 // Naming Styles
     {
-        for(var i = 0; i < value.Length; i++)
+        for(var i = 0; i < Value.Length; i++)
         {
-            if(!Utils.IsValidNameChar(value[i]))
+            if(!Utils.IsValidNameChar(Value[i]))
             {
-                throw new ArgumentException($"Invalid character at index {i}: '{value[i]}'. Rule names must contain letters only.)", nameof(value));
+                throw new ArgumentException($"Invalid character at index {i}: '{Value[i]}'. Rule names must contain letters only.)", nameof(Value));
             }
         }
 
-        Value = value;
+        this.Value = Value;
     }
 
+    public override String ToString() => base.ToString();
     public String Value { get; }
-    public override String ToDisplayString() => Value;
-    public override String ToMetaString() => $"new {nameof(Name)}(\"{Value}\")";
+    public override void AppendDisplayStringTo(StringBuilder builder) => builder.Append(Value);
+    protected override void AppendCtorArgs(StringBuilder builder) => AppendCtorArg(builder, nameof(Value), Value, quoteValue: true);
 }

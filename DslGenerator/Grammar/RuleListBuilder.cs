@@ -1,10 +1,4 @@
-﻿#if DSL_GENERATOR
-namespace RhoMicro.CodeAnalysis.DslGenerator.Grammar;
-#else
-#pragma warning disable
-#nullable enable
-namespace RhoMicro.CodeAnalysis.DslGenerator.Generated.Grammar;
-#endif
+﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Grammar;
 
 using System;
 
@@ -16,6 +10,7 @@ sealed class RuleListBuilder(String? nameValue = null)
     private readonly List<RuleDefinition> _definitions = [];
     private readonly Name? _name = nameValue != null ? new(nameValue) : null;
 
+    public override String ToString() => Build().ToString();
     public RuleListBuilder New(String nameValue, Action<RuleBuilder> buildRule)
     {
         var rule = GetRule(buildRule);

@@ -1,21 +1,8 @@
-﻿#if DSL_GENERATOR
-namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
-#pragma warning disable CA1822 // Mark members as static
-#else
-#pragma warning disable
-#nullable enable
-namespace RhoMicro.CodeAnalysis.DslGenerator.Generated.Lexing;
-#endif
+﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
 
-#if DSL_GENERATOR
 using static RhoMicro.CodeAnalysis.DslGenerator.Analysis.DiagnosticDescriptors;
 using RhoMicro.CodeAnalysis.DslGenerator.Grammar;
 using RhoMicro.CodeAnalysis.DslGenerator.Analysis;
-#else
-using static RhoMicro.CodeAnalysis.DslGenerator.Generated.Analysis.DiagnosticDescriptors;
-using RhoMicro.CodeAnalysis.DslGenerator.Generated.Grammar;
-using RhoMicro.CodeAnalysis.DslGenerator.Generated.Analysis;
-#endif
 
 using static Lexemes;
 
@@ -59,6 +46,9 @@ partial class Tokenizer
             {
                 case Equal:
                     addToken(TokenType.Equal);
+                    break;
+                case Dash:
+                    addToken(TokenType.Dash);
                     break;
                 case Alternative:
                     //check for incremental alternative "/="
@@ -188,6 +178,12 @@ partial class Tokenizer
             resetLexemeStart();
         }
 
+        void discardToken()
+        {
+            closeUnknown();
+            resetLexemeStart();
+        }
+
         Boolean isDigit(Char? c) => c is not null and >= '0' and <= '9';
 
         Boolean isAlpha(Char? c) => c is not null && Utils.IsValidNameChar(c.Value);
@@ -225,13 +221,13 @@ partial class Tokenizer
 
         void comment()
         {
-            addToken(TokenType.Hash);
+            discardToken(); //discard hash token
             advancePure(); //consume hash
 
             if(isAtNewLine() || isAtEnd())
                 return;
 
-            while(!isAtNewLine() && !isAtEnd(1))
+            while(!isAtNewLine() && !isAtEnd(lookaheadOffset: 1))
                 advancePure();
 
             if(!isAtNewLine())
@@ -252,7 +248,7 @@ partial class Tokenizer
 
         void terminal()
         {
-            addToken(TokenType.Quote);
+            discardToken(); //discard quote token
             var containsCharacters = false;
             while((lookAhead() != Quote || lookBehind() == Escape) && !isAtEnd())
             {
@@ -276,9 +272,15 @@ partial class Tokenizer
                 return;
             }
 
+            //add empty token
+            if(!containsCharacters)
+            {
+                addToken(TokenType.Terminal);
+            }
+
             //consume terminating quote
             advancePure();
-            addToken(TokenType.Quote);
+            discardToken(); //discard quote token
         }
 
         void name()

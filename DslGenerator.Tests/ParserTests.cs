@@ -1,4 +1,5 @@
-﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Tests;
+﻿#pragma warning disable CA1819 // Properties should not return arrays
+namespace RhoMicro.CodeAnalysis.DslGenerator.Tests;
 
 using RhoMicro.CodeAnalysis.DslGenerator.Analysis;
 using RhoMicro.CodeAnalysis.DslGenerator.Grammar;
@@ -6,13 +7,8 @@ using RhoMicro.CodeAnalysis.DslGenerator.Lexing;
 using RhoMicro.CodeAnalysis.DslGenerator.Parsing;
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Xunit.Sdk;
 
 public class ParserTests
 {
@@ -21,6 +17,16 @@ public class ParserTests
             [
                 "rule=rule;",
                 new RuleListBuilder().New("rule", b => b.Reference("rule")),
+                Array.Empty<Int32>()
+            ],
+            [
+                """rule="a"-"z";""",
+                new RuleListBuilder().New("rule", b => b.Range('a', 'z')),
+                Array.Empty<Int32>()
+            ],
+            [
+                """rule= other / "a"-"z";""",
+                new RuleListBuilder().New("rule", b => b.Alternative(b => b.Reference("other").Range('a', 'z'))),
                 Array.Empty<Int32>()
             ],
             [
@@ -104,8 +110,15 @@ public class ParserTests
                     b.Terminal(String.Empty)
                 ),
                 Array.Empty<Int32>()
+            ],
+            [
+                "Range = SingleAlpha \"-\" SingleAlpha;",
+                new RuleListBuilder().New("Range", b =>
+                    b.Reference("SingleAlpha").Terminal("-").Reference("SingleAlpha")),
+                Array.Empty<Int32>()
             ]
         ];
+
     [Theory]
     [MemberData(nameof(Data))]
     public void ParsesCorrectly(String source, Object expectedWeak, Int32[] expectedDiagnosticIds)
@@ -128,7 +141,7 @@ public class ParserTests
         } catch
         {
             Debugger.Break();
-            _ = expectedRuleList.Equals(actualRuleList);
+            _ = parser.Parse(tokenizeResult, default);
             throw;
         }
     }

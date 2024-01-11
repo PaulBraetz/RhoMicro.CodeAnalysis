@@ -1,11 +1,4 @@
-﻿
-#if DSL_GENERATOR
-namespace RhoMicro.CodeAnalysis.DslGenerator.Grammar;
-#else
-#pragma warning disable
-#nullable enable
-namespace RhoMicro.CodeAnalysis.DslGenerator.Generated.Grammar;
-#endif
+﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Grammar;
 
 #if DSL_GENERATOR
 [IncludeFile]

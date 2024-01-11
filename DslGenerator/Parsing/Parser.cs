@@ -1,25 +1,15 @@
-﻿#if DSL_GENERATOR
-namespace RhoMicro.CodeAnalysis.DslGenerator.Parsing;
-#pragma warning disable CA1822 // Mark members as static
-#else
-#pragma warning disable
-#nullable enable
-namespace RhoMicro.CodeAnalysis.DslGenerator.Generated.Parsing;
-#endif
+﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Parsing;
 
-#if DSL_GENERATOR
 using RhoMicro.CodeAnalysis.DslGenerator.Analysis;
 using RhoMicro.CodeAnalysis.DslGenerator.Grammar;
 using RhoMicro.CodeAnalysis.DslGenerator.Lexing;
 using static RhoMicro.CodeAnalysis.DslGenerator.Analysis.DiagnosticDescriptors;
-#else
-using RhoMicro.CodeAnalysis.DslGenerator.Generated.Analysis;
-using RhoMicro.CodeAnalysis.DslGenerator.Generated.Grammar;
-using RhoMicro.CodeAnalysis.DslGenerator.Generated.Lexing;
-using static RhoMicro.CodeAnalysis.DslGenerator.Generated.Analysis.DiagnosticDescriptors;
-#endif
 
 using System;
+using static RhoMicro.CodeAnalysis.DslGenerator.Grammar.Rule;
+using System.Text;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
+using System.Runtime.InteropServices.ComTypes;
 
 /*
 Precedence Table (low to high):
@@ -33,9 +23,12 @@ RueDefinition = Name "=" Rule;
 Name = ALPHA
 Rule = Binary / Unary / Primary;
 
-Binary = Unary / Concatenation / Alternative;
+Binary = Range / Concatenation / Alternative;
 Concatenation = Rule Rule;
 Alternative = Rule "/" Rule;
+
+Range = Unary / Char "-" Char;
+Char = "\"" any character, quotes must be escaped "\"";
 
 Unary = Primary / VariableRepetition / SpecificRepetition;
 VariableRepetition = "*" Rule;
@@ -179,10 +172,10 @@ sealed class Parser
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            //Binary = Unary / Concatenation / Alternative;
+            //Binary = Range / Concatenation / Alternative;
             //Concatenation = Rule Rule;
             //Alternative = Rule "/" Rule;
-            var left = parseUnary();
+            var left = parseRange();
             discardTrivia(discardWhitespace: false);
             while(match(TokenType.Slash, TokenType.Whitespace))
             {
@@ -193,13 +186,38 @@ sealed class Parser
 
                 discardTrivia();
 
-                var right = parseUnary();
+                var right = parseRange();
                 left = isAlternative ?
                     new Rule.Alternative(left, right) :
                     new Rule.Concatenation(left, right);
+                discardTrivia(discardWhitespace: false);
             }
 
             return left;
+        }
+
+        Rule parseRange()
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            //Range = Unary / Char "-" Char;
+            //Char = "\"" any character, quotes must be escaped "\"";
+            if(!check(TokenType.Terminal, t => t.Lexeme.Length == 1))
+            {
+                return parseUnary();
+            }
+
+            var start = advance();
+            if(!match(TokenType.Dash))
+            {
+                return new Terminal(start);
+            }
+
+            discardTrivia();
+            var end = consume(TokenType.Terminal, "Expected terminal token of length one.", t => t.Lexeme.Length == 1);
+            discardTrivia();
+
+            return new Rule.Range(new(start), new(end));
         }
 
         Rule parseUnary()
@@ -264,17 +282,15 @@ sealed class Parser
             }
 
             discardTrivia();
-            _ = consume(TokenType.Quote, "Expected '\"' before terminal.");
-            var terminalValue = String.Empty;
-            if(!match(TokenType.Quote))
-            {
-                terminalValue = consume(TokenType.Terminal, "Expected terminal after quote.")
-                    .Lexeme.ToString() ?? String.Empty;
-                discardTrivia();
-                _ = consume(TokenType.Quote, "Expected '\"' after terminal.");
-            }
+            return parseTerminal();
+        }
 
-            return Rule.Terminal.Create(terminalValue);
+        Rule parseTerminal()
+        {
+            var terminalValue = consume(TokenType.Terminal, "Expected terminal.");
+            discardTrivia();
+
+            return new Terminal(terminalValue);
         }
 
         Boolean match(params TokenType[] types)
@@ -291,9 +307,9 @@ sealed class Parser
             return false;
         }
 
-        Token consume(TokenType type, String message)
+        Token consume(TokenType type, String message, Func<Token, Boolean>? matchPredicate = null)
         {
-            if(check(type))
+            if(check(type, matchPredicate))
                 return advance();
 
             throw error(peek(), message);
@@ -301,14 +317,15 @@ sealed class Parser
 
         void discardTrivia(Boolean discardWhitespace = true)
         {
-            while(match(TokenType.NewLine, TokenType.Hash, TokenType.Comment) || discardWhitespace && match(TokenType.Whitespace))
+            while(match(TokenType.NewLine, TokenType.Comment) || discardWhitespace && match(TokenType.Whitespace))
             { }
         }
 
-        Boolean check(TokenType type)
+        Boolean check(TokenType type, Func<Token, Boolean>? matchPredicate = null)
         {
-            if(isAtEnd())
+            if(isAtEnd() || matchPredicate != null && !matchPredicate.Invoke(peek()))
                 return false;
+
             return peek().Type == type;
         }
 
@@ -321,13 +338,13 @@ sealed class Parser
 
         Boolean isAtEnd() => peek().Type == TokenType.Eof;
 
-        Token peek() => tokens[current];
+        Token peek() => tokens![current];
 
-        Token previous() => tokens[current - 1];
+        Token previous() => tokens![current - 1];
 
         ParseException error(Token token, String message)
         {
-            diagnostics.Add(UnexpectedToken, token.Location, token.Type, message);
+            diagnostics!.Add(UnexpectedToken, token.Location, token.Type, message);
             return new ParseException();
         }
 

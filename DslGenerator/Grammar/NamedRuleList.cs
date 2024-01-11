@@ -1,24 +1,19 @@
-﻿#if DSL_GENERATOR
-namespace RhoMicro.CodeAnalysis.DslGenerator.Grammar;
-#else
-#pragma warning disable
-#nullable enable
-namespace RhoMicro.CodeAnalysis.DslGenerator.Generated.Grammar;
-#endif
+﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Grammar;
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 
 #if DSL_GENERATOR
 [IncludeFile]
 #endif
 [DebuggerDisplay("{ToDisplayString()}")]
-sealed record NamedRuleList(Name Name, IReadOnlyList<RuleDefinition> Definitions) : RuleList(Definitions)
+record NamedRuleList(Name Name, IReadOnlyList<RuleDefinition> Definitions) : RuleList(Definitions)
 {
-    public Boolean Equals(NamedRuleList other) => Name.Equals(other.Name) && base.Equals(other);
+    public override String ToString() => base.ToString();
+    public virtual Boolean Equals(NamedRuleList other) => Name.Equals(other.Name) && base.Equals(other);
     public override Int32 GetHashCode() => base.GetHashCode() * -1521134295 + Name.GetHashCode();
-    public override String ToDisplayString() => $"{Name.ToDisplayString()};\n{base.ToDisplayString()}";
-    public override String ToMetaString() => $"new {nameof(NamedRuleList)}({nameof(Name)}: {Name.ToMetaString()},{nameof(Definitions)}: [{String.Join(",", Definitions.Select(d => d.ToMetaString()))}])";
-    public override String ToString() => ToDisplayString();
+    public override void AppendDisplayStringTo(StringBuilder builder) => base.AppendDisplayStringTo(builder.AppendDisplayString(Name).AppendLine(";"));
+    protected override void AppendCtorArgs(StringBuilder builder) => AppendCtorArg(AppendCtorArg(builder, nameof(Name), Name).Append(", "), nameof(Definitions), Definitions);
 }

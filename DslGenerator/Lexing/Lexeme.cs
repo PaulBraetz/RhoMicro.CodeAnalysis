@@ -1,10 +1,6 @@
-﻿#if DSL_GENERATOR
-namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
-#else
-#pragma warning disable
-#nullable enable
-namespace RhoMicro.CodeAnalysis.DslGenerator.Generated.Lexing;
-#endif
+﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
+
+using System.Text.RegularExpressions;
 
 #if DSL_GENERATOR
 [IncludeFile]
@@ -15,6 +11,10 @@ namespace RhoMicro.CodeAnalysis.DslGenerator.Generated.Lexing;
 [UnionTypeSettings(ToStringSetting = ToStringSetting.Simple)]
 readonly partial struct Lexeme : IEquatable<String>, IEquatable<Char>, IEquatable<StringSlice>
 {
+    public Int32 Length => Match(
+        s => s.Length,
+        s => 1,
+        s => s.Length);
     public static Lexeme Empty { get; } = String.Empty;
     public Boolean Equals(Lexeme other) =>
         Match(other.Equals, other.Equals, other.Equals);

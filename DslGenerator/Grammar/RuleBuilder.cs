@@ -1,10 +1,4 @@
-﻿#if DSL_GENERATOR
-namespace RhoMicro.CodeAnalysis.DslGenerator.Grammar;
-#else
-#pragma warning disable
-#nullable enable
-namespace RhoMicro.CodeAnalysis.DslGenerator.Generated.Grammar;
-#endif
+﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Grammar;
 
 using System;
 using System.Collections.Generic;
@@ -16,6 +10,7 @@ readonly struct RuleBuilder
 {
     public RuleBuilder() { }
     private readonly List<Rule> _rules = [];
+    public override String ToString() => _rules.Count == 0 ? GetType().ToString() : Build().ToString();
     public RuleBuilder Reference(String value)
     {
         _rules.Add(new Rule.Reference(new(value)));
@@ -24,6 +19,11 @@ readonly struct RuleBuilder
     public RuleBuilder Terminal(String value)
     {
         _rules.Add(new Rule.Terminal(value));
+        return this;
+    }
+    public RuleBuilder Range(Char start, Char end)
+    {
+        _rules.Add(new Rule.Range(new(start.ToString()), new(end.ToString())));
         return this;
     }
     public RuleBuilder Alternative(Action<RuleBuilder> buildRule)

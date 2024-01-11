@@ -1,10 +1,4 @@
-﻿#if DSL_GENERATOR
-namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
-#else
-#pragma warning disable
-#nullable enable
-namespace RhoMicro.CodeAnalysis.DslGenerator.Generated.Lexing;
-#endif
+﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Lexing;
 
 #if DSL_GENERATOR
 [IncludeFile]
@@ -12,6 +6,7 @@ namespace RhoMicro.CodeAnalysis.DslGenerator.Generated.Lexing;
 static class Lexemes
 {
     public const Char Equal = '=';
+    public const Char Dash = '-';
     public const Char Alternative = '/';
     public const String IncrementalAlternative = "=/";
     public const Char GroupOpen = '(';
