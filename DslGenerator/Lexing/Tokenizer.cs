@@ -50,6 +50,9 @@ partial class Tokenizer
                 case Dash:
                     addToken(TokenType.Dash);
                     break;
+                case Period:
+                    addToken(TokenType.Period);
+                    break;
                 case Alternative:
                     //check for incremental alternative "/="
                     var type = match(Equal) ?

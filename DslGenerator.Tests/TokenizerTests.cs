@@ -15,6 +15,9 @@ public class TokenizerTests
     [InlineData("name=\"a\"-\"z\";", new[] { "Name:name", "Equal:=", "Terminal:a", "Dash:-", "Terminal:z", "Semicolon:;" }, new Int32[] { })]
     [InlineData("name", new[] { "Name:name" }, new Int32[] { })]
     [InlineData("=", new[] { "Equal:=" }, new Int32[] { })]
+    [InlineData(".", new[] { "Period:." }, new Int32[] { })]
+    [InlineData("TerminalValue = \"\\\"\" . \"\\\"\";",
+        new[] { "Name:TerminalValue", "Whitespace: ", "Equal:=", "Whitespace: ", "Terminal:\\\"", "Whitespace: ", "Period:.", "Whitespace: ", "Terminal:\\\"","Semicolon:;" }, new Int32[] { })]
     [InlineData("-", new[] { "Dash:-" }, new Int32[] { })]
     [InlineData("\"a\"-\"z\"", new[] { "Terminal:a", "Dash:-", "Terminal:z" }, new Int32[] { })]
     [InlineData("\"ab\"-\"z\"", new[] { "Terminal:ab", "Dash:-", "Terminal:z" }, new Int32[] { })]

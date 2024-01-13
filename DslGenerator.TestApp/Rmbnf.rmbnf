@@ -1,29 +1,32 @@
 ﻿RhoMicroBackusNaurForm;
 
 RuleList = [Name ";"] *RuleDefinition;
-Name = Alpha;
 RuleDefinition = Name "=" Rule ";";
 
 Rule = Binary / Unary / Primary;
 
-Binary = Concatenation / Alternative / Range;
-Concatenation = Rule Whitespace Rule;
-Alternative = Rule "/" Rule;
-Range = SingleAlpha "-" SingleAlpha;
+Binary = Range / Concatenation / Alternative;
+Concatenation = Unary / (Rule Whitespace Rule);
+Alternative = Unary / (Rule "/" Rule);
+Range = Unary / (SingleAlpha "-" SingleAlpha);
 
 Unary = VariableRepetition / SpecificRepetition;
-VariableRepetition = "*" Rule;
-SpecificRepetition = Digit Rule;
+VariableRepetition = Primary / ("*" Rule);
+SpecificRepetition = Primary / (Digit Rule);
 
-Primary = Grouping / OptionalGrouping / Terminal / Name;
-Grouping = "(" Rule ")";
-OptionalGrouping = "[" Rule "]";
-Terminal = "\"" TerminalValue "\"";
+Primary = Grouping / OptionalGrouping / TerminalOrName;
+Grouping = TerminalOrName / ("(" Rule ")");
+OptionalGrouping = TerminalOrName / ("[" Rule "]");
+TerminalOrName = Terminal / Any / Name;
+Name = Alpha;
+Terminal = "\"" . "\"";
+Any = ".";
 
 Trivia = Whitespace / NewLine;
-Whitespace = " " / "\t" *Whitespace; # whitespace is grouped automatically
+Whitespace = Space / Tab *Whitespace;
+Space = " ";
+Tab = "	";
 NewLine = "\n" / "\r\n" / "\r";
 SingleAlpha = "a"-"z" / "A"-"Z" / "_";
-Alpha = SingleAlpha SingleAlpha*;
+Alpha = SingleAlpha *SingleAlpha;
 Digit = "0"-"9" *Digit;
-TerminalValue = ""; # matches anything that is not an unescaped quote;

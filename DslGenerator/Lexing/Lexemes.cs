@@ -7,6 +7,7 @@ static class Lexemes
 {
     public const Char Equal = '=';
     public const Char Dash = '-';
+    public const Char Period = '.';
     public const Char Alternative = '/';
     public const String IncrementalAlternative = "=/";
     public const Char GroupOpen = '(';

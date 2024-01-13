@@ -116,6 +116,108 @@ public class ParserTests
                 new RuleListBuilder().New("Range", b =>
                     b.Reference("SingleAlpha").Terminal("-").Reference("SingleAlpha")),
                 Array.Empty<Int32>()
+            ],
+            [
+                """
+                TestGrammarName;
+                testname = ["is this the only legal value?"] / # here is a comment
+                		   *"no, it's not :)"; # and another comment
+                testname /= 77here (is *some more) "ruley" [goodness]; # :)
+                more = defs;
+                testname /= more;
+                more /= no;
+                """,
+                new RuleListBuilder("TestGrammarName")
+                    .New("testname", b =>
+                        b.Alternative(b =>
+                            b.OptionalGrouping(b => b.Terminal("is this the only legal value?"))
+                            .VariableRepetition(b => b.Terminal("no, it's not :)"))))
+                    .Incremental("testname", b =>
+                        b.SpecificRepetition(77, b => b.Reference("here"))
+                        .Grouping(b => b.Reference("is").VariableRepetition(b => b.Reference("some")).Reference("more"))
+                        .Terminal("ruley")
+                        .OptionalGrouping(b => b.Reference("goodness")))
+                    .New("more", b => b.Reference("defs"))
+                    .Incremental("testname", b => b.Reference("more"))
+                    .Incremental("more", b => b.Reference("no")),
+                Array.Empty<Int32>()
+            ],
+            [
+                "TerminalValue = \"\\\"\" . \"\\\"\";",
+                new RuleListBuilder().New("TerminalValue", b =>
+                    b.Terminal("\\\"").Any().Terminal("\\\"")),
+                Array.Empty<Int32>()
+            ],
+            [
+                """
+                RhoMicroBackusNaurForm;
+
+                RuleList = [Name ";"] *RuleDefinition;
+                RuleDefinition = Name "=" Rule ";";
+
+                Rule = Binary / Unary / Primary;
+
+                Binary = Unary / Range / Concatenation / Alternative;
+                Concatenation = Rule Whitespace Rule;
+                Alternative = Rule "/" Rule;
+                Range = SingleAlpha "-" SingleAlpha;
+
+                Unary =  Primary / VariableRepetition / SpecificRepetition;
+                VariableRepetition = "*" Rule;
+                SpecificRepetition = Digit Rule;
+
+                Primary = Grouping / OptionalGrouping / TerminalOrNameOrAny;
+                Grouping = "(" Rule ")";
+                OptionalGrouping = "[" Rule "]";
+                TerminalOrNameOrAny = Terminal / Name / Any ;
+                Terminal = "\"" . "\"";
+                Name = Alpha;
+                Any = ".";
+
+                Trivia = Whitespace / NewLine;
+                Whitespace = Space / Tab *Whitespace;
+                Space = " ";
+                Tab = "	";
+                NewLine = "\n" / "\r\n" / "\r";
+                SingleAlpha = "a"-"z" / "A"-"Z" / "_";
+                Alpha = SingleAlpha *SingleAlpha;
+                Digit = "0"-"9" *Digit;
+                
+                """,
+                new RuleListBuilder("RhoMicroBackusNaurForm")
+
+                .New("RuleList", b => b.OptionalGrouping(b => b.Reference("Name").Terminal(";")).VariableRepetition("RuleDefinition"))
+                .New("RuleDefinition", b => b.Reference("Name").Terminal("=").Reference("Rule").Terminal(";"))
+
+                .New("Rule", b => b.Alternative("Binary", "Unary", "Primary"))
+
+                .New("Binary", b => b.Alternative("Unary", "Range", "Concatenation", "Alternative"))
+                .New("Concatenation", b => b.Concatenation("Rule", "Whitespace", "Rule"))
+                .New("Alternative", b => b.Reference("Rule").Terminal("/").Reference("Rule"))
+                .New("Range", b => b.Reference("SingleAlpha").Terminal("-").Reference("SingleAlpha"))
+
+                .New("Unary", b => b.Alternative("Primary", "VariableRepetition", "SpecificRepetition"))
+                .New("VariableRepetition", b => b.Terminal("*").Reference("Rule"))
+                .New("SpecificRepetition", b => b.Concatenation("Digit", "Rule"))
+
+                .New("Primary", b => b.Alternative("Grouping", "OptionalGrouping", "TerminalOrNameOrAny"))
+                .New("Grouping", b => b.Terminal("(").Reference("Rule").Terminal(")"))
+                .New("OptionalGrouping", b => b.Terminal("[").Reference("Rule").Terminal("]"))
+                .New("TerminalOrNameOrAny", b => b.Alternative("Terminal", "Name", "Any"))
+                .New("Terminal", b => b.Terminal("\\\"").Any().Terminal("\\\""))
+                .New("Name", b => b.Reference("Alpha"))
+                .New("Any", b => b.Terminal("."))
+
+                .New("Trivia", b => b.Alternative("Whitespace", "NewLine"))
+                .New("Whitespace", b => b.Alternative("Space", "Tab").VariableRepetition("Whitespace"))
+                .New("Space", b => b.Terminal(" "))
+                .New("Tab", b => b.Terminal("\t"))
+                .New("NewLine", b => b.Alternative(b => b.Terminal("\\n").Terminal("\\r\\n").Terminal("\\r")))
+                .New("SingleAlpha", b => b.Alternative(b => b.Range('a', 'z').Range('A', 'Z').Terminal("_")))
+                .New("Alpha", b => b.Reference("SingleAlpha").VariableRepetition("SingleAlpha"))
+                .New("Digit", b => b.Range('0', '9').VariableRepetition("Digit")),
+
+                Array.Empty<Int32>()
             ]
         ];
 
@@ -140,6 +242,14 @@ public class ParserTests
             VerifyDiagnostics(expectedDiagnosticIds, actualDiagnostics);
         } catch
         {
+            var expected = expectedRuleList.ToDisplayString().Split('\n');
+            var actual = actualRuleList.ToDisplayString().Split('\n');
+            var comparisonStringParts = expected
+                .Select((e, i) => (e, i))
+                .Where((t) => actual.ElementAtOrDefault(t.i) != t.e)
+                .Select((t, i) => $"{t.e} # EXPECTED\n{actual.ElementAtOrDefault(t.i) ?? "# MISSING"} # ACTUAL");
+            var comparisonString = String.Join("\n\n", comparisonStringParts);
+
             Debugger.Break();
             _ = parser.Parse(tokenizeResult, default);
             throw;

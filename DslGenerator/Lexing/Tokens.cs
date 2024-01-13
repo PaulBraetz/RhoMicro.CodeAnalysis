@@ -6,6 +6,7 @@
 static class Tokens
 {
     public static Token Equal { get; } = new(TokenType.Equal, Lexemes.Equal);
+    public static Token Period { get; } = new(TokenType.Period, Lexemes.Period);
     public static Token Dash { get; } = new(TokenType.Dash, Lexemes.Dash);
     public static Token Alternative { get; } = new(TokenType.Slash, Lexemes.Alternative);
     public static Token IncrementalAlternative { get; } = new(TokenType.SlashEqual, Lexemes.IncrementalAlternative);

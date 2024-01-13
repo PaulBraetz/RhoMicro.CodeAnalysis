@@ -3,9 +3,7 @@
 using RhoMicro.CodeAnalysis.DslGenerator.Lexing;
 
 using System.Diagnostics;
-using System.Drawing;
 using System.Text;
-using System.Text.RegularExpressions;
 
 #if DSL_GENERATOR
 [IncludeFile]
@@ -100,6 +98,14 @@ abstract partial record Rule : SyntaxNode
             builder.AppendDisplayString(Name);
         protected override void AppendCtorArgs(StringBuilder builder) =>
             AppendCtorArg(builder, nameof(Name), Name);
+    }
+    [DebuggerDisplay("{ToDisplayString()}")]
+    public sealed partial record Any : Rule
+    {
+        public static Any Instance { get; } = new();
+        public override String ToString() => base.ToString();
+        public override void AppendDisplayStringTo(StringBuilder builder) => builder.Append('.');
+        protected override void AppendCtorArgs(StringBuilder builder) { }
     }
     public override String ToString() => base.ToString();
 }

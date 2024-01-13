@@ -12,34 +12,39 @@ using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using System.Runtime.InteropServices.ComTypes;
 
 /*
-Precedence Table (low to high):
-Names                                   Associativity
-Concatenation, Alternative              Left
-VariableRepetition, SpecificRepetition  Right
-SequenceGroup, OptionalSequence         Left
+RhoMicroBackusNaurForm;
 
 RuleList = [Name ";"] *RuleDefinition;
-RueDefinition = Name "=" Rule;
-Name = ALPHA
+RuleDefinition = Name "=" Rule ";";
+
 Rule = Binary / Unary / Primary;
 
 Binary = Range / Concatenation / Alternative;
-Concatenation = Rule Rule;
-Alternative = Rule "/" Rule;
+Concatenation = Unary / (Rule Whitespace Rule);
+Alternative = Unary / (Rule "/" Rule);
+Range = Unary / (SingleAlpha "-" SingleAlpha);
 
-Range = Unary / Char "-" Char;
-Char = "\"" any character, quotes must be escaped "\"";
+Unary = VariableRepetition / SpecificRepetition;
+VariableRepetition = Primary / ("*" Rule);
+SpecificRepetition = Primary / (Digit Rule);
 
-Unary = Primary / VariableRepetition / SpecificRepetition;
-VariableRepetition = "*" Rule;
-SpecificRepetition = NUMBER Rule;
+Primary = Grouping / OptionalGrouping / TerminalOrName;
+Grouping = TerminalOrName / ("(" Rule ")");
+OptionalGrouping = TerminalOrName / ("[" Rule "]");
+TerminalOrName = Terminal / Any / Name;
+Name = Alpha;
+Terminal = "\"" . "\"";
+Any = ".";
 
-Primary = TerminalOrName / OptionalSequence / Sequence;
-OptionalSequence = "[" Rule "]";
-Sequence = "(" Rule ")";
+Trivia = Whitespace / NewLine;
+Whitespace = Space / Tab *Whitespace;
+Space = " ";
+Tab = "	";
+NewLine = "\n" / "\r\n" / "\r";
+SingleAlpha = "a"-"z" / "A"-"Z" / "_";
+Alpha = SingleAlpha *SingleAlpha;
+Digit = "0"-"9" *Digit;
 
-TerminalOrName = Terminal / Name;
-Terminal = "\"" any string, quotes must be escaped "\"";
 */
 
 #if DSL_GENERATOR
@@ -177,7 +182,7 @@ sealed class Parser
             //Alternative = Rule "/" Rule;
             var left = parseRange();
             discardTrivia(discardWhitespace: false);
-            while(match(TokenType.Slash, TokenType.Whitespace))
+            while(match(TokenType.Slash, TokenType.Whitespace) && !check(TokenType.Semicolon))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -185,7 +190,6 @@ sealed class Parser
                     match(TokenType.Slash); // in case we have [Whitespace: ][Slash:/]
 
                 discardTrivia();
-
                 var right = parseRange();
                 left = isAlternative ?
                     new Rule.Alternative(left, right) :
@@ -215,7 +219,6 @@ sealed class Parser
 
             discardTrivia();
             var end = consume(TokenType.Terminal, "Expected terminal token of length one.", t => t.Lexeme.Length == 1);
-            discardTrivia();
 
             return new Rule.Range(new(start), new(end));
         }
@@ -246,9 +249,9 @@ sealed class Parser
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            //Primary = TerminalOrName / OptionalSequence / Sequence;
-            //OptionalSequence = "[" Rule "]";
-            //Sequence = "(" Rule ")";
+            //Primary = Grouping / OptionalGrouping / TerminalOrName;
+            //Grouping = TerminalOrName / ("(" Rule ")");
+            //OptionalGrouping = TerminalOrName / ("[" Rule "]");
             var isSequence = match(TokenType.ParenLeft); //if false, none will have been consumed
             if(!(isSequence || match(TokenType.BracketLeft))) //short cicuit prevents double consumption otherwise
             {
@@ -273,12 +276,19 @@ sealed class Parser
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            //TerminalOrName = Terminal / Name;
-            //Terminal = "\"" any string, quotes must be escaped "\"";
+            //TerminalOrName = Terminal / Any / Name;
+            //Name = Alpha;
+            //Terminal = "\"". "\"";
+            //Any = ".";
             if(match(TokenType.Name))
             {
                 var name = previous();
-                return new Rule.Reference(new(name));
+                return new Reference(new(name));
+            }
+
+            if(match(TokenType.Period))
+            {
+                return Any.Instance;
             }
 
             discardTrivia();
@@ -288,8 +298,6 @@ sealed class Parser
         Rule parseTerminal()
         {
             var terminalValue = consume(TokenType.Terminal, "Expected terminal.");
-            discardTrivia();
-
             return new Terminal(terminalValue);
         }
 

@@ -22,5 +22,6 @@ enum TokenType
     NewLine,
     Terminal,
     Dash,
+    Period,
     Eof
 }
