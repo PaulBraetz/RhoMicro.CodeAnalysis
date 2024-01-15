@@ -1,4 +1,4 @@
-﻿namespace RhoMicro.CodeAnalysis.UtilityGenerators;
+﻿namespace RhoMicro.CodeAnalysis.Library;
 using System.Collections.Immutable;
 
 sealed class ImmutableDictionaryCollectionEqualityComparer<TKey, TValue> : IEqualityComparer<ImmutableDictionary<TKey, TValue>>

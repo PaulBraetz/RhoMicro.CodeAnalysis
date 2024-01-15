@@ -17,12 +17,9 @@ enum RepresentableTypeNature
 }
 static class RepresentableTypeNatureFactory
 {
-    public static RepresentableTypeNature Create(UnionTypeAttribute attribute, INamedTypeSymbol target)
+    public static RepresentableTypeNature Create(UnionTypeAttribute attribute)
     {
-        var representedSymbol = attribute.RepresentableTypeIsGenericParameter ?
-            target.TypeParameters.OfType<ITypeSymbol>()
-                .SingleOrDefault(p => p.Name == attribute.GenericRepresentableTypeName) :
-            attribute.RepresentableTypeSymbol;
+        var representedSymbol = attribute.RepresentableTypeSymbol;
 
         if(representedSymbol == null)
             return RepresentableTypeNature.UnknownType;

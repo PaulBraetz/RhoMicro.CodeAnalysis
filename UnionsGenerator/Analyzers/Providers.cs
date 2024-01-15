@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
-using RhoMicro.CodeAnalysis.UtilityGenerators.Library;
+using RhoMicro.CodeAnalysis.Library;
 
 using System;
 using System.Collections.Generic;
@@ -114,29 +114,29 @@ internal static class Providers
             var diagnostic = Diagnostics.SmallGenericUnion(location);
             _ = diagnostics.Add(diagnostic);
         });
-    public static IDiagnosticProvider<TargetDataModel> UnknownGenericParameterName =
-        DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
-        {
-            var available = model.Symbol.TypeParameters
-                .Select(p => p.Name)
-                .ToImmutableHashSet();
-            var unknowns = model.Annotations.AllRepresentableTypes
-                .Where(a => a.Attribute.RepresentableTypeIsGenericParameter)
-                .Where(a => !available.Contains(a.Names.SimpleTypeName))
-                .Select(a => a.Names.SimpleTypeName)
-                .ToArray();
+    //public static IDiagnosticProvider<TargetDataModel> UnknownGenericParameterName =
+    //    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
+    //    {
+    //        var available = model.Symbol.TypeParameters
+    //            .Select(p => p.Name)
+    //            .ToImmutableHashSet();
+    //        var unknowns = model.Annotations.AllRepresentableTypes
+    //            .Where(a => a.Attribute.RepresentableTypeIsGenericParameter)
+    //            .Where(a => !available.Contains(a.Names.SimpleTypeName))
+    //            .Select(a => a.Names.SimpleTypeName)
+    //            .ToArray();
 
-            if(unknowns.Length == 0)
-                return;
+    //        if(unknowns.Length == 0)
+    //            return;
 
-            var location = model.TargetDeclaration.GetLocation();
+    //        var location = model.TargetDeclaration.GetLocation();
 
-            foreach(var unknown in unknowns)
-            {
-                var diagnostic = Diagnostics.UnknownGenericParameterName(location, unknown);
-                _ = diagnostics.Add(diagnostic);
-            }
-        });
+    //        foreach(var unknown in unknowns)
+    //        {
+    //            var diagnostic = Diagnostics.UnknownGenericParameterName(location, unknown);
+    //            _ = diagnostics.Add(diagnostic);
+    //        }
+    //    });
     public static IDiagnosticProvider<TargetDataModel> ReservedGenericParameterName =
         DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
         {
@@ -332,7 +332,7 @@ internal static class Providers
             GenericRelation,
             StorageSelectionViolations,
             SmallGenericUnion,
-            UnknownGenericParameterName,
+            //UnknownGenericParameterName,
             ReservedGenericParameterName,
             OperatorOmissions,
             UnionTypeSettingsOnNonUnionType,

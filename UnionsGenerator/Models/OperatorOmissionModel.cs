@@ -29,7 +29,7 @@ sealed class OperatorOmissionModel
         var supertypes = new HashSet<RepresentableTypeModel>();
         var allOmissions = new HashSet<RepresentableTypeModel>();
 
-        var concreteAttributes = attributes.AllRepresentableTypes.Where(a => !a.Attribute.RepresentableTypeIsGenericParameter);
+        var concreteAttributes = attributes.AllRepresentableTypes.Where(a => !a.Attribute.RepresentableTypeIsTypeParameter);
 
         foreach(var attribute in concreteAttributes)
         {

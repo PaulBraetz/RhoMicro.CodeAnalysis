@@ -46,11 +46,21 @@ sealed class AnnotationDataModel
 
     public static AnnotationDataModel Create(INamedTypeSymbol target)
     {
-        var attributes = target.GetAttributes();
+        var genericAttributes = target.TypeParameters
+            .Select(t =>
+                t.GetAttributes()
+                .OfUnionTypeAttribute()
+                .Select(a =>
+                    a.WithTypeParameter(t))
+                .FirstOrDefault())
+            .Where(a => a != null);
+
+        var attributeData = target.GetAttributes();
+
+        var attributes = attributeData.OfUnionTypeAttribute().Concat(genericAttributes);
 
         //DO NOT CHANGE THIS ALGO, compatibility depends on deterministic order of types
         var orderedRepresentableTypes = attributes
-            .OfUnionTypeAttribute()
             .Select(a => a.ExtractData(target))
             .GroupBy(a => a.Nature == RepresentableTypeNature.UnknownType)
             .OrderBy(g => g.Key) //generic params come last
@@ -59,7 +69,7 @@ sealed class AnnotationDataModel
                 g.OrderBy(a => a.Names.FullTypeName) :
                 g.OrderBy(a => a.Names.FullTypeName))
             .SelectMany(g => g)
-            .ToList();
+            .ToList(); //ensure reification
 
         // reference types
         // value types
@@ -86,11 +96,11 @@ sealed class AnnotationDataModel
             allRepresentableTypes.Add(representableType);
         }
 
-        var settings = attributes.OfUnionTypeSettingsAttribute().SingleOrDefault() ??
+        var settings = attributeData.OfUnionTypeSettingsAttribute().SingleOrDefault() ??
             target.ContainingAssembly.GetAttributes().OfUnionTypeSettingsAttribute().SingleOrDefault() ??
             new UnionTypeSettingsAttribute();
 
-        var relations = attributes.OfRelationAttribute().ToList();
+        var relations = attributeData.OfRelationAttribute().ToList();
 
         var result = new AnnotationDataModel(
             settings: settings,

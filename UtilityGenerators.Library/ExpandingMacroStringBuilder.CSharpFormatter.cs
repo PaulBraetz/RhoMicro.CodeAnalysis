@@ -1,4 +1,4 @@
-﻿namespace RhoMicro.CodeAnalysis.UtilityGenerators.Library;
+﻿namespace RhoMicro.CodeAnalysis.Library;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;

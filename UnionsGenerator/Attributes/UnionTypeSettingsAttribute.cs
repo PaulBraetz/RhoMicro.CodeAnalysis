@@ -70,7 +70,31 @@ enum ConstructorAccessibilitySetting
     /// </summary>
     Public
 }
-
+/// <summary>
+/// Defines settings on how to implement interfaces that all representable
+/// types implement.
+/// </summary>
+enum InterfaceMatchSetting
+{
+    /// <summary>
+    /// Generated interface implementations should be explicit if at least
+    /// one of the representable types implements the interface explicitly;
+    /// otherwise, interface implementations should be implicit.
+    /// </summary>
+    Auto,
+    /// <summary>
+    /// Generated interface implementations should always be explicit.
+    /// </summary>
+    Explicit,
+    /// <summary>
+    /// Generated interface implementations should always be implicit.
+    /// </summary>
+    Implicit,
+    /// <summary>
+    /// No interfaces implementations should be generated.
+    /// </summary>
+    Omit
+}
 /// <summary>
 /// Defines settings for the kind of diagnostics to report.
 /// </summary>
@@ -169,9 +193,19 @@ sealed partial class UnionTypeSettingsAttribute : Attribute
     /// <summary>
     /// Gets or sets a value indicating whether to generate a custom converter type 
     /// for <c>System.Text.Json</c> deserialization. If set, this will also cause
-    /// the union type to be annotated with the <c>JsonConverter</c> attribute.
+    /// the union type to be annotated with an appropriate <c>JsonConverter</c> attribute.
     /// </summary>
     public Boolean GenerateJsonConverter { get; set; }
+    /// <summary>
+    /// Gets or sets the value indicating how to generate implementations for
+    /// interfaces implemented by all representable types. Implementations will 
+    /// map calls to interface instance methods and properties onto the represented
+    /// value. 
+    /// <para>
+    /// Please note that currently, only fully bound and constructed interface implementations are supported.
+    /// </para>
+    /// </summary>
+    public InterfaceMatchSetting InterfaceMatchSetting { get; set; }
 
     private void SetReservedName(ref String field, String newValue)
     {

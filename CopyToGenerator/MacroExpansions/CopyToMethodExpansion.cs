@@ -1,6 +1,6 @@
 ﻿namespace RhoMicro.CodeAnalysis.CopyToGenerator.ExpansionProviders;
 
-using RhoMicro.CodeAnalysis.UtilityGenerators.Library;
+using RhoMicro.CodeAnalysis.Library;
 using RhoMicro.CodeAnalysis.CopyToGenerator;
 using RhoMicro.CodeAnalysis.CopyToGenerator.MacroExpansions;
 

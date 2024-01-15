@@ -1,4 +1,4 @@
-﻿namespace RhoMicro.CodeAnalysis.UtilityGenerators.Library;
+﻿namespace RhoMicro.CodeAnalysis.Library;
 
 /// <summary>
 /// Reports model diagnostics to an accumulator.

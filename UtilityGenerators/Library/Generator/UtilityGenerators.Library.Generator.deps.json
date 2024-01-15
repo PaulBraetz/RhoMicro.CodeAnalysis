@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v8.0": {
-      "UtilityGenerators.Library.Generator/10.0.0": {
+      "UtilityGenerators.Library.Generator/13.0.0": {
         "runtime": {
           "UtilityGenerators.Library.Generator.dll": {}
         }
@@ -14,7 +14,7 @@
     }
   },
   "libraries": {
-    "UtilityGenerators.Library.Generator/10.0.0": {
+    "UtilityGenerators.Library.Generator/13.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

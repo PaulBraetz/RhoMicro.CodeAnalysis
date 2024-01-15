@@ -1,4 +1,4 @@
-﻿namespace RhoMicro.CodeAnalysis.UtilityGenerators.Library;
+﻿namespace RhoMicro.CodeAnalysis.Library;
 
 /// <summary>
 /// Provides a base class for types implementing <see cref="IMacroExpansion{TMacro}"/>.

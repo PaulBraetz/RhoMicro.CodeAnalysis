@@ -1,4 +1,4 @@
-﻿namespace RhoMicro.CodeAnalysis.UtilityGenerators.Library;
+﻿namespace RhoMicro.CodeAnalysis.Library;
 
 /// <summary>
 /// Expands macro instances into values and/or further macros.

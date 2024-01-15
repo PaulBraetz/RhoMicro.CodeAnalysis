@@ -1,4 +1,4 @@
-﻿namespace RhoMicro.CodeAnalysis.UtilityGenerators;
+﻿namespace RhoMicro.CodeAnalysis.Library;
 
 sealed class EqualityComparerStrategy<T>(Func<T, T, Boolean> equalsStrategy, Func<T, Int32> getHashCodeStrategy) : IEqualityComparer<T>
 {

@@ -1,4 +1,4 @@
-﻿namespace RhoMicro.CodeAnalysis.UtilityGenerators.Library;
+﻿namespace RhoMicro.CodeAnalysis.Library;
 static partial class MacroExpansion
 {
     internal sealed class Empty<TMacro>(TMacro macro) : MacroExpansion<TMacro>(macro)

@@ -136,7 +136,10 @@ namespace RhoMicro.CodeAnalysis
     /// <summary>
     /// Marks the target type as a union type being able to represent the type passed to the constructor.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
+    [AttributeUsage(
+        AttributeTargets.Struct | AttributeTargets.Class | AttributeTargets.GenericParameter,
+        AllowMultiple = true,
+        Inherited = false)]
 #if UNIONS_GENERATOR
     [GenerateFactory]
 #endif
@@ -153,17 +156,7 @@ namespace RhoMicro.CodeAnalysis
             RepresentableType = representableType;
         }
 
-        /// <summary>
-        /// Initializes a new instance.
-        /// </summary>
-        /// <param name="genericRepresentableTypeName">
-        /// The name of the generic type parameter representable by the target union type.
-        /// </param>
-        public UnionTypeAttribute(String genericRepresentableTypeName)
-        {
-            GenericRepresentableTypeName = genericRepresentableTypeName;
-            RepresentableTypeIsGenericParameter = true;
-        }
+        public UnionTypeAttribute() : this(null) { }
 
         /// <summary>
         /// Gets or sets the alias to use for members representing the type represented by the union.
@@ -184,14 +177,7 @@ namespace RhoMicro.CodeAnalysis
         /// Gets the conrete type representable by the target union type.
         /// </summary>
         public Type? RepresentableType { get; }
-        /// <summary>
-        /// Gets the generic type representable by the target union type.
-        /// </summary>
-        public String? GenericRepresentableTypeName { get; }
-        /// <summary>
-        /// Gets a value indicating whether the representable type is referring to a generic parameter of the union type.
-        /// </summary>
-        public Boolean RepresentableTypeIsGenericParameter { get; }
+
         /// <summary>
         /// Gets or sets the option defining storage generation.
         /// </summary>

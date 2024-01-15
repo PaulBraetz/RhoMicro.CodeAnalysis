@@ -10,14 +10,17 @@ static class Util
 {
     public static Boolean IsGeneratorTarget(SyntaxNode node) =>
         node is TypeDeclarationSyntax tds and not RecordDeclarationSyntax &&
-        tds.Modifiers.Any(SyntaxKind.PartialKeyword);
+        tds.Modifiers.Any(SyntaxKind.PartialKeyword) ||
+        node is TypeParameterSyntax;
 
     public static Boolean IsAnalysisCandidate(SyntaxNode node, SemanticModel semanticModel)
     {
-        if(semanticModel.GetDeclaredSymbol(node) is not INamedTypeSymbol named)
+        var symbol = semanticModel.GetDeclaredSymbol(node);
+
+        if(symbol is not INamedTypeSymbol or ITypeParameterSymbol)
             return false;
 
-        var attributes = named.GetAttributes();
+        var attributes = symbol.GetAttributes();
         foreach(var attribute in attributes)
         {
             if(UnionTypeAttribute.TryCreate(attribute, out _))
@@ -28,7 +31,8 @@ static class Util
                 return true;
         }
 
-        var result = named.GetMembers().SelectMany(m => m.GetAttributes()).OfUnionFactoryAttribute().Any();
+        var result = symbol is INamedTypeSymbol named &&
+            named.GetMembers().SelectMany(m => m.GetAttributes()).OfUnionFactoryAttribute().Any();
 
         return result;
     }

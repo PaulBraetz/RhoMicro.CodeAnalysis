@@ -12,7 +12,7 @@ using System.Diagnostics;
 [DebuggerDisplay("{Names.SimpleTypeName}")]
 sealed class RepresentableTypeModel(
     UnionTypeAttribute attribute,
-    INamedTypeSymbol target,
+    ITypeSymbol target,
     String commentRef,
     RepresentableTypeNature nature,
     RepresentableTypeNames names,
@@ -21,7 +21,7 @@ sealed class RepresentableTypeModel(
     public FactoryModel Factory { get; set; }
 
     public readonly UnionTypeAttribute Attribute = attribute;
-    public readonly INamedTypeSymbol Target = target;
+    public readonly ITypeSymbol Target = target;
     public readonly String DocCommentRef = commentRef;
     public readonly RepresentableTypeNature Nature = nature;
     public readonly RepresentableTypeNames Names = names;
@@ -31,21 +31,21 @@ sealed class RepresentableTypeModel(
 
     public static RepresentableTypeModel Create(
         UnionTypeAttribute attribute,
-        INamedTypeSymbol target)
+        ITypeSymbol target)
     {
         var commentRef =
-            attribute.RepresentableTypeIsGenericParameter ?
-            $"<typeparamref name=\"{attribute.GenericRepresentableTypeName}\"/>" :
+            attribute.RepresentableTypeIsTypeParameter ?
+            $"<typeparamref name=\"{attribute.RepresentableTypeSymbol!.Name}\"/>" :
             $"<see cref=\"{attribute.RepresentableTypeSymbol?.ToFullOpenString().Replace('<', '{').Replace('>', '}')}\"/>";
         var names = RepresentableTypeNames.Create(attribute);
-        var nature = RepresentableTypeNatureFactory.Create(attribute, target);
+        var nature = RepresentableTypeNatureFactory.Create(attribute);
 
         var storageStrategy = StorageStrategy.Create(
             names.SafeAlias,
             names.FullTypeName,
             attribute.Storage,
             nature,
-            target.IsGenericType);
+            targetIsGeneric: target is INamedTypeSymbol { IsGenericType: true });
 
         var result = new RepresentableTypeModel(
             attribute,

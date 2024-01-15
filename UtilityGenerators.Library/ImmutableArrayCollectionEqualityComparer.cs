@@ -1,4 +1,4 @@
-﻿namespace RhoMicro.CodeAnalysis.UtilityGenerators;
+﻿namespace RhoMicro.CodeAnalysis.Library;
 using System.Collections.Immutable;
 sealed class ImmutableArrayCollectionEqualityComparer<T>(IEqualityComparer<T> elementComparer) : IEqualityComparer<ImmutableArray<T>>
 {
@@ -30,8 +30,9 @@ sealed class ImmutableArrayCollectionEqualityComparer<T>(IEqualityComparer<T> el
     public Int32 GetHashCode(ImmutableArray<T> obj)
     {
         var hashCode = 997021164;
-        foreach(var element in obj)
+        for(var i = 0; i < obj.Length; i++)
         {
+            var element = obj[i];
             hashCode = hashCode * -1521134295 + _elementComparer.GetHashCode(element);
         }
 

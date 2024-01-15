@@ -3,7 +3,7 @@
 using Microsoft.CodeAnalysis;
 
 using RhoMicro.CodeAnalysis;
-using RhoMicro.CodeAnalysis.UtilityGenerators.Library;
+using RhoMicro.CodeAnalysis.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Generators;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
@@ -21,7 +21,7 @@ sealed class Conversion(TargetDataModel model) : ExpansionBase(model, Macro.Conv
         var model = data.Symbol;
         var allAttributes = data.Annotations.AllRepresentableTypes;
 
-        if(representableType.Attribute.RepresentableTypeIsGenericParameter &&
+        if(representableType.Attribute.RepresentableTypeIsTypeParameter &&
            !representableType.Attribute.Options.HasFlag(UnionTypeOptions.SupersetOfParameter))
         {
             return;

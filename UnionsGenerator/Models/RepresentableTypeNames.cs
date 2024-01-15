@@ -26,29 +26,29 @@ sealed class RepresentableTypeNames(
     public static RepresentableTypeNames Create(UnionTypeAttribute attribute)
     {
         var openTypeName =
-            (attribute.RepresentableTypeIsGenericParameter ?
-            attribute.GenericRepresentableTypeName :
-            attribute.RepresentableTypeSymbol?.ToMinimalOpenString()) ??
+            (attribute.RepresentableTypeIsTypeParameter ?
+            attribute.RepresentableTypeSymbol!.Name :
+            attribute.RepresentableTypeSymbol!.ToMinimalOpenString()) ??
             String.Empty;
         var fullTypeName =
-            (attribute.RepresentableTypeIsGenericParameter ?
-            attribute.GenericRepresentableTypeName :
+            (attribute.RepresentableTypeIsTypeParameter ?
+            attribute.RepresentableTypeSymbol!.Name :
             attribute.RepresentableTypeSymbol?.ToFullOpenString()) ??
             String.Empty;
         var simpleTypeName =
-            (attribute.RepresentableTypeIsGenericParameter ?
-            attribute.GenericRepresentableTypeName :
+            (attribute.RepresentableTypeIsTypeParameter ?
+            attribute.RepresentableTypeSymbol!.Name :
             attribute.RepresentableTypeSymbol?.Name) ??
             String.Empty;
         var safeAlias = attribute.Alias != null && SyntaxFacts.IsValidIdentifier(attribute.Alias) ?
                 attribute.Alias :
-                (attribute.RepresentableTypeIsGenericParameter ?
-                attribute.GenericRepresentableTypeName :
+                (attribute.RepresentableTypeIsTypeParameter ?
+                attribute.RepresentableTypeSymbol!.Name :
                 attribute.RepresentableTypeSymbol?.ToIdentifierCompatString()) ??
                 simpleTypeName;
         var typeStringName =
-            (attribute.RepresentableTypeIsGenericParameter ?
-            attribute.GenericRepresentableTypeName :
+            (attribute.RepresentableTypeIsTypeParameter ?
+            attribute.RepresentableTypeSymbol!.Name :
             attribute.RepresentableTypeSymbol?.ToTypeString()) ??
             String.Empty;
 

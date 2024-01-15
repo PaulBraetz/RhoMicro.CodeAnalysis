@@ -28,7 +28,9 @@
 	<ItemGroup>
 		<PackageReference Update="NETStandard.Library" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis" Version="4.8.0" />
-		
+
+		<PackageReference Include="PolySharp" Version="1.14.1" />
+
 		<ProjectReference Include="..\UtilityGenerators\UtilityGenerators.csproj" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
@@ -39,5 +41,9 @@
 	<ItemGroup>
 		<None Include="README.md" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
 		<None Include="LICENSE.txt" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Analysis\" />
 	</ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-﻿namespace RhoMicro.CodeAnalysis.UtilityGenerators;
+﻿namespace RhoMicro.CodeAnalysis.Library;
 using System.Collections.Immutable;
 
 sealed class ImmutableHashSetCollectionEqualityComparer<T> : IEqualityComparer<ImmutableHashSet<T>>

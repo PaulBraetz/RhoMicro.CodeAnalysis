@@ -53,7 +53,7 @@ internal static partial class Diagnostics
 {Id.StaticTarget , new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:"Union types may not be declared using the 'static' modifier.",title:"Static Union Type Declaration")},
 {Id.TleStrategy , new DiagnosticInfo(severity: DiagnosticSeverity.Warning,message:"The selected storage option for {0} was ignored because it would cause a `TypeLoadException` to be thrown.",title:"TypeLoadException Prevented")},
 {Id.UnionTypeSettingsOnNonUnionType , new DiagnosticInfo(severity: DiagnosticSeverity.Warning,message:"The union type settings attribute will be ignored because the target type is not a union type.",title:"Union Type Settings Ignored")},
-{Id.UnknownGenericParameterName , new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:"The targeted union type contains an unknown parameter name `{0}`. It could not be located in the type parameter list.",title:"Unknown Generic Parameter Name") },
+//{Id.UnknownGenericParameterName , new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:"The targeted union type contains an unknown parameter name `{0}`. It could not be located in the type parameter list.",title:"Unknown Generic Parameter Name") },
 {Id.GenericRelation, new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:"Relations may not be declared between generic types.",title:"Generic Relation") },
 {Id.BidirectionalRelation, new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:"The bidirectional relation with {0} will be ignored.",title:"Bidirectional Relation") },
 {Id.DuplicateRelation, new DiagnosticInfo(severity: DiagnosticSeverity.Warning,message:"The duplicate relation with {0} will be ignored.",title:"Duplicate Relation") },

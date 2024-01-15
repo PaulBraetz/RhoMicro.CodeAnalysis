@@ -1,7 +1,7 @@
 ﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
-using RhoMicro.CodeAnalysis.UtilityGenerators.Library;
+using RhoMicro.CodeAnalysis.Library;
 
 sealed class IsAsFunctions(TargetDataModel model) : ExpansionBase(model, Macro.IsAsFunctions)
 {

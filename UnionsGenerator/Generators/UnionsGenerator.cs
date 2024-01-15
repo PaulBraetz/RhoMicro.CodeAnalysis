@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using RhoMicro.CodeAnalysis;
-using RhoMicro.CodeAnalysis.UtilityGenerators.Library;
+using RhoMicro.CodeAnalysis.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Analyzers;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
@@ -27,6 +27,7 @@ enum Macro
     RepresentedTypes,
     IsAsProperties,
     IsAsFunctions,
+    InterfaceIntersections,
     GetHashcode,
     Equals,
     ToString,
@@ -63,6 +64,7 @@ internal class UnionsGenerator : IIncrementalGenerator
                         .Receive(new IsAsProperties(model), t)
                         .Receive(new IsAsFunctions(model), t)
                         .Receive(new Match(model), t)
+                        .Receive(new InterfaceIntersections(model), t)
                         .Receive(new GetHashCode(model), t)
                         .Receive(new Equals(model), t)
                         .Receive(new ConversionFunctionsCache(model), t)

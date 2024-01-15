@@ -28,7 +28,7 @@ internal static partial class Diagnostics
         RepresentableTypeIsSupertype = 13,
         RepresentableTypeIsInterface = 14,
         ReservedGenericParameterName = 15,
-        UnknownGenericParameterName = 16,
+        //UnknownGenericParameterName = 16,
         PossibleBoxingStrategy = 17,
         BoxingStrategy = 18,
         PossibleTleStrategy = 19,
@@ -63,8 +63,8 @@ internal static partial class Diagnostics
         Create(Id.PossibleTleStrategy, location, typeName);
     public static Diagnostic TleStrategy(Location location, String typeName) =>
         Create(Id.TleStrategy, location, typeName);
-    public static Diagnostic UnknownGenericParameterName(Location location, String name) =>
-        Create(Id.UnknownGenericParameterName, location, name);
+    //public static Diagnostic UnknownGenericParameterName(Location location, String name) =>
+    //    Create(Id.UnknownGenericParameterName, location, name);
     public static Diagnostic ReservedGenericParameterName(Location location, String name) =>
         Create(Id.ReservedGenericParameterName, location, name);
     public static Diagnostic RepresentableTypeIsInterface(Location location, String representableTypeName) =>

@@ -1,4 +1,4 @@
-﻿namespace RhoMicro.CodeAnalysis.UtilityGenerators.Library.Tests;
+﻿namespace RhoMicro.CodeAnalysis.Library.Tests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
