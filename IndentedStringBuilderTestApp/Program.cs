@@ -1,10 +1,6 @@
 ﻿namespace IndentedStringBuilderTestApp;
 
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
-
-using RhoMicro.CodeAnalysis.Library;
+using RhoMicro.CodeAnalysis.Library.Text;
 
 internal class Program
 {
@@ -12,20 +8,27 @@ internal class Program
     {
         var builder = new IndentedStringBuilder(
             IndentedStringBuilderOptions.Default with { Indentation = "  " })
-            .Append("namespace ").AppendLine("Some.Parameter.Namespace")
-            .OpenBlock()
-            .Append("partial class ").AppendLine("SomeParameterName")
-            .OpenBlock()
-            .Append("public void Foo()")
-            .OpenBlock()
-            .AppendLine("String[] bar = ")
-            .OpenBlock('[', ']', true)
-            .AppendLine("\"foobar\"")
-            .CloseBlock();
+            .Append("namespace ").Append("Some.Parameter.Namespace")
+            .OpenBracesBlock();
+        _ = builder.Append("partial class ").Append("SomeParameterName")
+            .OpenBracesBlock()
+            .OpenDocCommentBlock("summary")
+            .Append("/// Sample method")
+            .CloseBlock()
+            .OpenDocCommentBlock("param", "name", "a")
+            .Append("/// Sample Argument.")
+            .CloseBlock()
+            .Append("public void Foo(Int32 a)")
+            .OpenBracesBlock()
+            .Append("String[] bar = ")
+            .OpenBracketsBlock()
+            .Append("\"foobar\"")
+            .CloseBlock()
+            .AppendLine(';');
 
-        using(builder.OpenBlockScope())
+        using(builder.OpenBracesBlockScope())
         {
-            _ = builder.AppendLine("_ = foobar();");
+            _ = builder.Append("_ = foobar();");
         }
 
         _ = builder
@@ -33,11 +36,11 @@ internal class Program
             .CloseBlock()
             .AppendLine("void Bar()");
 
-        using(builder.OpenBlockScope())
+        using(builder.OpenBracesBlockScope())
         {
             using(builder.CreateIndentScope())
             {
-                _ = builder.OpenBlock().CloseBlock().Append("throw new NotImplementedException();");
+                _ = builder.OpenBracesBlock().CloseBlock().Append("throw new NotImplementedException();");
             }
         }
 

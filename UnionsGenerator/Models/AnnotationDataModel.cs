@@ -46,18 +46,9 @@ sealed class AnnotationDataModel
 
     public static AnnotationDataModel Create(INamedTypeSymbol target)
     {
-        var genericAttributes = target.TypeParameters
-            .Select(t =>
-                t.GetAttributes()
-                .OfUnionTypeAttribute()
-                .Select(a =>
-                    a.WithTypeParameter(t))
-                .FirstOrDefault())
-            .Where(a => a != null);
-
         var attributeData = target.GetAttributes();
 
-        var attributes = attributeData.OfUnionTypeAttribute().Concat(genericAttributes);
+        var attributes = attributeData.OfUnionTypeAttribute()/*.Concat(genericAttributes)*/;
 
         //DO NOT CHANGE THIS ALGO, compatibility depends on deterministic order of types
         var orderedRepresentableTypes = attributes

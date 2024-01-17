@@ -88,12 +88,12 @@ record PartialClassModel(
 
         _ = builder.Append("namespace ")
         .AppendLine(Namespace)
-        .OpenBracesBreakBlock();
+        .OpenBracesBlock();
         for(var i = 0; i < ContainingTypes.Length; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            _ = builder.Append(ContainingTypes[i], cancellationToken).OpenBracesBreakBlock();
+            _ = builder.Append(ContainingTypes[i], cancellationToken).OpenBracketsBlock();
         }
 
         if(!String.IsNullOrEmpty(Visibility))
@@ -114,7 +114,7 @@ record PartialClassModel(
                 .AppendJoinLines(',', ImplementedTypes);
         }
 
-        _ = builder.OpenBracesBreakBlock();
+        _ = builder.OpenBracketsBlock();
     }
 
     public virtual Boolean Equals(PartialClassModel? other) =>

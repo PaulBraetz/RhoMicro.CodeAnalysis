@@ -4,10 +4,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using RhoMicro.CodeAnalysis.DslGenerator.Grammar;
 using RhoMicro.CodeAnalysis.DslGenerator.Lexing;
 using RhoMicro.CodeAnalysis.DslGenerator.Parsing;
-using RhoMicro.CodeAnalysis.UtilityGenerators;
 
 using System.Collections.Immutable;
 using System.Text;
@@ -140,11 +138,13 @@ internal class GeneratedRuleListGenerator : IIncrementalGenerator
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var implTypeSourceText = new StringBuilder("file static class ").AppendLine(previous.implTypeName)
-            .AppendLine("{")
-            .AppendLine("    public static global::RhoMicro.CodeAnalysis.DslGenerator.Grammar.RuleList Instance { get; } =")
-            .Append("        ").AppendMetaString(previous.parseResult.RuleList).AppendLine(";")
-            .Append('}')
+        var implTypeSourceText = new IndentedStringBuilder()
+            .Append("file static class ").AppendLine(previous.implTypeName)
+            .OpenBracesBlock()
+            .AppendLine("public static global::RhoMicro.CodeAnalysis.DslGenerator.Grammar.RuleList Instance { get; } =")
+            .OpenIndentBlock()
+            .AppendMetaString(previous.parseResult.RuleList, cancellationToken).AppendLine(';')
+            .CloseAllBlocks()
             .ToString();
 
         return (implTypeSourceText, previous.partialTypeSourceText, previous.parseResult.Diagnostics);

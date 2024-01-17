@@ -3,7 +3,6 @@
 using RhoMicro.CodeAnalysis.DslGenerator.Lexing;
 
 using System.Diagnostics;
-using System.Text;
 
 #if DSL_GENERATOR
 [IncludeFile]
@@ -30,6 +29,17 @@ sealed partial record Name : SyntaxNode
 
     public override String ToString() => base.ToString();
     public String Value { get; }
-    public override void AppendDisplayStringTo(StringBuilder builder) => builder.Append(Value);
-    protected override void AppendCtorArgs(StringBuilder builder) => AppendCtorArg(builder, nameof(Value), Value, quoteValue: true);
+    public override void AppendDisplayStringTo(IndentedStringBuilder builder, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        _ = builder.Append(Value);
+    }
+
+    protected override void AppendCtorArgs(IndentedStringBuilder builder, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        _ = AppendCtorArg(builder, nameof(Value), Value, quoteValue: true, cancellationToken);
+    }
 }

@@ -10,19 +10,6 @@ partial class UnionTypeAttribute : IEquatable<UnionTypeAttribute>
     public UnionTypeAttribute(Object representableTypeSymbolContainer) =>
         _representableTypeSymbolContainer = representableTypeSymbolContainer;
 
-    public UnionTypeAttribute WithTypeParameter(ITypeParameterSymbol symbol)
-    {
-        var result = new UnionTypeAttribute()
-        {
-            Alias = Alias,
-            Options = Options,
-            Storage = Storage,
-            _representableTypeSymbolContainer = symbol
-        };
-
-        return result;
-    }
-
     internal RepresentableTypeModel ExtractData(ITypeSymbol target) => RepresentableTypeModel.Create(this, target);
 
     public Boolean RepresentableTypeIsTypeParameter => RepresentableTypeSymbol is IParameterSymbol;

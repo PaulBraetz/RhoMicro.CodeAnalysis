@@ -137,7 +137,7 @@ namespace RhoMicro.CodeAnalysis
     /// Marks the target type as a union type being able to represent the type passed to the constructor.
     /// </summary>
     [AttributeUsage(
-        AttributeTargets.Struct | AttributeTargets.Class | AttributeTargets.GenericParameter,
+        AttributeTargets.Struct | AttributeTargets.Class,
         AllowMultiple = true,
         Inherited = false)]
 #if UNIONS_GENERATOR
@@ -155,8 +155,6 @@ namespace RhoMicro.CodeAnalysis
         {
             RepresentableType = representableType;
         }
-
-        public UnionTypeAttribute() : this(null) { }
 
         /// <summary>
         /// Gets or sets the alias to use for members representing the type represented by the union.

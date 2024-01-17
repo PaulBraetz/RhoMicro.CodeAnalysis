@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 
-static class Utils
+static partial class Utils
 {
     public static String GetTypeModifiers(INamedTypeSymbol symbol) =>
         symbol.IsRecord

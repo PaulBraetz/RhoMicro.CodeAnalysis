@@ -1,10 +1,9 @@
 ﻿namespace RhoMicro.CodeAnalysis.Library.Text;
 
-sealed record IndentedStringBuilderOptions
+partial record IndentedStringBuilderOptions
 {
-    public StringOrChar Indentation { get; init; } = '\t';
-    public StringOrChar NewLine { get; init; } = '\n';
-    public Block DefaultBlock { get; init; } = Block.BracesBreak;
+    public StringOrChar DefaultIndentation { get; init; } = StringOrChar.Tab;
+    public StringOrChar NewLine { get; init; } = StringOrChar.NewLine;
     public String GeneratorName { get; init; } = String.Empty;
     public Boolean PrependMarkerComment { get; init; } = false;
     public Boolean PrependWarningDisablePragma { get; init; } = false;

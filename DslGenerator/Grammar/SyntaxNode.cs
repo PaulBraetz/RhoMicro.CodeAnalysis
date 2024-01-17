@@ -1,6 +1,7 @@
 ﻿namespace RhoMicro.CodeAnalysis.DslGenerator.Grammar;
 
-using System.Text;
+using RhoMicro.CodeAnalysis.Library.Text;
+
 using System.Text.RegularExpressions;
 
 #if DSL_GENERATOR
@@ -9,8 +10,15 @@ using System.Text.RegularExpressions;
 abstract record SyntaxNode
 {
     private static readonly Regex _quotePattern = new("(\"*)", RegexOptions.Compiled);
-    protected static StringBuilder AppendCtorArg(StringBuilder builder, String argName, String argValue, Boolean quoteValue = false)
+    protected static IndentedStringBuilder AppendCtorArg(
+        IndentedStringBuilder builder,
+        String argName,
+        String argValue,
+        Boolean quoteValue,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         _ = builder.Append(argName).Append(": ");
 
         var rawQuotes = quoteValue ?
@@ -35,20 +43,32 @@ abstract record SyntaxNode
 
         return builder;
     }
-    protected static StringBuilder AppendCtorArg(StringBuilder builder, String argName, SyntaxNode argValue) =>
-        builder.Append(argName).Append(": ").AppendMetaString(argValue);
-    protected static StringBuilder AppendCtorArg(StringBuilder builder, String argName, IEnumerable<SyntaxNode> argValue)
+    protected static IndentedStringBuilder AppendCtorArg(
+        IndentedStringBuilder builder,
+        String argName,
+        SyntaxNode argValue,
+        CancellationToken cancellationToken) =>
+        builder.Append(argName).Append(": ").AppendMetaString(argValue, cancellationToken);
+    protected static IndentedStringBuilder AppendCtorArg(
+        IndentedStringBuilder builder,
+        String argName,
+        IEnumerable<SyntaxNode> argValue,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         _ = builder.Append(argName).Append(": [");
         var enumerator = argValue.GetEnumerator();
         if(enumerator.MoveNext())
         {
             var first = enumerator.Current;
-            _ = builder.AppendMetaString(first);
+            _ = builder.AppendMetaString(first, cancellationToken);
             while(enumerator.MoveNext())
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var next = enumerator.Current;
-                _ = builder.Append(", ").AppendMetaString(next);
+                _ = builder.Append(", ").AppendMetaString(next, cancellationToken);
             }
         } else
         {
@@ -60,19 +80,25 @@ abstract record SyntaxNode
         return builder;
     }
 
-    public String ToDisplayString() => new StringBuilder().AppendDisplayString(this).ToString();
-    public String ToMetaString() => new StringBuilder().AppendMetaString(this).ToString();
-    public void AppendMetaStringTo(StringBuilder builder)
+    public String ToDisplayString(CancellationToken cancellationToken) =>
+        new IndentedStringBuilder().AppendDisplayString(this, cancellationToken).ToString();
+    public String ToMetaString(CancellationToken cancellationToken) =>
+        new IndentedStringBuilder().AppendMetaString(this, cancellationToken).ToString();
+    public void AppendMetaStringTo(IndentedStringBuilder builder, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var type = GetType();
         _ = builder.Append("new ").Append(type.Namespace);
         append(type);
         _ = builder.Append('(');
-        AppendCtorArgs(builder);
+        AppendCtorArgs(builder, cancellationToken);
         _ = builder.Append(')');
 
         void append(Type type)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if(type.DeclaringType != null)
             {
                 append(type.DeclaringType);
@@ -81,7 +107,7 @@ abstract record SyntaxNode
             _ = builder.Append('.').Append(type.Name);
         }
     }
-    protected abstract void AppendCtorArgs(StringBuilder builder);
-    public abstract void AppendDisplayStringTo(StringBuilder builder);
-    public override String ToString() => ToDisplayString();
+    protected abstract void AppendCtorArgs(IndentedStringBuilder builder, CancellationToken cancellationToken);
+    public abstract void AppendDisplayStringTo(IndentedStringBuilder builder, CancellationToken cancellationToken);
+    public override String ToString() => ToDisplayString(default);
 }

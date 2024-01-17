@@ -36,7 +36,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="bin\Debug\netstandard2.0\\RhoMicro.CodeAnalysis.DslGenerator.12.0.10.340.dll" />
+	  <None Remove="bin\Debug\netstandard2.0\\RhoMicro.CodeAnalysis.DslGenerator.13.0.0.568.dll" />
 	</ItemGroup>
 
 	<ItemGroup>

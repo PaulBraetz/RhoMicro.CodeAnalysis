@@ -5,7 +5,7 @@ using System;
 #if DSL_GENERATOR
 [IncludeFile]
 #endif
-sealed class RuleListBuilder(String? nameValue = null)
+readonly struct RuleListBuilder(String? nameValue = null)
 {
     private readonly List<RuleDefinition> _definitions = [];
     private readonly Name? _name = nameValue != null ? new(nameValue) : null;

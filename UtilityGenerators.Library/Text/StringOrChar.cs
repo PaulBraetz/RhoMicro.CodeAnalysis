@@ -7,20 +7,38 @@ readonly struct StringOrChar : IEquatable<StringOrChar>, IIndentedStringBuilderA
 {
     private readonly Char _charValue;
     private readonly String? _stringValue;
-    private readonly Byte _isString;
+    private readonly Byte _isChar;
 
-    public Boolean IsString => _isString == 1;
+    public static StringOrChar Empty { get; } = String.Empty;
+    public static StringOrChar NewLine { get; } = '\n';
+    public static StringOrChar Tab { get; } = '\t';
+    public static StringOrChar TwoSpaces { get; } = "  ";
+    public static StringOrChar FourSpaces { get; } = "    ";
+    public static StringOrChar DocCommentSlashes { get; } = "/// ";
+    public static StringOrChar CommentSlashes { get; } = "// ";
+    public Char this[Int32 index] => IsString ?
+        _stringValue![index] :
+        index == 0 ?
+        _charValue :
+        throw new IndexOutOfRangeException();
+    public ReadOnlySpan<Char> Slice(Int32 start, Int32 length) => IsString ?
+        _stringValue!.AsSpan(start, length) :
+        start == 0 && length is 1 or 0 ?
+        new ReadOnlySpan<Char>([_charValue]) :
+        throw new IndexOutOfRangeException();
+    public Int32 Length => IsString ? _stringValue!.Length : 1;
+    public Boolean IsString => _isChar == 0;
 
-    private StringOrChar(String stringValue)
+    private StringOrChar(String stringValue) => _stringValue = stringValue;
+    private StringOrChar(Char charValue)
     {
-        _stringValue = stringValue;
-        _isString = 1;
+        _charValue = charValue;
+        _isChar = 1;
     }
-    private StringOrChar(Char charValue) => _charValue = charValue;
 
     public static implicit operator StringOrChar(String value) => new(value);
     public static explicit operator String(StringOrChar value) => value.IsString ?
-        value._stringValue! :
+        value._stringValue ?? String.Empty :
         throw new InvalidOperationException();
 
     public static implicit operator StringOrChar(Char value) => new(value);
@@ -32,21 +50,26 @@ readonly struct StringOrChar : IEquatable<StringOrChar>, IIndentedStringBuilderA
     public static Boolean operator !=(StringOrChar left, StringOrChar right) => !(left == right);
 
     public override String ToString() => IsString ?
-        _stringValue! :
+        _stringValue ?? String.Empty :
         _charValue.ToString();
     public override Boolean Equals(Object? obj) =>
         obj is StringOrChar stringOrChar &&
         Equals(stringOrChar);
     public Boolean Equals(StringOrChar other) =>
-        _charValue == other._charValue &&
-        _stringValue == other._stringValue;
-    public override Int32 GetHashCode() => (_charValue, _stringValue).GetHashCode();
+        IsString == other.IsString &&
+        IsString ?
+        (String)this == (String)other :
+        (Char)this == (Char)other;
+    public override Int32 GetHashCode() =>
+        IsString ?
+        ((String)this).GetHashCode() :
+        ((Char)this).GetHashCode();
     public void AppendTo(IndentedStringBuilder builder, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         _ = IsString ?
-        builder.Append(_stringValue!) :
+        builder.Append(_stringValue ?? String.Empty) :
         builder.Append(_charValue);
     }
 }
