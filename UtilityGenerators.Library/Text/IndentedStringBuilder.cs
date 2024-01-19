@@ -1,51 +1,11 @@
 ﻿namespace RhoMicro.CodeAnalysis.Library.Text;
 
-using RhoMicro.CodeAnalysis.Library;
-
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
-
 partial class IndentedStringBuilder : IEquatable<IndentedStringBuilder?>
 {
-    public partial record CommentBuilder(IndentedStringBuilder Builder)
-    {
-        #region Open Block
-        public IndentedStringBuilder OpenSummary() =>
-            Builder.OpenBlock(Block.Comments.Summary);
-        public IndentedStringBuilder OpenReturns() =>
-            Builder.OpenBlock(Block.Comments.Returns);
-        public IndentedStringBuilder OpenRemarks() =>
-            Builder.OpenBlock(Block.Comments.Remarks);
-        public IndentedStringBuilder OpenParam(String name) =>
-            Builder.OpenBlock(Block.Comments.Param(name));
-        public IndentedStringBuilder OpenTypeParam(String name) =>
-            Builder.OpenBlock(Block.Comments.TypeParam(name));
-
-        public IndentedStringBuilder OpenParagraph() =>
-            Builder.OpenBlock(Block.Comments.Paragraph);
-        public IndentedStringBuilder OpenCode() =>
-            Builder.OpenBlock(Block.Comments.Code);
-
-        public IndentedStringBuilder OpenDocBlock(String name) =>
-            Builder.OpenBlock(Block.Comments.Doc(name));
-        public IndentedStringBuilder OpenDocBlock(String name, String attributeName, String attributeValue) =>
-            Builder.OpenBlock(Block.Comments.Doc(name, attributeName, attributeValue));
-        public IndentedStringBuilder OpenSingleLineBlock() =>
-            Builder.OpenBlock(Block.Comments.SingleLine);
-        public IndentedStringBuilder OpenMultilineBlock() =>
-            Builder.OpenBlock(Block.Comments.Multiline);
-        #endregion
-        #region Open Block Scope
-        public BlockScope OpenSingleLineBlockScope() => new(OpenSingleLineBlock());
-        public BlockScope OpenMultilineBlockScope() => new(OpenMultilineBlock());
-        public BlockScope OpenDocBlockScope(String name) => new(OpenDocBlock(name));
-        public BlockScope OpenDocBlockScope(String name, String attributeName, String attributeValue) =>
-            new(OpenDocBlock(name, attributeName, attributeValue));
-        #endregion
-    }
-
     public IndentedStringBuilder(IndentedStringBuilderOptions options)
     {
         _options = options;
@@ -63,7 +23,7 @@ partial class IndentedStringBuilder : IEquatable<IndentedStringBuilder?>
         }
 
         if(_options.PrependWarningDisablePragma)
-            _ = _builder.AppendLine("#pragma warning diasble");
+            _ = _builder.AppendLine("#pragma warning disable");
 
         if(_options.PrependNullableEnable)
             _ = _builder.AppendLine("#nullable enable");
@@ -97,6 +57,7 @@ partial class IndentedStringBuilder : IEquatable<IndentedStringBuilder?>
             return true;
         }
     }
+    public Operators GetOperators(CancellationToken cancellationToken) => new(this, cancellationToken);
     #endregion
     #region Open Block
     void OpenBlockCore(Block block)
@@ -118,12 +79,12 @@ partial class IndentedStringBuilder : IEquatable<IndentedStringBuilder?>
         OpenBlockCore(block);
         return this;
     }
-    public IndentedStringBuilder OpenBracketsBlock() => OpenBlock(Block.Brackets);
-    public IndentedStringBuilder OpenIndentBlock() => OpenBlock(Block.Indent);
-    public IndentedStringBuilder OpenBracesBlock() => OpenBlock(Block.Braces);
-    public IndentedStringBuilder OpenParensBlock() => OpenBlock(Block.Parens);
-    public IndentedStringBuilder OpenAngledBlock() => OpenBlock(Block.Angled);
-    public IndentedStringBuilder OpenRegionBlock(String name) => OpenBlock(Block.Region(name));
+    public IndentedStringBuilder OpenBracketsBlock() => OpenBlock(Blocks.Brackets);
+    public IndentedStringBuilder OpenIndentBlock() => OpenBlock(Blocks.Indent);
+    public IndentedStringBuilder OpenBracesBlock() => OpenBlock(Blocks.Braces);
+    public IndentedStringBuilder OpenParensBlock() => OpenBlock(Blocks.Parens);
+    public IndentedStringBuilder OpenAngledBlock() => OpenBlock(Blocks.Angled);
+    public IndentedStringBuilder OpenRegionBlock(String name) => OpenBlock(Blocks.Region(name));
     #endregion
     #region Open Block Scope
     public BlockScope OpenBlockScope(Block block) => new(OpenBlock(block));
@@ -195,7 +156,12 @@ partial class IndentedStringBuilder : IEquatable<IndentedStringBuilder?>
     void DetentCore()
     {
         if(_indentations.Count > 0)
+        {
+            if(!_indentations.Peek().IsWhitespace)
+                throw new InvalidOperationException("Attempted to detent non-whitespace indentation. Use 'CloseBlock' or 'CloseAllBlocks' instead.");
+
             _ = _indentations.Pop();
+        }
     }
     public IndentedStringBuilder Detent()
     {

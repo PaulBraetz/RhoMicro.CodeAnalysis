@@ -14,7 +14,7 @@ readonly record struct AttributeSyntaxModel(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        _ = builder.OpenBlock(Block.Brackets)
+        _ = builder.OpenBracketsBlock()
             .Append(Namespace)
             .Append('.')
             .Append(Name)

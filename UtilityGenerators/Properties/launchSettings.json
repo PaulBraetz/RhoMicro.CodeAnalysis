@@ -11,6 +11,10 @@
     "DslGenerator": {
       "commandName": "DebugRoslynComponent",
       "targetProject": "..\\DslGenerator\\DslGenerator.csproj"
+    },
+    "IsbTestApp": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\IndentedStringBuilderTestApp\\IndentedStringBuilderTestApp.csproj"
     }
   }
 }

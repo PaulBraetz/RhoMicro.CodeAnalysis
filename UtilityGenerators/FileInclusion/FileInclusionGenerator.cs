@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using RhoMicro.CodeAnalysis.Library;
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;

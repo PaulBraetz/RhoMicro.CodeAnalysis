@@ -9,6 +9,10 @@ readonly struct StringOrChar : IEquatable<StringOrChar>, IIndentedStringBuilderA
     private readonly String? _stringValue;
     private readonly Byte _isChar;
 
+    public Boolean IsWhitespace => IsString ?
+        String.IsNullOrWhiteSpace(_stringValue!) :
+        Char.IsWhiteSpace(_charValue);
+
     public static StringOrChar Empty { get; } = String.Empty;
     public static StringOrChar NewLine { get; } = '\n';
     public static StringOrChar Tab { get; } = '\t';
