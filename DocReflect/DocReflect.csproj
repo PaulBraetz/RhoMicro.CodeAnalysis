@@ -1,0 +1,67 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<!--AutoUpdateAssemblyName-->
+		
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<IncludeBuildOutput>false</IncludeBuildOutput>
+		<developmentDependency>true</developmentDependency>
+		<NoPackageAnalysis>true</NoPackageAnalysis>
+		<IsRoslynComponent>true</IsRoslynComponent>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Description>Generates reflection-like API to examine member documentation.</Description>
+		<PackageTags>Source Generator; Documentation; Reflection</PackageTags>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<DefineConstants>$(DefineConstants);GENERATOR</DefineConstants>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Include="..\DocReflect.Library\Comments\CommentContents.cs" Link="Library\Comments\CommentContents.cs" />
+	  <Compile Include="..\DocReflect.Library\Comments\DocumentationComment.cs" Link="Library\Comments\DocumentationComment.cs" />
+	  <Compile Include="..\DocReflect.Library\Comments\Empty.cs" Link="Library\Comments\Empty.cs" />
+	  <Compile Include="..\DocReflect.Library\Comments\Example.cs" Link="Library\Comments\Example.cs" />
+	  <Compile Include="..\DocReflect.Library\Comments\Param.cs" Link="Library\Comments\Param.cs" />
+	  <Compile Include="..\DocReflect.Library\Comments\Remarks.cs" Link="Library\Comments\Remarks.cs" />
+	  <Compile Include="..\DocReflect.Library\Comments\Returns.cs" Link="Library\Comments\Returns.cs" />
+	  <Compile Include="..\DocReflect.Library\Comments\Summary.cs" Link="Library\Comments\Summary.cs" />
+	  <Compile Include="..\DocReflect.Library\Comments\Typeparam.cs" Link="Library\Comments\Typeparam.cs" />
+	  <Compile Include="..\DocReflect.Library\Documentation.cs" Link="Library\Documentation.cs" />
+	  <Compile Include="..\DocReflect.Library\EnumerableExtensions.Internal.cs" Link="Library\EnumerableExtensions.Internal.cs" />
+	  <Compile Include="..\DocReflect.Library\Infrastructure\DocumentationProviderAttribute.cs" Link="Library\Infrastructure\DocumentationProviderAttribute.cs" />
+	  <Compile Include="..\DocReflect.Library\Infrastructure\IDocumentationProvider.cs" Link="Library\Infrastructure\IDocumentationProvider.cs" />
+	  <Compile Include="..\DocReflect.Library\MethodDocumentation.cs" Link="Library\MethodDocumentation.cs" />
+	  <Compile Include="..\DocReflect.Library\PropertyDocumentation.cs" Link="Library\PropertyDocumentation.cs" />
+	  <Compile Include="..\DocReflect.Library\TypeDocumentation.cs" Link="Library\TypeDocumentation.cs" />
+	  <Compile Include="..\DocReflect.Library\TypeExtensions.cs" Link="Library\TypeExtensions.cs" />
+	  <Compile Include="..\DocReflect.Library\TypeExtensions.KeyValuePairComparer.cs" Link="Library\TypeExtensions.KeyValuePairComparer.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Update="NETStandard.Library" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.CodeAnalysis" Version="*" />
+		<PackageReference Include="PolySharp" Version="*">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+
+		<ProjectReference Include="..\UtilityGenerators\UtilityGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="Library\Comments\CommentContents.Internal.cs" />
+		<None Include="README.md" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
+		<None Include="LICENSE.txt" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Library\Infrastructure\" />
+	</ItemGroup>
+
+</Project>

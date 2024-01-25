@@ -8,6 +8,7 @@ partial record IndentedStringBuilderOptions
     public Boolean PrependMarkerComment { get; init; } = false;
     public Boolean PrependWarningDisablePragma { get; init; } = false;
     public Boolean PrependNullableEnable { get; init; } = false;
+    public CancellationToken AmbientCancellationToken { get; init; } = CancellationToken.None;
 
     public static IndentedStringBuilderOptions GeneratedFile = new()
     {

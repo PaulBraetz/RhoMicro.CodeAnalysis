@@ -15,6 +15,9 @@ readonly struct StringOrChar : IEquatable<StringOrChar>, IIndentedStringBuilderA
 
     public static StringOrChar Empty { get; } = String.Empty;
     public static StringOrChar NewLine { get; } = '\n';
+    public static StringOrChar Comma { get; } = ',';
+    public static StringOrChar Semicolon { get; } = ';';
+    public static StringOrChar Period { get; } = '.';
     public static StringOrChar Tab { get; } = '\t';
     public static StringOrChar TwoSpaces { get; } = "  ";
     public static StringOrChar FourSpaces { get; } = "    ";
@@ -68,10 +71,8 @@ readonly struct StringOrChar : IEquatable<StringOrChar>, IIndentedStringBuilderA
         IsString ?
         ((String)this).GetHashCode() :
         ((Char)this).GetHashCode();
-    public void AppendTo(IndentedStringBuilder builder, CancellationToken cancellationToken)
+    public void AppendTo(IndentedStringBuilder builder)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         _ = IsString ?
         builder.Append(_stringValue ?? String.Empty) :
         builder.Append(_charValue);

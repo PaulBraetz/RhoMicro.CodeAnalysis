@@ -1,4 +1,5 @@
 ﻿namespace RhoMicro.CodeAnalysis.Library;
+
 using System.Collections.Immutable;
 sealed class ImmutableArrayCollectionEqualityComparer<T>(IEqualityComparer<T> elementComparer) : IEqualityComparer<ImmutableArray<T>>
 {

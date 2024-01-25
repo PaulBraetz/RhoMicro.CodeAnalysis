@@ -16,3 +16,10 @@ readonly record struct Token(TokenType Type, Lexeme Lexeme, Location Location)
     public Boolean Equals(Token other) => Type == other.Type && Lexeme == other.Lexeme;
     public override Int32 GetHashCode() => (Type, Lexeme).GetHashCode();
 }
+readonly record struct Token<T>(T Type, Lexeme Lexeme, Location Location)
+{
+    public Token(T type, Lexeme lexeme) : this(type, lexeme, Location.None) { }
+    public override String ToString() => $"[{Type}:{Lexeme.ToEscapedString()}]";
+    public Boolean Equals(Token<T> other) => (Type, Lexeme).Equals((other.Type, other.Lexeme));
+    public override Int32 GetHashCode() => (Type, Lexeme).GetHashCode();
+}

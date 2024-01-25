@@ -82,18 +82,14 @@ record PartialClassModel(
         }
     }
 
-    public void AppendTo(IndentedStringBuilder builder, CancellationToken cancellationToken)
+    public void AppendTo(IndentedStringBuilder builder)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         _ = builder.Append("namespace ")
         .AppendLine(Namespace)
         .OpenBracesBlock();
         for(var i = 0; i < ContainingTypes.Length; i++)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            _ = builder.Append(ContainingTypes[i], cancellationToken).OpenBracketsBlock();
+            _ = builder.Append(ContainingTypes[i]).OpenBracketsBlock();
         }
 
         if(!String.IsNullOrEmpty(Visibility))
@@ -104,7 +100,7 @@ record PartialClassModel(
         _ = builder.Append(TypeModifiers).Append(' ').Append(Name);
         if(TypeParameters.Length > 0)
         {
-            _ = builder.OpenAngledBlock().AppendJoin(", ", TypeParameters, cancellationToken).CloseBlock();
+            _ = builder.OpenAngledBlock().AppendJoin(", ", TypeParameters).CloseBlock();
         }
 
         if(ImplementedTypes.Length > 0)

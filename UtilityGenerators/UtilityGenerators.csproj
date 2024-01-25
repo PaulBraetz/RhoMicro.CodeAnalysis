@@ -49,7 +49,7 @@
 	  <Compile Include="..\UtilityGenerators.Library\Text\CommentBuilder.cs" Link="Meta\Library\Text\CommentBuilder.cs" />
 	  <Compile Include="..\UtilityGenerators.Library\Text\IIndentedStringBuilderAppendable.cs" Link="Meta\Library\Text\IIndentedStringBuilderAppendable.cs" />
 	  <Compile Include="..\UtilityGenerators.Library\Text\IndentedStringBuilder.cs" Link="Meta\Library\Text\IndentedStringBuilder.cs" />
-	  <Compile Include="..\UtilityGenerators.Library\Text\IndentedStringBuilder.Operators.cs" Link="Meta\Library\Text\IndentedStringBuilder.Operators.cs" />
+	  <Compile Include="..\UtilityGenerators.Library\Text\IndentedStringBuilder.OperatorsDecorator.cs" Link="Meta\Library\Text\IndentedStringBuilder.OperatorsDecorator.cs" />
 	  <Compile Include="..\UtilityGenerators.Library\Text\IndentedStringBuilderAppendable.cs" Link="Meta\Library\Text\IndentedStringBuilderAppendable.cs" />
 	  <Compile Include="..\UtilityGenerators.Library\Text\IndentedStringBuilderOptions.cs" Link="Meta\Library\Text\IndentedStringBuilderOptions.cs" />
 	  <Compile Include="..\UtilityGenerators.Library\Text\IndentScope.cs" Link="Meta\Library\Text\IndentScope.cs" />

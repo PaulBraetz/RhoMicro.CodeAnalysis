@@ -112,7 +112,7 @@ $"get => (INamedTypeSymbol)_{ToCamelCase(p.Name)}SymbolContainer;}}");
                             //object array
                             $"getValues(propArg.Value)" :
                             //regular array
-                            $"propArg.Value.Values.Select(c => ({t.Type.Substring(0, t.Type.Length - 2)})c.Value).ToArray()") :
+                            $"propArg.Value.Values.Select(c => ({t.Type[..^2]})c.Value).ToArray()") :
                             //scalar
                             $"{(t.IsType || t.Type == "object" ? String.Empty : $"({t.Type})")}propArg.Value.Value"))
                     .Select(static t => $"case \"{t.Name}\":result.{(t.IsType ? $"_{ToCamelCase(t.Name)}SymbolContainer" : t.Name)} = {t.Expression};break;");
@@ -163,7 +163,7 @@ $"get => (INamedTypeSymbol)_{ToCamelCase(p.Name)}SymbolContainer;}}");
                                      //object array
                                      $"var arg{i} = getValues(ctorArgs[{i}]);" :
                                      //regular array
-                                     $"var arg{i} = ctorArgs[{i}].Values.Select(c => ({p.Type.Substring(0, p.Type.Length - 2)})c.Value).ToArray();") :
+                                     $"var arg{i} = ctorArgs[{i}].Values.Select(c => ({p.Type[..^2]})c.Value).ToArray();") :
                                      //scalar
                                      $"var arg{i} = {(p.IsType || p.Type == "object" ? String.Empty : $"({p.Type})")}ctorArgs[{i}].Value;";
 

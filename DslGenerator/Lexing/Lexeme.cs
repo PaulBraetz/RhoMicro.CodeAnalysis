@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 [UnionType(typeof(String))]
 [UnionType(typeof(Char))]
 [UnionType(typeof(StringSlice))]
-[UnionTypeSettings(ToStringSetting = ToStringSetting.Simple)]
+[UnionTypeSettings(ToStringSetting = ToStringSetting.Simple, EmitGeneratedSourceCode = true)]
 readonly partial struct Lexeme : IEquatable<String>, IEquatable<Char>, IEquatable<StringSlice>
 {
     public Int32 Length => Match(

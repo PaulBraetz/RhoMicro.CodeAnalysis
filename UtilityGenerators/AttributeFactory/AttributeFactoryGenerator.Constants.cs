@@ -1,4 +1,5 @@
-﻿namespace RhoMicro.CodeAnalysis.UtilityGenerators;
+﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+namespace RhoMicro.CodeAnalysis.UtilityGenerators;
 
 using System;
 

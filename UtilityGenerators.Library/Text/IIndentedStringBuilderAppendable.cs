@@ -2,5 +2,5 @@
 
 interface IIndentedStringBuilderAppendable
 {
-    public void AppendTo(IndentedStringBuilder builder, CancellationToken cancellationToken);
+    public void AppendTo(IndentedStringBuilder builder);
 }

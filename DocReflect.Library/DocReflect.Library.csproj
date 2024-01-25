@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<RootNamespace>RhoMicro.CodeAnalysis.DocReflect</RootNamespace>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Description>Provides the types required to inspect type documentation using a reflection-like api.</Description>
+		<PackageTags>Source Generator; Documentation; Reflection</PackageTags>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Include="..\UtilityGenerators.Library\EnumerableExtensions.cs" Link="EnumerableExtensions.cs" />
+	  <Compile Include="..\UtilityGenerators.Library\EquatableDictionary.cs" Link="EquatableDictionary.cs" />
+	  <Compile Include="..\UtilityGenerators.Library\EquatableList.cs" Link="EquatableList.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="PolySharp" Version="1.14.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
+		<None Include="LICENSE.txt" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
+	</ItemGroup>
+
+</Project>

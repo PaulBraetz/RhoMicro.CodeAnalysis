@@ -10,19 +10,19 @@ readonly record struct AttributeSyntaxModel(
     ImmutableArray<AttributePropertyArgumentModel> PropertyArguments) :
     IIndentedStringBuilderAppendable
 {
-    public void AppendTo(IndentedStringBuilder builder, CancellationToken cancellationToken)
+    public void AppendTo(IndentedStringBuilder builder)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         _ = builder.OpenBracketsBlock()
             .Append(Namespace)
             .Append('.')
             .Append(Name)
             .OpenParensBlock()
-            .AppendJoin(", ", ConstructorArguments, cancellationToken);
+            .AppendJoin(", ", ConstructorArguments);
+        
         if(PropertyArguments.Length > 0 && ConstructorArguments.Length > 0)
             _ = builder.Append(", ");
-        _ = builder.AppendJoin(", ", PropertyArguments, cancellationToken)
+
+        _ = builder.AppendJoin(", ", PropertyArguments)
             .CloseAllBlocks();
     }
 

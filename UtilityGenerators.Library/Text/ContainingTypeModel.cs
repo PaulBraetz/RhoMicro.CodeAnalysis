@@ -18,10 +18,8 @@ readonly record struct ContainingTypeModel(
             symbol.Name,
             symbol.TypeParameters.Select(p => p.Name).ToImmutableArray());
 
-    public void AppendTo(IndentedStringBuilder builder, CancellationToken cancellationToken)
+    public void AppendTo(IndentedStringBuilder builder)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         _ = builder.Append(Visibility)
             .Append(' ')
             .Append(TypeModifier)

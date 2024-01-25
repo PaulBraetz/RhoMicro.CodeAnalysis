@@ -13,9 +13,6 @@ internal class Program
 
     }
 
-    [UnionType(typeof(Exception))]
-    sealed partial class Union<[UnionType] T>;
-
     static void TestIntersectionMapping()
     {
         var tree = CSharpSyntaxTree.ParseText(

@@ -242,8 +242,8 @@ public class ParserTests
             VerifyDiagnostics(expectedDiagnosticIds, actualDiagnostics);
         } catch
         {
-            var expected = expectedRuleList.ToDisplayString().Split('\n');
-            var actual = actualRuleList.ToDisplayString().Split('\n');
+            var expected = expectedRuleList.ToDisplayString(default).Split('\n');
+            var actual = actualRuleList.ToDisplayString(default).Split('\n');
             var comparisonStringParts = expected
                 .Select((e, i) => (e, i))
                 .Where((t) => actual.ElementAtOrDefault(t.i) != t.e)

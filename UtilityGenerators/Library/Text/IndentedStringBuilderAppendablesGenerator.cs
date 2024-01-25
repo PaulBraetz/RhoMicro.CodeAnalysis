@@ -1,17 +1,19 @@
-﻿namespace RhoMicro.CodeAnalysis.UtilityGenerators.Library.Text;
+﻿
+namespace RhoMicro.CodeAnalysis.UtilityGenerators.Library.Text;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using RhoMicro.CodeAnalysis.Library.Text;
+using RhoMicro.CodeAnalysis.Library;
 
 using System;
 using System.Collections.Immutable;
 using System.Text;
 using System.Threading;
 
-using Signature = (String name, String typeParameters, String parameters, String constraints, String arguments, String backingFieldName);
+using Signature = (String name, String typeParameters, String parameters, CodeAnalysis.Library.EquatableList<String> constraints, String arguments);
 
 /// <summary>
 /// Generates appendables for opertor-based use of the IndentedStringBuilder.
@@ -25,12 +27,13 @@ public sealed class IndentedStringBuilderAppendablesGenerator : IIncrementalGene
         var provider = context.SyntaxProvider.CreateSyntaxProvider(
                 Predicate,
                 GetSignaturesStep)
-            .WithComparer(ImmutableArrayCollectionEqualityComparer<Signature>.Default)
-            .Where(a => a.Length > 0)
+            .SelectMany((s, _) => s)
+            .Collect()
+            .Select((s, _) => s.ToImmutableHashSet())
             .Select(FinalStep);
 
         context.RegisterSourceOutput(provider, (ctx, source) =>
-            ctx.AddSource($"IndentedStringBuilder.Appendables_{Guid.NewGuid().ToString().Replace('-', '_')}.g.cs", source));
+            ctx.AddSource($"IndentedStringBuilder.Appendables.g.cs", source));
     }
 
     private const String _backingFieldsTypeName = "BackingFields";
@@ -40,11 +43,30 @@ public sealed class IndentedStringBuilderAppendablesGenerator : IIncrementalGene
         SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted);
     private static readonly HashSet<String> _specialConstraints =
         ["class", "struct", "new()", "class?", "notnull", "default", "unmanaged"];
-    private static String GetArgumentsText(ParameterListSyntax parameterList) =>
-        parameterList.Parameters.Count == 0 ?
-        String.Empty :
-        String.Join(", ", parameterList.Parameters.Select(p => p.Identifier.Text));
-    private static String GetConstraintsText(
+    private static String GetArgumentsText(ParameterListSyntax parameterList)
+    {
+        var parameters = parameterList.Parameters;
+        if(parameters.Count == 0)
+            return String.Empty;
+
+        var resultBuilder = new StringBuilder();
+        var i = 0;
+        append();
+
+        for(i = 1; i < parameters.Count; i++)
+        {
+            _ = resultBuilder.Append(", ");
+            append();
+        }
+
+        var result = resultBuilder.ToString();
+
+        return result;
+
+        void append() => resultBuilder.Append(parameters[i].Identifier.Text);
+    }
+
+    private static EquatableList<String> GetConstraintsText(
         SyntaxList<TypeParameterConstraintClauseSyntax> clauses,
         SemanticModel semanticModel,
         CancellationToken cancellationToken)
@@ -52,9 +74,10 @@ public sealed class IndentedStringBuilderAppendablesGenerator : IIncrementalGene
         cancellationToken.ThrowIfCancellationRequested();
 
         if(clauses.Count == 0)
-            return String.Empty;
+            return EquatableList<String>.Empty;
 
-        var resultBuilder = new StringBuilder();
+        var resultList = new List<String>();
+        var constraintBuilder = new StringBuilder();
 
         for(var i = 0; i < clauses.Count; i++)
         {
@@ -62,26 +85,30 @@ public sealed class IndentedStringBuilderAppendablesGenerator : IIncrementalGene
 
             var clause = clauses[i];
 
-            _ = resultBuilder.AppendLine().Append("where ")
+            _ = constraintBuilder.Clear()
+                .Append("where ")
                 .Append(clause.Name)
                 .Append(" : ");
 
             var constraints = clause.Constraints;
             if(constraints.Count == 0)
-                return String.Empty;
+                return EquatableList<String>.Empty;
 
             var j = 0;
             if(!tryAppend())
-                return String.Empty;
+                return EquatableList<String>.Empty;
 
             for(j = 1; j < constraints.Count; j++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                _ = resultBuilder.Append(", ");
+                _ = constraintBuilder.Append(", ");
                 if(!tryAppend())
-                    return String.Empty;
+                    return EquatableList<String>.Empty;
             }
+
+            var constraint = constraintBuilder.ToString();
+            resultList.Add(constraint);
 
             Boolean tryAppend()
             {
@@ -90,7 +117,7 @@ public sealed class IndentedStringBuilderAppendablesGenerator : IIncrementalGene
                 var text = constraint.ToString();
                 if(_specialConstraints.Contains(text))
                 {
-                    _ = resultBuilder.Append(text);
+                    _ = constraintBuilder.Append(text);
                     return true;
                 }
 
@@ -99,17 +126,18 @@ public sealed class IndentedStringBuilderAppendablesGenerator : IIncrementalGene
                     constraint.SpanStart,
                     typeSyntax,
                     SpeculativeBindingOption.BindAsTypeOrNamespace).Type; //TODO: is there a different way to obtain a symbol for a constraint?
+
                 if(type == null)
                     return false;
 
                 var fullName = type.ToDisplayString(_fullyQualifiedFormat);
-                _ = resultBuilder.Append(fullName);
+                _ = constraintBuilder.Append(fullName);
 
                 return true;
             }
         }
 
-        var result = resultBuilder.ToString();
+        var result = resultList.AsEquatable();
 
         return result;
     }
@@ -171,55 +199,72 @@ public sealed class IndentedStringBuilderAppendablesGenerator : IIncrementalGene
         symbol.Name == typeof(IndentedStringBuilder).Name &&
         symbol.ContainingNamespace.ToDisplayString(_fullyQualifiedFormat) == typeof(IndentedStringBuilder).Namespace;
 
-    private static String FinalStep(ImmutableArray<Signature> signatures, CancellationToken cancellationToken)
+    private static String FinalStep(ImmutableHashSet<Signature> signatures, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var builder = new IndentedStringBuilder(IndentedStringBuilderOptions.GeneratedFile)
+        var fieldsBuilder = new IndentedStringBuilder(IndentedStringBuilderOptions.Default)
+            .Append("file static class StaticAppendableInstances")
+            .OpenBracesBlock();
+
+        var builder = new IndentedStringBuilder(IndentedStringBuilderOptions.GeneratedFile with { GeneratorName = "RhoMicro.CodeAnalysis.IndentedStringBuilderAppendablesGenerator" })
+            .AppendLine("using RhoMicro.CodeAnalysis.Library.Text;")
+            .AppendLine()
             .Append("namespace RhoMicro.CodeAnalysis.Library.Text")
             .OpenBracesBlock()
             .Append("partial class IndentedStringBuilder")
             .OpenBracesBlock()
             .Append("public static partial class Appendables")
-            .OpenBracesBlock();
+            .OpenBracesBlock()
+            .AppendLine("public static IndentedStringBuilderAppendable NewLine => AppendLine();");
 
-        for(var i = 0; i < signatures.Length; i++)
+        foreach(var (name, typeParameters, parameters, constraints, arguments) in signatures)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var (name, typeParameters, parameters, constraints, arguments, backingFieldName) = signatures[i];
-            var hasParameters = parameters != String.Empty;
+            var fieldName = String.Empty;
 
-            var generatedName = name.StartsWith("Append") ?
-                name[6..] :
-                name;
+            if(parameters == String.Empty && constraints.Count == 0)
+            {
+                fieldName = $"Appendable_{Guid.NewGuid().ToString().Replace('-', '_')}";
+                _ = fieldsBuilder.Append("public static IndentedStringBuilderAppendable ")
+                    .Append(fieldName)
+                    .Append(" { get; } =");
+            }
 
             _ = builder.Append("public static IndentedStringBuilderAppendable ")
-                .Append(generatedName);
+                .Append(name);
 
             _ = builder.Append(typeParameters)
                 .OpenParensBlock()
                 .Append(parameters)
                 .CloseBlock()
-                .Append(constraints)
-                .Append(" =>")
-                .AppendLine()
                 .Indent();
-            _ = (hasParameters ?
-                builder
+
+            if(constraints.Count > 0)
+            {
+                _ = builder.AppendLine().AppendJoinLines(String.Empty, constraints);
+            }
+
+            _ = builder.Append(" =>");
+
+            if(parameters == String.Empty && constraints.Count == 0)
+                _ = builder.Append(" StaticAppendableInstances.").Append(fieldName).AppendLine(';');
+
+            _ = (parameters == String.Empty && constraints.Count == 0 ? fieldsBuilder : builder).AppendLine()
                 .Append("new")
-                 .OpenBlock(Blocks.Parens with { ClosingDelimiter = ");\n" })
-                     .Append("(b, c) => ")
-                     .OpenBlock(Blocks.Braces with { ClosingDelimiter = '}' })
-                         .AppendLine("c.ThrowIfCancellationRequested();")
-                         .Append("b.").Append(name).OpenParensBlock().Append(arguments).CloseBlock().Append(';')
-                     .CloseBlock()
-                 .CloseBlock() :
-                 builder.Append(_backingFieldsTypeName).Append('.').Append(backingFieldName).Append(';'))
-                 .Detent();
+                .OpenBlock(Blocks.Parens with { ClosingDelimiter = ");\n" })
+                    .Append("b => ")
+                    .OpenBlock(Blocks.Braces with { ClosingDelimiter = '}' })
+                        .Append("b.").Append(name).OpenParensBlock().Append(arguments).CloseBlock().Append(';')
+                    .CloseBlock()
+                .CloseBlock();
+
+            _ = builder.Detent();
         }
 
-        var result = builder.CloseAllBlocks().ToString();
+        var fields = fieldsBuilder.CloseAllBlocks().ToString();
+        var result = builder.CloseAllBlocks().AppendLine(fields).ToString();
 
         return result;
     }
@@ -237,8 +282,7 @@ public sealed class IndentedStringBuilderAppendablesGenerator : IIncrementalGene
         var result = cds.Members
             .OfType<MethodDeclarationSyntax>()
             .Where(mds => IsTargetSymbol(context.SemanticModel.GetTypeInfo(mds.ReturnType).Type))
-            .Where(mds => mds.Identifier.Text != "Append" &&
-                mds.Modifiers.Any(m => m.Text == "public") &&
+            .Where(mds => mds.Modifiers.Any(m => m.Text == "public") &&
                 !mds.Modifiers.Any(m => m.Text == "static"))
             .Select(mds => (
                 name: mds.Identifier.Text,
