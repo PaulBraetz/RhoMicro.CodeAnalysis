@@ -181,13 +181,13 @@ partial class IndentedStringBuilder : IEquatable<IndentedStringBuilder?>
 
         _ = _builder.Append(value);
     }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     void AppendCore(String value)
     {
         ApplyIndentation();
         AppendCoreNoIndentation(value);
     }
+    public void Add(String value) => AppendCore(value);
     public IndentedStringBuilder Append(String value)
     {
         AppendCore(value);
@@ -229,13 +229,13 @@ partial class IndentedStringBuilder : IEquatable<IndentedStringBuilder?>
 
         _ = _builder.Append(value);
     }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     void AppendCore(Char value)
     {
         ApplyIndentation();
         AppendCoreNoIndentation(value);
     }
+    public void Add(Char value) => AppendCore(value);
     public IndentedStringBuilder Append(Char value)
     {
         AppendCore(value);
@@ -272,7 +272,8 @@ partial class IndentedStringBuilder : IEquatable<IndentedStringBuilder?>
     #region Append T
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     void AppendCoreNoIndentation<T>(T value)
-        where T : IIndentedStringBuilderAppendable => value?.AppendTo(this);
+        where T : IIndentedStringBuilderAppendable
+        => value?.AppendTo(this);
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     void AppendCore<T>(T value)
         where T : IIndentedStringBuilderAppendable
@@ -280,6 +281,9 @@ partial class IndentedStringBuilder : IEquatable<IndentedStringBuilder?>
         ApplyIndentation();
         AppendCoreNoIndentation(value);
     }
+    public void Add<T>(T value)
+        where T : IIndentedStringBuilderAppendable
+        => AppendCore(value);
     public IndentedStringBuilder Append<T>(T value)
         where T : IIndentedStringBuilderAppendable
     {

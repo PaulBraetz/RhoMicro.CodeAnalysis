@@ -110,4 +110,5 @@ abstract record SyntaxNode
     protected abstract void AppendCtorArgs(IndentedStringBuilder builder, CancellationToken cancellationToken);
     public abstract void AppendDisplayStringTo(IndentedStringBuilder builder, CancellationToken cancellationToken);
     public override String ToString() => ToDisplayString(default);
+    public abstract void Receive(SyntaxNodeVisitor visitor);
 }

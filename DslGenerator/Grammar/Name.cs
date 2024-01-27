@@ -42,4 +42,5 @@ sealed partial record Name : SyntaxNode
 
         _ = AppendCtorArg(builder, nameof(Value), Value, quoteValue: true, cancellationToken);
     }
+    public override void Receive(SyntaxNodeVisitor visitor) => visitor.Visit(this);
 }

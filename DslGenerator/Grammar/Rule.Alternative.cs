@@ -26,5 +26,6 @@ abstract partial record Rule
                 AppendCtorArg(builder, nameof(Left), Left, cancellationToken)
                 .Append(", "), nameof(Right), Right, cancellationToken);
         }
+        public override void Receive(SyntaxNodeVisitor visitor) => visitor.Visit(this);
     }
 }

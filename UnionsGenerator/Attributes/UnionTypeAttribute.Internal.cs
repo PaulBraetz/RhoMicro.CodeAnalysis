@@ -12,7 +12,7 @@ partial class UnionTypeAttribute : IEquatable<UnionTypeAttribute>
 
     internal RepresentableTypeModel ExtractData(ITypeSymbol target) => RepresentableTypeModel.Create(this, target);
 
-    public Boolean RepresentableTypeIsTypeParameter => RepresentableTypeSymbol is IParameterSymbol;
+    public Boolean RepresentableTypeIsTypeParameter => RepresentableTypeSymbol is ITypeParameterSymbol;
 
     public override Boolean Equals(Object? obj) => Equals(obj as UnionTypeAttribute);
     public Boolean Equals(UnionTypeAttribute? other)

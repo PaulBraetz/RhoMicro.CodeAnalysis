@@ -30,4 +30,5 @@ record NamedRuleList(Name Name, IReadOnlyList<RuleDefinition> Definitions) : Rul
         base.AppendDisplayStringTo(builder.AppendDisplayString(Name, cancellationToken).AppendLine(";"), cancellationToken);
     protected override void AppendCtorArgs(IndentedStringBuilder builder, CancellationToken cancellationToken) =>
         AppendCtorArg(AppendCtorArg(builder, nameof(Name), Name, cancellationToken).Append(", "), nameof(Definitions), Definitions, cancellationToken);
+    public override void Receive(SyntaxNodeVisitor visitor) => visitor.Visit(this);
 }

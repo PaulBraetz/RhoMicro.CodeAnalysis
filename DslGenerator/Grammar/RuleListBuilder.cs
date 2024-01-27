@@ -5,10 +5,15 @@ using System;
 #if DSL_GENERATOR
 [IncludeFile]
 #endif
-readonly struct RuleListBuilder(String? nameValue = null)
+readonly struct RuleListBuilder
 {
+    public RuleListBuilder(String nameValue) =>
+        _name = new(nameValue);
+    public RuleListBuilder() =>
+        _name = null;
+
     private readonly List<RuleDefinition> _definitions = [];
-    private readonly Name? _name = nameValue != null ? new(nameValue) : null;
+    private readonly Name? _name;
 
     public override String ToString() => Build().ToString();
     public RuleListBuilder New(String nameValue, Action<RuleBuilder> buildRule)

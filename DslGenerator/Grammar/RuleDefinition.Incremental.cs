@@ -20,5 +20,6 @@ abstract partial record RuleDefinition
 
             _ = builder.AppendDisplayString(Name, cancellationToken).Append(" /= ").AppendDisplayString(Rule, cancellationToken).Append(';');
         }
+        public override void Receive(SyntaxNodeVisitor visitor) => visitor.Visit(this);
     }
 }

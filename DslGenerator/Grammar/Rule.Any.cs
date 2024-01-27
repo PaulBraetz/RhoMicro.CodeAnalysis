@@ -21,5 +21,6 @@ abstract partial record Rule
 
         protected override void AppendCtorArgs(IndentedStringBuilder builder, CancellationToken cancellationToken) =>
             cancellationToken.ThrowIfCancellationRequested();
+        public override void Receive(SyntaxNodeVisitor visitor) => visitor.Visit(this);
     }
 }

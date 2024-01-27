@@ -33,5 +33,6 @@ abstract partial record Rule
         }
         public Boolean Equals(Terminal other) => other is not null && Value == other.Value;
         public override Int32 GetHashCode() => Value.GetHashCode();
+        public override void Receive(SyntaxNodeVisitor visitor) => visitor.Visit(this);
     }
 }
