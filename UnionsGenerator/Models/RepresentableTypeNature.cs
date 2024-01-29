@@ -17,7 +17,7 @@ enum RepresentableTypeNature
 }
 static class RepresentableTypeNatureFactory
 {
-    public static RepresentableTypeNature Create(UnionTypeAttribute attribute)
+    public static RepresentableTypeNature Create(UnionTypeBaseAttribute attribute)
     {
         var representedSymbol = attribute.RepresentableTypeSymbol;
 

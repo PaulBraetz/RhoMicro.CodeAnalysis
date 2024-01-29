@@ -136,25 +136,23 @@ namespace RhoMicro.CodeAnalysis
     /// <summary>
     /// Marks the target type as a union type being able to represent the type passed to the constructor.
     /// </summary>
-    [AttributeUsage(
-        AttributeTargets.Struct | AttributeTargets.Class,
-        AllowMultiple = true,
-        Inherited = false)]
 #if UNIONS_GENERATOR
-    [GenerateFactory]
+    [GenerateFactory(OmitTypeCheck = true)]
 #endif
-    sealed partial class UnionTypeAttribute : Attribute
+    [AttributeUsage(((AttributeTargets)(-1)))]
+    partial class UnionTypeBaseAttribute : Attribute
     {
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
         /// <param name="representableType">
-        /// The type representable by the target union type.
+        /// The conrete type representable by the target union type.
         /// </param>
-        public UnionTypeAttribute(Type representableType)
-        {
-            RepresentableType = representableType;
-        }
+        public UnionTypeBaseAttribute(Type? representableType) => RepresentableType = representableType;
+        /// <summary>
+        /// Initializes a new instance.
+        /// </summary>
+        public UnionTypeBaseAttribute() : this(null) { }
 
         /// <summary>
         /// Gets or sets the alias to use for members representing the type represented by the union.
@@ -165,6 +163,14 @@ namespace RhoMicro.CodeAnalysis
         /// only be taken into account if it is a valid identifier name.
         /// </summary>
         public String? Alias { get; set; }
+
+        /// <summary>
+        /// Gets or sets the alias groups that the representable type is to be a part of. 
+        /// Represnetable types that share a group may be checked for using unified methods 
+        /// and properties like <c>IsGroup</c> where <c>Group</c> is the name of the group
+        /// that the representable type is a part of.
+        /// </summary>
+        public String[] Groups { get; set; }
 
         /// <summary>
         /// Gets or sets the generator options to use.
@@ -181,4 +187,14 @@ namespace RhoMicro.CodeAnalysis
         /// </summary>
         public StorageOption Storage { get; set; }
     }
+    /// <summary>
+    /// Marks the target type as a union type being able to represent the type passed to the constructor.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
+    sealed partial class UnionTypeAttribute<T>() : UnionTypeBaseAttribute(typeof(T));
+    /// <summary>
+    /// Marks the target type as a union type being able to represent the type passed to the constructor.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.GenericParameter, AllowMultiple = false, Inherited = false)]
+    sealed partial class UnionTypeAttribute() : UnionTypeBaseAttribute(null);
 }

@@ -71,10 +71,7 @@ public sealed partial class AttributeFactoryGenerator : IIncrementalGenerator
         var provider = context.SyntaxProvider.ForAttributeWithMetadataName(
             _generateFactoryAttributeFullyQualifiedName,
             static (n, t) => n is ClassDeclarationSyntax c && c.Modifiers.Any(SyntaxKind.PartialKeyword),
-            static (c, t) => AttributeSourceModel.Create(
-                c.TargetNode as ClassDeclarationSyntax ?? throw new InvalidOperationException("Target node passed predicate but was not class declaration."),
-                c.SemanticModel,
-                t))
+            static (c, t) => AttributeSourceModel.Create(c, t))
             .Where(m => targetSet.Add(m.Symbol))
             .Select(static (m, t) =>
             {
@@ -140,7 +137,7 @@ $"get => (INamedTypeSymbol)_{ToCamelCase(p.Name)}SymbolContainer;}}");
                         {
                             var parameters = c.Parameters
                                 .Select(static p => (
-                                    Type: p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                                    Type: p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGenericsOptions((SymbolDisplayGenericsOptions)5)),
                                     p.Name))
                                 .Select(static t =>
                                     (t.Type,
@@ -153,7 +150,7 @@ $"get => (INamedTypeSymbol)_{ToCamelCase(p.Name)}SymbolContainer;}}");
                             var conditions = String.Join(
                                 "&&",
                                 parameters.Select(static (p, i) =>
-                                    $"ctorArgs[{i}].Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == \"{p.Type}\""));
+                                    $"ctorArgs[{i}].Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGenericsOptions((SymbolDisplayGenericsOptions)5)) == \"{p.Type}\""));
 
                             var body = String.Concat(
                                 parameters.Select(static (p, i) =>

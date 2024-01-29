@@ -23,8 +23,11 @@ public sealed partial class AttributeFactoryGenerator
 
         public AttributeSourceModel WithSource(String source) => new(source, Declaration, SemanticModel, Symbol);
 
-        public static AttributeSourceModel Create(ClassDeclarationSyntax declaration, SemanticModel semanticModel, CancellationToken token)
+        public static AttributeSourceModel Create(GeneratorAttributeSyntaxContext context, CancellationToken token)
         {
+            var declaration = (ClassDeclarationSyntax)context.TargetNode;
+            var semanticModel = context.SemanticModel;
+
             var symbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken: token) ??
                 throw new ArgumentException("The symbol of the declaration passed could not be determined using the semantic model provided.", nameof(declaration));
 
@@ -37,7 +40,27 @@ public sealed partial class AttributeFactoryGenerator
             var sourceText = reader.ReadToEnd();
             var quotedSourceText = GetRawSourceTextValue(sourceText);
 
-            var source = _sourceTemplate.Replace(_sourceTexTMacro, quotedSourceText);
+            var source = _sourceTemplate.Replace(_sourceTextMacro, quotedSourceText);
+
+#pragma warning disable IDE0045 // Convert to conditional expression
+            if(context.Attributes.Length > 0 &&
+               context.Attributes[0].NamedArguments.Length > 0 &&
+               context.Attributes[0].NamedArguments[0].Key == "OmitTypeCheck" &&
+               context.Attributes[0].NamedArguments[0].Value.Value is Boolean omitTypeCheck &&
+               omitTypeCheck)
+            {
+                source = source.Replace(_typeCheckPlaceholder, "");
+            } else
+            {
+                source = source.Replace(_typeCheckPlaceholder,
+                    """
+                                if(data.AttributeClass.MetadataName != "{METADATANAME}")
+                                {
+                                    return false;
+                                }
+                    """);
+            }
+#pragma warning restore IDE0045 // Convert to conditional expression
 
             var result = new AttributeSourceModel(source, declaration, semanticModel, symbol);
 

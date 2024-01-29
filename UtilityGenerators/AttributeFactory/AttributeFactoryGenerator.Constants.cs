@@ -42,10 +42,7 @@ namespace {NAMESPACE}
         {
             result = null;
 
-            if(data.AttributeClass.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) != "global::{NAMESPACE}.{NAME}")
-            {
-                return false;
-            }
+            {TYPECHECK}
 
             var ctorArgs = data.ConstructorArguments;
             
@@ -115,6 +112,7 @@ namespace {NAMESPACE}
     private const String _genericParamLisTMacro = "{GENERICPARAMLIST}";
     private const String _genericParamNamesPlaceholder = "{GENERICPARAMNAMES}";
     private const String _genericParamCommenTMacro = "{GENERICPARAMCOMMENT}";
+    private const String _typeCheckPlaceholder = "{TYPECHECK}";
     private const String _targetCtorCasesPlaceholder = "{CTORCASES}";
     private const String _targetPropCasesPlaceholder = "{PROPCASES}";
     private const String _targetNamePlaceholder = "{NAME}";
@@ -123,7 +121,7 @@ namespace {NAMESPACE}
     private const String _targetSymbolsPlaceholder = "{SYMBOLS}";
     private const String _targetAccessibilityPlaceholder = "{ACCESSIBILITY}";
     private const String _targetNamespacePlaceholder = "{NAMESPACE}";
-    private const String _sourceTexTMacro = "{SOURCETEXT}";
+    private const String _sourceTextMacro = "{SOURCETEXT}";
 
     private const String _generateFactoryAttributeName = "GenerateFactoryAttribute";
     private const String _excludeConstructorAttributeName = "ExcludeFromFactoryAttribute";
@@ -144,7 +142,14 @@ namespace RhoMicro.CodeAnalysis
     /// Marks the target type for factory generation.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-    internal sealed class GenerateFactoryAttribute : Attribute { }
+    internal sealed class GenerateFactoryAttribute : Attribute 
+    {
+        /// <summary>
+        /// Gets or sets a value indicating whether a typecheck for the annotated
+        /// attributes type should be emitted inside the generated factory method.
+        /// </summary>
+        public Boolean OmitTypeCheck { get; set; }
+    }
     /// <summary>
     /// Marks the target constructor to be excluded from factory instantiation attempts.
     /// </summary>

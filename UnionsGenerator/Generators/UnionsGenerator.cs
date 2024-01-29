@@ -14,6 +14,95 @@ using System.Text;
 using System.Threading;
 using System.Diagnostics;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
+using System.Runtime.CompilerServices;
+using RhoMicro.CodeAnalysis.UnionsGenerator._Models;
+
+[Generator(LanguageNames.CSharp)]
+internal class _UnionsGenerator : IIncrementalGenerator
+{
+    public void Initialize(IncrementalGeneratorInitializationContext context)
+    {
+        var typeTargetProvider = CreateTypeTargetProvider(context);
+        var parameterTargetProvider = CreateParameterTargetProvider(context);
+        var 
+
+        context.RegisterPostInitializationOutput(RegisterConstantSources);
+    }
+    static IncrementalValuesProvider<UnionTypeModel> CreateParameterTargetProvider(IncrementalGeneratorInitializationContext context)
+    {
+        var provider = context.SyntaxProvider.ForAttributeWithMetadataName(
+            "RhoMicro.CodeAnalysis.UnionTypeAttribute",
+            IsQualifiedTargetParameterNode,
+            (ctx, ct) =>
+            {
+                ct.ThrowIfCancellationRequested();
+                if(!UnionTypeBaseAttribute.TryCreate(ctx.Attributes[0], out var attribute))
+                    return default;
+
+                ct.ThrowIfCancellationRequested();
+                if(ctx.TargetSymbol is not ITypeParameterSymbol parameter)
+                    return default;
+                var result = attribute!.GetModel(new(parameter), ct);
+
+                return result;
+            }).Where(v => v != default);
+
+        return provider!;
+    }
+    static IncrementalValuesProvider<UnionTypeModel> CreateTypeTargetProvider(IncrementalGeneratorInitializationContext context)
+    {
+        var provider = context.SyntaxProvider.ForAttributeWithMetadataName(
+            "RhoMicro.CodeAnalysis.UnionTypeAttribute`1",
+            IsQualifiedTargetTypeNode,
+            (ctx, ct) =>
+            {
+                ct.ThrowIfCancellationRequested();
+                if(!UnionTypeBaseAttribute.TryCreate(ctx.Attributes[0], out var attribute))
+                    return default;
+
+                ct.ThrowIfCancellationRequested();
+                if(ctx.Attributes[0].AttributeClass?.TypeArguments[0] is not INamedTypeSymbol named)
+                    return default;
+
+                var result = attribute!.GetModel(new(named), ct);
+
+                return result;
+            }).Where(v => v != default);
+
+        return provider!;
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static Boolean IsQualifiedTargetTypeNode(SyntaxNode node, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if(node is not ClassDeclarationSyntax and not StructDeclarationSyntax)
+            return false;
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var tds = (TypeDeclarationSyntax)node;
+        if(!tds.Modifiers.Any(SyntaxKind.PartialKeyword))
+            return false;
+
+        return true;
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    static Boolean IsQualifiedTargetParameterNode(SyntaxNode node, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if(node is not TypeParameterSyntax)
+            return false;
+
+        return true;
+    }
+    static void RegisterConstantSources(IncrementalGeneratorPostInitializationContext context)
+    {
+        context.CancellationToken.ThrowIfCancellationRequested();
+        context.AddSource("UnionTypeAttribute.g.cs", UnionTypeAttribute.SourceText);
+        context.AddSource("RelationTypeAttribute.g.cs", RelationAttribute.SourceText);
+        context.AddSource("UnionFactoryAttribute.g.cs", UnionFactoryAttribute.SourceText);
+        context.AddSource("UnionTypeSettingsAttribute.g.cs", UnionTypeSettingsAttribute.SourceText);
+    }
+}
 
 enum Macro
 {
@@ -100,7 +189,7 @@ internal class UnionsGenerator : IIncrementalGenerator
         });
         context.RegisterPostInitializationOutput(static c => c.AddSource("Util.g.cs", ConstantSources.Util));
         context.RegisterPostInitializationOutput(static c => c.AddSource($"{nameof(UnionFactoryAttribute)}.g.cs", UnionFactoryAttribute.SourceText));
-        context.RegisterPostInitializationOutput(static c => c.AddSource($"{nameof(UnionTypeAttribute)}.g.cs", UnionTypeAttribute.SourceText));
+        context.RegisterPostInitializationOutput(static c => c.AddSource($"{nameof(UnionTypeBaseAttribute)}.g.cs", UnionTypeBaseAttribute.SourceText));
         context.RegisterPostInitializationOutput(static c => c.AddSource($"{nameof(RelationAttribute)}.g.cs", RelationAttribute.SourceText));
         context.RegisterPostInitializationOutput(static c => c.AddSource($"{nameof(UnionTypeSettingsAttribute)}.g.cs", UnionTypeSettingsAttribute.SourceText));
     }

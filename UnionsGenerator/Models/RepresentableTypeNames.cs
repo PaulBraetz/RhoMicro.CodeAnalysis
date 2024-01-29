@@ -23,7 +23,7 @@ sealed class RepresentableTypeNames(
     public readonly String IsPropertyName = $"Is{safeAlias}";
     public readonly String GeneratedFactoryName = $"CreateFrom{safeAlias}";
 
-    public static RepresentableTypeNames Create(UnionTypeAttribute attribute)
+    public static RepresentableTypeNames Create(UnionTypeBaseAttribute attribute)
     {
         var openTypeName =
             (attribute.RepresentableTypeIsTypeParameter ?

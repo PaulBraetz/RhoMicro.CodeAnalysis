@@ -11,7 +11,7 @@ using System.Diagnostics;
 
 [DebuggerDisplay("{Names.SimpleTypeName}")]
 sealed class RepresentableTypeModel(
-    UnionTypeAttribute attribute,
+    UnionTypeBaseAttribute attribute,
     ITypeSymbol target,
     String commentRef,
     RepresentableTypeNature nature,
@@ -20,7 +20,7 @@ sealed class RepresentableTypeModel(
 {
     public FactoryModel Factory { get; set; }
 
-    public readonly UnionTypeAttribute Attribute = attribute;
+    public readonly UnionTypeBaseAttribute Attribute = attribute;
     public readonly ITypeSymbol Target = target;
     public readonly String DocCommentRef = commentRef;
     public readonly RepresentableTypeNature Nature = nature;
@@ -30,7 +30,7 @@ sealed class RepresentableTypeModel(
     public String GetCorrespondingTag(TargetDataModel model) => $"{model.TagTypeName}.{Names.SafeAlias}";
 
     public static RepresentableTypeModel Create(
-        UnionTypeAttribute attribute,
+        UnionTypeBaseAttribute attribute,
         ITypeSymbol target)
     {
         var commentRef =
