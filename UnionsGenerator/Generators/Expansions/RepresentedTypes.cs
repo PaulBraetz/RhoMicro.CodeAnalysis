@@ -2,10 +2,9 @@
 
 using RhoMicro.CodeAnalysis.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 
-using System.Threading;
-
-sealed class RepresentedTypes(TargetDataModel model) : ExpansionBase(model, Macro.RepresentedTypes)
+internal sealed class RepresentedTypes(TargetDataModel model) : ExpansionBase(model, Macro.RepresentedTypes)
 {
     protected override void Expand(ExpandingMacroBuilder builder)
     {
@@ -13,8 +12,8 @@ sealed class RepresentedTypes(TargetDataModel model) : ExpansionBase(model, Macr
         _ = builder * "#region GetRepresentedType" /
             (Docs.Summary, b => _ = b * "Gets the types of value this union type can represent.") *
             """
-            public static global::System.Collections.Generic.IReadOnlyList<Type> RepresentableTypes { get; } = 
-                new global::System.Type[]
+            public static System.Collections.Generic.IReadOnlyList<Type> RepresentableTypes { get; } = 
+                new System.Type[]
                 {
             """ /
             (b => b.AppendJoin(

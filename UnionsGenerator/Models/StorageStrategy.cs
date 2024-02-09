@@ -1,12 +1,8 @@
 ﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
-using RhoMicro.CodeAnalysis.Library;
-using RhoMicro.CodeAnalysis.UnionsGenerator.Generators;
-using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
-
 using System;
 
-abstract partial class StorageStrategy
+internal abstract partial class StorageStrategy
 {
     #region Constructor
     private StorageStrategy(

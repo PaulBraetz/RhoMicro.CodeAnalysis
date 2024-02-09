@@ -5,9 +5,8 @@ using Microsoft.CodeAnalysis;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
 using System.Collections.Generic;
-using System.Linq;
 
-sealed class OperatorOmissionModel
+internal sealed class OperatorOmissionModel
 {
     public readonly HashSet<RepresentableTypeModel> Interfaces;
     public readonly HashSet<RepresentableTypeModel> Supertypes;
@@ -29,7 +28,8 @@ sealed class OperatorOmissionModel
         var supertypes = new HashSet<RepresentableTypeModel>();
         var allOmissions = new HashSet<RepresentableTypeModel>();
 
-        var concreteAttributes = attributes.AllRepresentableTypes.Where(a => !a.Attribute.RepresentableTypeIsTypeParameter);
+        //only commented out because of breaking rewrite changes
+        var concreteAttributes = attributes.AllRepresentableTypes;//.Where(a => !a.Attribute.RepresentableTypeIsTypeParameter);
 
         foreach(var attribute in concreteAttributes)
         {

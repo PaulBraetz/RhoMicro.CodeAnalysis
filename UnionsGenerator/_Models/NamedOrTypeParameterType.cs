@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 
-readonly struct TypeOrTypeParameterType : IEquatable<TypeOrTypeParameterType>
+internal readonly struct TypeOrTypeParameterType : IEquatable<TypeOrTypeParameterType>
 {
     private readonly ITypeSymbol? _type;
     private readonly ITypeParameterSymbol? _typeParameter;

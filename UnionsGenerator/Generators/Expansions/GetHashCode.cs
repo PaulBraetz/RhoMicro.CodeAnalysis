@@ -2,10 +2,9 @@
 
 using RhoMicro.CodeAnalysis.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 
-using System.Threading;
-
-sealed class GetHashCode(TargetDataModel model) : ExpansionBase(model, Macro.GetHashcode)
+internal sealed class GetHashCode(TargetDataModel model) : ExpansionBase(model, Macro.GetHashcode)
 {
     protected override void Expand(ExpandingMacroBuilder builder)
     {

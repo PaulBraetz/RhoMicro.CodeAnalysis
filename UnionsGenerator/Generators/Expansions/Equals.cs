@@ -2,12 +2,9 @@
 
 using RhoMicro.CodeAnalysis.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 
-using System.Threading;
-using System.Xml.Linq;
-using Microsoft.CodeAnalysis;
-
-sealed class Equals(TargetDataModel model) : ExpansionBase(model, Macro.Equals)
+internal sealed class Equals(TargetDataModel model) : ExpansionBase(model, Macro.Equals)
 {
     protected override void Expand(ExpandingMacroBuilder builder)
     {

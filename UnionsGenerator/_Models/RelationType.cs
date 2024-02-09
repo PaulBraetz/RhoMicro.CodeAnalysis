@@ -1,18 +1,18 @@
-﻿namespace RhoMicro.CodeAnalysis;
-
-using Microsoft.CodeAnalysis;
-
-using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
+﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator._Models;
 
 /// <summary>
 /// Defines the type of relations that can be defined between two union types.
 /// </summary>
-enum RelationType
+internal enum RelationType
 {
     /// <summary>
     /// There is no relation between the provided type and target type.
     /// </summary>
     None,
+    /// <summary>
+    /// The relation is defined on both the target type as well as the relation type.
+    /// </summary>
+    BidirectionalRelation,
     /// <summary>
     /// The target type is a superset of the provided type.
     /// This means that two conversion operations will be generated:
@@ -69,31 +69,4 @@ enum RelationType
     /// This option is not available if the provided type has already defined a relation to the target type.
     /// </summary>
     Congruent
-}
-
-partial class RelationAttribute: IEquatable<RelationAttribute>
-{
-    [ExcludeFromFactory]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    private RelationAttribute(Object relatedTypeSymbolContainer) => _relatedTypeSymbolContainer = relatedTypeSymbolContainer;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-
-    internal RelationTypeModel ExtractData(TargetDataModel target) =>
-            RelationTypeModel.Create(this, target);
-
-    public override Boolean Equals(Object? obj) => Equals(obj as RelationAttribute);
-    public Boolean Equals(RelationAttribute? other)
-    {
-        var result = other is not null &&
-            SymbolEqualityComparer.Default.Equals(RelatedTypeSymbol, other.RelatedTypeSymbol);
-
-        return result;
-    }
-
-    public override Int32 GetHashCode()
-    {
-        var hashCode = 2127939515;
-        hashCode = hashCode * -1521134295 + SymbolEqualityComparer.Default.GetHashCode(RelatedTypeSymbol);
-        return hashCode;
-    }
 }

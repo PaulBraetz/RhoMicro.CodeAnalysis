@@ -1,12 +1,9 @@
 ﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-
 using System;
 using System.Collections.Generic;
-using System.Text;
 
-static class Docs
+internal static class Docs
 {
     public static void Inherit(ExpandingMacroBuilder builder) => _ = builder % "/// <inheritdoc/>";
 

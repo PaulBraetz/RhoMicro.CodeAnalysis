@@ -3,24 +3,25 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 using RhoMicro.CodeAnalysis.Library;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
 internal static class Providers
 {
     public static readonly IDiagnosticProvider<TargetDataModel> BidirectionalRelation =
         DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
         {
-            var bidirectionalRelationNames = model.Annotations.Relations
-                .Select(r => r.ExtractData(model))
-                .Where(r => r.Annotations.Relations.Any(rr => SymbolEqualityComparer.Default.Equals(rr.RelatedTypeSymbol, model.Symbol)))
-                .Select(r => r.Symbol.Name);
+            //commented out because of breaking rewrite changes
+            var bidirectionalRelationNames = Array.Empty<String>();
+            //model.Annotations.Relations
+            //    .Select(r => r.ExtractData(model))
+            //    .Where(r => r.Annotations.Relations.Any(rr => SymbolEqualityComparer.Default.Equals(rr.RelatedTypeSymbol, model.Symbol)))
+            //    .Select(r => r.Symbol.Name);
 
             if(!bidirectionalRelationNames.Any())
                 return;
@@ -35,11 +36,13 @@ internal static class Providers
     public static readonly IDiagnosticProvider<TargetDataModel> DuplicateRelation =
         DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
         {
-            var duplicateRelationNames = model.Annotations.Relations
-            .GroupBy(r => r.RelatedTypeSymbol, SymbolEqualityComparer.Default)
-            .Select(g => g.ToArray())
-            .Where(g => g.Length > 1)
-            .Select(g => g[0].RelatedTypeSymbol.Name);
+            //commented out because of breaking rewrite changes
+            var duplicateRelationNames = Array.Empty<String>();
+            //model.Annotations.Relations
+            //.GroupBy(r => r.RelatedTypeSymbol, SymbolEqualityComparer.Default)
+            //.Select(g => g.ToArray())
+            //.Where(g => g.Length > 1)
+            //.Select(g => g[0].RelatedTypeSymbol.Name);
 
             if(!duplicateRelationNames.Any())
                 return;
@@ -55,10 +58,11 @@ internal static class Providers
         DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
         {
             var target = model.Symbol;
-            var relations = model.Annotations.Relations
-                .Where(r => r.RelatedTypeSymbol.IsGenericType);
+            //commented out because of breaking rewrite changes
+            //var relations = model.Annotations.Relations
+            //    .Where(r => r.RelatedTypeSymbol.IsGenericType);
 
-            if(!(target.IsGenericType && relations.Any()))
+            if(!/*(*/target.IsGenericType /*&& relations.Any())*/)
                 return;
 
             var location = model.TargetDeclaration.GetLocation();
@@ -104,8 +108,9 @@ internal static class Providers
     public static IDiagnosticProvider<TargetDataModel> SmallGenericUnion =
         DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
         {
-            if(!model.Symbol.IsGenericType ||
-                model.Annotations.Settings.Layout != LayoutSetting.Small)
+            if(!model.Symbol.IsGenericType)
+            //commented out because of breaking rewrite changes
+            //|| model.Annotations.Settings.Layout != LayoutSetting.Small)
             {
                 return;
             }
@@ -142,7 +147,8 @@ internal static class Providers
         {
             var collisions = model.Symbol.TypeParameters
                 .Select(p => p.Name)
-                .Where(model.Annotations.Settings.IsReservedGenericTypeName)
+                //commented out because of breaking rewrite changes
+                //.Where(model.Annotations.Settings.IsReservedGenericTypeName)
                 .ToArray();
 
             if(collisions.Length == 0)

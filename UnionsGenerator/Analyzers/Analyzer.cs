@@ -6,8 +6,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 using RhoMicro.CodeAnalysis.Library;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
 using System.Collections.Immutable;
 
@@ -16,6 +16,8 @@ public sealed class Analyzer : DiagnosticAnalyzer
 {
     public override void Initialize(AnalysisContext context)
     {
+        //commented out because of breaking rewrite changes
+        return;
         _ = context ?? throw new ArgumentNullException(nameof(context));
 
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);

@@ -3,7 +3,7 @@
 using RhoMicro.CodeAnalysis.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
-static class ExpansionUtils
+internal static class ExpansionUtils
 {
     public static void SwitchExpression<T>(
     ExpandingMacroBuilder builder,
@@ -67,20 +67,20 @@ static class ExpansionUtils
         String tFrom,
         String tTo,
         String valueExpression) =>
-        _ = builder * "(global::RhoMicro.CodeAnalysis.UnionsGenerator.Generated.Util.UnsafeConvert<" * tFrom * ", " * tTo * ">(" * valueExpression * "))";
+        _ = builder * "(RhoMicro.CodeAnalysis.UnionsGenerator.Generated.Util.UnsafeConvert<" * tFrom * ", " * tTo * ">(" * valueExpression * "))";
     public static void UtilFullString(
         ExpandingMacroBuilder builder,
         Action<ExpandingMacroBuilder> typeExpression) =>
-        _ = builder * $"(global::RhoMicro.CodeAnalysis.UnionsGenerator.Generated.Util.GetFullString(" * typeExpression * "))";
+        _ = builder * $"(RhoMicro.CodeAnalysis.UnionsGenerator.Generated.Util.GetFullString(" * typeExpression * "))";
     public static void InvalidConversionThrow(
         ExpandingMacroBuilder builder,
         String typeName) =>
-        _ = builder * "throw new global::System.InvalidOperationException($\"The union type instance cannot be converted to an instance of {" * typeName * "}.\")";
+        _ = builder * "throw new System.InvalidOperationException($\"The union type instance cannot be converted to an instance of {" * typeName * "}.\")";
     public static void InvalidCreationThrow(
         ExpandingMacroBuilder builder,
         String unionTypeName,
         String valueName) =>
-        builder.Append("throw new global::System.ArgumentException($\"The value provided for \\\"")
+        builder.Append("throw new System.ArgumentException($\"The value provided for \\\"")
             .Append(valueName).Append("\\\" cannot be converted to an instance of {")
             .Append(unionTypeName).Append("}.\", \"").Append(valueName).Append("\")");
 

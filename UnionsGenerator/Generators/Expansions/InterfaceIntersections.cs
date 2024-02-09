@@ -1,16 +1,8 @@
 ﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Text;
-
-sealed class InterfaceIntersections(TargetDataModel model) : ExpansionBase(model, Macro.InterfaceIntersections)
+internal sealed class InterfaceIntersections(TargetDataModel model) : ExpansionBase(model, Macro.InterfaceIntersections)
 {
     protected override void Expand(ExpandingMacroBuilder builder)
     {

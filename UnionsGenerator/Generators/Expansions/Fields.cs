@@ -3,9 +3,7 @@
 using RhoMicro.CodeAnalysis.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
-using System.Threading;
-
-sealed class Fields(TargetDataModel model) : ExpansionBase(model, Macro.Fields)
+internal sealed class Fields(TargetDataModel model) : ExpansionBase(model, Macro.Fields)
 {
     protected override void Expand(ExpandingMacroBuilder builder)
     {
@@ -32,7 +30,7 @@ sealed class Fields(TargetDataModel model) : ExpansionBase(model, Macro.Fields)
 
         if(representableTypes.Count > 1)
         {
-            _ = builder * "[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]" /
+            _ = builder * "[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]" /
                 "private readonly " * Model.TagTypeName % " __tag;";
         }
 

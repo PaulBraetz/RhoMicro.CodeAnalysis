@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -70,7 +71,7 @@ public sealed partial class AttributeFactoryGenerator : IIncrementalGenerator
 
         var provider = context.SyntaxProvider.ForAttributeWithMetadataName(
             _generateFactoryAttributeFullyQualifiedName,
-            static (n, t) => n is ClassDeclarationSyntax c && c.Modifiers.Any(SyntaxKind.PartialKeyword),
+            static (n, t) => n is TypeDeclarationSyntax tds && tds.Modifiers.Any(SyntaxKind.PartialKeyword),
             static (c, t) => AttributeSourceModel.Create(c, t))
             .Where(m => targetSet.Add(m.Symbol))
             .Select(static (m, t) =>
@@ -86,12 +87,12 @@ public sealed partial class AttributeFactoryGenerator : IIncrementalGenerator
 
                 var symbolProps = typeProps
                     .Select(static p =>
-$"\t\tpublic INamedTypeSymbol{(p.NullableAnnotation == NullableAnnotation.Annotated ? "?" : String.Empty)} {p.Name}Symbol{{" +
+$"\t\tpublic INamedTypeSymbol{( p.NullableAnnotation == NullableAnnotation.Annotated ? "?" : String.Empty )} {p.Name}Symbol{{" +
 $"get => (INamedTypeSymbol)_{ToCamelCase(p.Name)}SymbolContainer;}}");
 
                 var propCases = m.Symbol.GetMembers()
                     .OfType<IPropertySymbol>()
-                    .Where(static p => p.SetMethod != null && p.SetMethod.DeclaredAccessibility == Accessibility.Public)
+                    .Where(static p => p.SetMethod != null && p.SetMethod.DeclaredAccessibility == Accessibility.Public && !p.SetMethod.IsInitOnly)
                     .Select(static p => (
                         Type: p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                         p.Name))
@@ -104,15 +105,16 @@ $"get => (INamedTypeSymbol)_{ToCamelCase(p.Name)}SymbolContainer;}}");
                     .Select(static t =>
                         (t.Name,
                         t.IsType,
+                        t.Type,
                         Expression: t.IsArray ?
-                            (t.IsObjectArray ?
+                            ( t.IsObjectArray ?
                             //object array
                             $"getValues(propArg.Value)" :
                             //regular array
-                            $"propArg.Value.Values.Select(c => ({t.Type[..^2]})c.Value).ToArray()") :
+                            $"propArg.Value.Values.Select(c => ({t.Type[..^2]})c.Value).ToArray()" ) :
                             //scalar
-                            $"{(t.IsType || t.Type == "object" ? String.Empty : $"({t.Type})")}propArg.Value.Value"))
-                    .Select(static t => $"case \"{t.Name}\":result.{(t.IsType ? $"_{ToCamelCase(t.Name)}SymbolContainer" : t.Name)} = {t.Expression};break;");
+                            $"{( t.IsType || t.Type == "object" ? String.Empty : $"({t.Type})" )}propArg.Value.Value"))
+                    .Select(static t => $"case \"{t.Name}\" : try{{result.{( t.IsType ? $"_{ToCamelCase(t.Name)}SymbolContainer" : t.Name )} = {t.Expression};}}catch{{}}break;");
 
                 var source = m.Source
                     .Replace(_targetPropCasesPlaceholder, String.Join("\n", propCases))
@@ -137,37 +139,44 @@ $"get => (INamedTypeSymbol)_{ToCamelCase(p.Name)}SymbolContainer;}}");
                         {
                             var parameters = c.Parameters
                                 .Select(static p => (
-                                    Type: p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGenericsOptions((SymbolDisplayGenericsOptions)5)),
-                                    p.Name))
+                                    NullableType: GetNullableTypeName(p.Type),
+                                    NonNullableType: GetNonNullableTypeName(p.Type),
+                                    p.Name,
+                                    parameter: p,
+                                    HasDefault: p.HasExplicitDefaultValue))
                                 .Select(static t =>
-                                    (t.Type,
+                                    (t.HasDefault,
+                                    Default: GetDefaultLiteral(t.NullableType, t.NonNullableType, t.parameter),
+                                    t.NullableType,
+                                    t.NonNullableType,
                                     t.Name,
-                                    IsArray: t.Type.EndsWith("[]"),
-                                    IsObjectArray: t.Type == "object[]",
-                                    IsType: t.Type == "global::System.Type"))
+                                    IsArray: t.NullableType.EndsWith("[]"),
+                                    IsObjectArray: t.NullableType == "object[]",
+                                    IsType: t.NullableType == "global::System.Type"))
                                 .ToArray();
 
                             var conditions = String.Join(
-                                "&&",
+                                "&&\n",
                                 parameters.Select(static (p, i) =>
-                                    $"ctorArgs[{i}].Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGenericsOptions((SymbolDisplayGenericsOptions)5)) == \"{p.Type}\""));
-
+                                    $"(ctorArgs[{i}].Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGenericsOptions((SymbolDisplayGenericsOptions)5)) == \"{p.NullableType}\" ||" +
+                                     $"{( p.HasDefault ? "true" : "false" )})"));
                             var body = String.Concat(
                                 parameters.Select(static (p, i) =>
                                 {
                                     var argDeclaration = p.IsArray ?
-                                    (p.IsObjectArray ?
+                                    ( p.IsObjectArray ?
                                      //object array
                                      $"var arg{i} = getValues(ctorArgs[{i}]);" :
                                      //regular array
-                                     $"var arg{i} = ctorArgs[{i}].Values.Select(c => ({p.Type[..^2]})c.Value).ToArray();") :
+                                     $"var arg{i} = ctorArgs[{i}].Values.Select(c => ({p.NullableType[..^2]})c.Value).ToArray();" ) :
                                      //scalar
-                                     $"var arg{i} = {(p.IsType || p.Type == "object" ? String.Empty : $"({p.Type})")}ctorArgs[{i}].Value;";
+                                     $"var arg{i} = ctorArgs[{i}].IsNull ? default : {( p.HasDefault ? $"ctorArgs[{i}].Value != null ? " : "" )}{( p.IsType || p.NullableType == "object" ? String.Empty : $"({p.NonNullableType})" )}ctorArgs[{i}].Value{( p.HasDefault ? $" : {p.Default}" : "" )};";
 
                                     return argDeclaration;
                                 }));
-                            var args = String.Join(",", parameters.Select((p, i) => $"{(p.IsType ? $"{p.Name}SymbolContainer" : p.Name)}:arg{i}"));
-                            var result = $"{(c.Parameters.Length > 0 ? $"if({conditions}){{" : String.Empty)}{body}result = new {{NAME}}{{GENERICPARAMLIST}}({args});{(c.Parameters.Length > 0 ? "}" : String.Empty)}";
+
+                            var args = String.Join(",", parameters.Select((p, i) => $"{( p.IsType ? $"{p.Name}SymbolContainer" : p.Name )}:arg{i}"));
+                            var result = $"{( c.Parameters.Length > 0 ? $"if({conditions}){{" : String.Empty )}{body}result = new {{NAME}}{{GENERICPARAMLIST}}({args});{( c.Parameters.Length > 0 ? "}" : String.Empty )}";
 
                             return result;
                         }).ToList();
@@ -238,7 +247,7 @@ $"get => (INamedTypeSymbol)_{ToCamelCase(p.Name)}SymbolContainer;}}");
                             => 10010
                     */
                     SymbolDisplayFormat.FullyQualifiedFormat.MiscellaneousOptions &
-                    (SymbolDisplayMiscellaneousOptions.UseSpecialTypes ^ (SymbolDisplayMiscellaneousOptions)Int32.MaxValue))
+                    ( SymbolDisplayMiscellaneousOptions.UseSpecialTypes ^ (SymbolDisplayMiscellaneousOptions)Int32.MaxValue ))
                     .WithGenericsOptions(SymbolDisplayGenericsOptions.IncludeTypeParameters))
                     .Replace("<", "_of_")
                     .Replace('>', '_')
@@ -264,4 +273,26 @@ $"get => (INamedTypeSymbol)_{ToCamelCase(p.Name)}SymbolContainer;}}");
         context.RegisterPostInitializationOutput(static c => c.AddSource(_attributesHint, _attributeSource));
         context.RegisterSourceOutput(provider, static (c, s) => c.AddSource(s.Hint, s.Source));
     }
+    private static String GetNonNullableTypeName(ITypeSymbol type)
+    {
+        var result = GetNullableTypeName(type).Replace("?", "");
+
+        return result;
+    }
+    private static String GetNullableTypeName(ITypeSymbol type)
+    {
+        var result = type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGenericsOptions((SymbolDisplayGenericsOptions)5));
+
+        return result;
+    }
+    private static String GetDefaultLiteral(String nullable, String nonNullable, IParameterSymbol parameter) =>
+        parameter.HasExplicitDefaultValue ?
+        parameter.ExplicitDefaultValue switch
+        {
+            Char => $"'{parameter.ExplicitDefaultValue}'",
+            String => $"\"{parameter.ExplicitDefaultValue}\"",
+            true => "true",
+            false => "false",
+            _ => parameter.ExplicitDefaultValue == null ? $"default({nullable})" : $"({nonNullable}){parameter.ExplicitDefaultValue}"
+        } : String.Empty;
 }

@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis;
 
 namespace {NAMESPACE}
 {
-    {ACCESSIBILITY} partial class {NAME}{GENERICPARAMLIST}
+    {ACCESSIBILITY} partial {DECLARATIONKEYWORD} {NAME}{GENERICPARAMLIST}
     {
         {CONTAINERS}
 
@@ -122,6 +122,7 @@ namespace {NAMESPACE}
     private const String _targetAccessibilityPlaceholder = "{ACCESSIBILITY}";
     private const String _targetNamespacePlaceholder = "{NAMESPACE}";
     private const String _sourceTextMacro = "{SOURCETEXT}";
+    private const String _declarationKeywordPlaceholder = "{DECLARATIONKEYWORD}";
 
     private const String _generateFactoryAttributeName = "GenerateFactoryAttribute";
     private const String _excludeConstructorAttributeName = "ExcludeFromFactoryAttribute";

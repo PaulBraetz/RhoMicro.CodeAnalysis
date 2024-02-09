@@ -3,9 +3,7 @@
 using RhoMicro.CodeAnalysis.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
-using System.Threading;
-
-sealed class Constructors(TargetDataModel model) : ExpansionBase(model, Macro.Constructors)
+internal sealed class Constructors(TargetDataModel model) : ExpansionBase(model, Macro.Constructors)
 {
     protected override void Expand(ExpandingMacroBuilder builder)
     => _ = (builder % "#region Constructors")

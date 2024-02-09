@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 
-using RhoMicro.CodeAnalysis;
+using RhoMicro.CodeAnalysis.UnionsGenerator._Models;
 
 using System;
 using System.Collections.Immutable;
@@ -20,20 +20,24 @@ internal sealed class RelationTypeModel : UnionDataModel
 
     public readonly RelationType RelationType;
 
-    public static RelationTypeModel Create(RelationAttribute attribute, TargetDataModel target)
-    {
-        var (annotations, omissions) = CreateModels(attribute.RelatedTypeSymbol);
+    //commented out because of breaking rewrite changes
+    //public static RelationTypeModel Create(RelationAttribute attribute, TargetDataModel target)
+    //{
+    //    var (annotations, omissions) = CreateModels(attribute.RelatedTypeSymbol);
 
-        var relationType = GetRelationType(annotations, target);
+    //    var relationType = GetRelationType(annotations, target);
 
-        return new RelationTypeModel(annotations, omissions, relationType, attribute.RelatedTypeSymbol);
-    }
+    //    return new RelationTypeModel(annotations, omissions, relationType, attribute.RelatedTypeSymbol);
+    //}
 
     private static RelationType GetRelationType(AnnotationDataModel annotations, TargetDataModel target)
     {
-        var isAlreadyRelated = annotations.Relations
-            .Where(a => SymbolEqualityComparer.Default.Equals(a.RelatedTypeSymbol, target.Symbol))
-            .Any();
+
+        //commented out because of breaking rewrite changes
+        var isAlreadyRelated = false;
+        //annotations.Relations
+        //.Where(a => SymbolEqualityComparer.Default.Equals(a.RelatedTypeSymbol, target.Symbol))
+        //.Any();
 
         if(isAlreadyRelated)
             return RelationType.None;
@@ -55,9 +59,6 @@ internal sealed class RelationTypeModel : UnionDataModel
             return RelationType.Superset;
 
         //is relation intersection of target
-        if(relationTypes.Any(targetTypes.Contains))
-            return RelationType.Intersection;
-
-        return RelationType.None;
+        return relationTypes.Any(targetTypes.Contains) ? RelationType.Intersection : RelationType.None;
     }
 }

@@ -29,6 +29,10 @@ static partial class CommentBlocks
         return resut;
     }
 
+    public static Block Item { get; } = Doc("item");
+    public static Block Term { get; } = Doc("item");
+    public static Block Description { get; } = Doc("description");
+    public static Block List(String type) => Doc("list", "type", type);
     public static Block Paragraph { get; } = Doc("para");
     public static Block Code { get; } = Doc("c");
     public static Block Doc(String name) => new(

@@ -1,15 +1,20 @@
 ﻿namespace RhoMicro.CodeAnalysis;
 
+using Microsoft.CodeAnalysis;
+
 using RhoMicro.CodeAnalysis.UnionsGenerator._Models;
 
-using System.Collections.Immutable;
-
-partial class UnionTypeBaseAttribute
+internal partial class UnionTypeBaseAttribute
 {
-    public UnionTypeModel GetModel(TypeOrTypeParameterType type, CancellationToken ct)
+    private UnionTypeBaseAttribute(Object representableTypeSymbolContainer) =>
+        _representableTypeSymbolContainer = representableTypeSymbolContainer;
+    public PartialRepresentableTypeModel GetPartialModel(TypeOrTypeParameterType representableType, INamedTypeSymbol unionType, CancellationToken ct)
     {
-        var result = UnionTypeModel.Create(Alias, Options, Groups.ToImmutableArray(), type, ct);
+        var result = PartialRepresentableTypeModel.Create(Alias, Options, Storage, new(Groups), representableType, unionType, ct);
 
         return result;
     }
+
+    public const String GenericMetadataName = NonGenericMetadataName + "`1";
+    public const String NonGenericMetadataName = "RhoMicro.CodeAnalysis.UnionTypeAttribute";
 }

@@ -72,20 +72,22 @@ internal sealed class TargetDataModel : UnionDataModel
 
         return result;
     }
-    public String GetSpecificAccessibility(RepresentableTypeModel representableType)
+    public String GetSpecificAccessibility(RepresentableTypeModel _)
     {
-        var accessibility = Annotations.Settings.ConstructorAccessibility;
+        //commented out because of breaking rewrite changes
+        return String.Empty;
+        //var accessibility = Annotations.Settings.ConstructorAccessibility;
 
-        if(accessibility == ConstructorAccessibilitySetting.PublicIfInconvertible &&
-           OperatorOmissions.AllOmissions.Contains(representableType))
-        {
-            accessibility = ConstructorAccessibilitySetting.Public;
-        }
+        //if(accessibility == ConstructorAccessibilitySetting.PublicIfInconvertible &&
+        //   OperatorOmissions.AllOmissions.Contains(representableType))
+        //{
+        //    accessibility = ConstructorAccessibilitySetting.Public;
+        //}
 
-        var result = accessibility == ConstructorAccessibilitySetting.Public ?
-            "public" :
-            "private";
+        //var result = accessibility == ConstructorAccessibilitySetting.Public ?
+        //    "public" :
+        //    "private";
 
-        return result;
+        //return result;
     }
 }

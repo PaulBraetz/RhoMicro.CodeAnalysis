@@ -1,16 +1,12 @@
 ﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
-using RhoMicro.CodeAnalysis.Library;
-using RhoMicro.CodeAnalysis.UnionsGenerator.Generators;
-using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
-
 using System;
-using System.Threading;
-using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
-abstract partial class StorageStrategy
+using Microsoft.CodeAnalysis;
+
+internal abstract partial class StorageStrategy
 {
-    sealed class ValueContainerStrategy(
+    private sealed class ValueContainerStrategy(
         String safeAlias,
         String fullTypeName,
         StorageOption selectedOption,
@@ -21,8 +17,9 @@ abstract partial class StorageStrategy
         public override void ConvertedInstanceVariableExpression(
             ExpandingMacroBuilder builder,
             String targetType,
-            String instance) =>
-            UtilUnsafeConvert(builder, FullTypeName, targetType, $"{instance}.__valueTypeContainer.{SafeAlias}");
+            String instance) => throw new NotImplementedException();
+        //only commented out because of breaking rewrite changes
+        //UtilUnsafeConvert(builder, FullTypeName, targetType, $"{instance}.__valueTypeContainer.{SafeAlias}");
         public override void TypesafeInstanceVariableExpression(
             ExpandingMacroBuilder builder,
             String instance) =>

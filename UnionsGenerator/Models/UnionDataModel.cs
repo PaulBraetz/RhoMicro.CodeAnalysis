@@ -1,9 +1,6 @@
 ﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-
-using System.Net.Http;
 
 internal abstract partial class UnionDataModel
 {

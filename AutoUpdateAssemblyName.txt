@@ -1,6 +1,7 @@
-Generators/UtilityGenerators.Library.Tests
-Generators/UnionsGenerator
-Generators/DslGenerator
+# Generators/UtilityGenerators.Library.Tests
+Generators/UnionsGenerator.EndToEnd.Tests
+# Generators/UnionsGenerator
+# Generators/DslGenerator
 Applications/TestApp
-Applications/DslGenerator.TestApp
-Applications/IndentedStringBuilderTestApp
+# Applications/DslGenerator.TestApp
+# Applications/IndentedStringBuilderTestApp

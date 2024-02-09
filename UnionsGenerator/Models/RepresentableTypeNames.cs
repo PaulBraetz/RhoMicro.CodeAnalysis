@@ -3,11 +3,10 @@
 using Microsoft.CodeAnalysis.CSharp;
 
 using RhoMicro.CodeAnalysis;
-using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
 using System;
 
-sealed class RepresentableTypeNames(
+internal sealed class RepresentableTypeNames(
     String fullTypeName,
     String openTypeName,
     String simpleTypeName,
@@ -26,30 +25,35 @@ sealed class RepresentableTypeNames(
     public static RepresentableTypeNames Create(UnionTypeBaseAttribute attribute)
     {
         var openTypeName =
-            (attribute.RepresentableTypeIsTypeParameter ?
-            attribute.RepresentableTypeSymbol!.Name :
-            attribute.RepresentableTypeSymbol!.ToMinimalOpenString()) ??
+            //only commented out because of breaking rewrite changes
+            //(attribute.RepresentableTypeIsTypeParameter ?
+            //attribute.RepresentableTypeSymbol!.Name :
+            //attribute.RepresentableTypeSymbol!.ToMinimalOpenString()) ??
             String.Empty;
         var fullTypeName =
-            (attribute.RepresentableTypeIsTypeParameter ?
-            attribute.RepresentableTypeSymbol!.Name :
-            attribute.RepresentableTypeSymbol?.ToFullOpenString()) ??
+            //only commented out because of breaking rewrite changes
+            //(attribute.RepresentableTypeIsTypeParameter ?
+            //attribute.RepresentableTypeSymbol!.Name :
+            //attribute.RepresentableTypeSymbol?.ToFullOpenString()) ??
             String.Empty;
         var simpleTypeName =
-            (attribute.RepresentableTypeIsTypeParameter ?
-            attribute.RepresentableTypeSymbol!.Name :
-            attribute.RepresentableTypeSymbol?.Name) ??
+            //only commented out because of breaking rewrite changes
+            //(attribute.RepresentableTypeIsTypeParameter ?
+            //attribute.RepresentableTypeSymbol!.Name :
+            //attribute.RepresentableTypeSymbol?.Name) ??
             String.Empty;
         var safeAlias = attribute.Alias != null && SyntaxFacts.IsValidIdentifier(attribute.Alias) ?
                 attribute.Alias :
-                (attribute.RepresentableTypeIsTypeParameter ?
-                attribute.RepresentableTypeSymbol!.Name :
-                attribute.RepresentableTypeSymbol?.ToIdentifierCompatString()) ??
+                //only commented out because of breaking rewrite changes
+                //(attribute.RepresentableTypeIsTypeParameter ?
+                //attribute.RepresentableTypeSymbol!.Name :
+                //attribute.RepresentableTypeSymbol?.ToIdentifierCompatString()) ??
                 simpleTypeName;
         var typeStringName =
-            (attribute.RepresentableTypeIsTypeParameter ?
-            attribute.RepresentableTypeSymbol!.Name :
-            attribute.RepresentableTypeSymbol?.ToTypeString()) ??
+            //only commented out because of breaking rewrite changes
+            //(attribute.RepresentableTypeIsTypeParameter ?
+            //attribute.RepresentableTypeSymbol!.Name :
+            //attribute.RepresentableTypeSymbol?.ToTypeString()) ??
             String.Empty;
 
         var result = new RepresentableTypeNames(fullTypeName, openTypeName, simpleTypeName, safeAlias, typeStringName);

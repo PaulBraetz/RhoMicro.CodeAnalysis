@@ -2,7 +2,7 @@
   "profiles": {
     "Tests": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\UtilityGenerators.Library.Tests\\UtilityGenerators.Library.Tests.csproj"
+      "targetProject": "..\\UnionsGenerator.EndToEnd.Tests\\UnionsGenerator.EndToEnd.Tests.csproj"
     },
     "TestApp": {
       "commandName": "DebugRoslynComponent",

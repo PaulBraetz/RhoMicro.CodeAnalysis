@@ -2,9 +2,8 @@
 
 using RhoMicro.CodeAnalysis.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
-using System.Text;
 
-sealed class Tail(TargetDataModel model)
+internal sealed class Tail(TargetDataModel model)
     : ExpansionBase(model, Macro.Tail)
 {
     protected override void Expand(ExpandingMacroBuilder builder)

@@ -8,7 +8,7 @@ using System.Linq;
 
 internal static partial class Diagnostics
 {
-    readonly struct DiagnosticInfo(String title, String message, DiagnosticSeverity severity) : IEquatable<DiagnosticInfo>
+    private readonly struct DiagnosticInfo(String title, String message, DiagnosticSeverity severity) : IEquatable<DiagnosticInfo>
     {
         public readonly String Title = title;
         public readonly String Message = message;
@@ -72,8 +72,7 @@ internal static partial class Diagnostics
                     _infos[id].Severity,
                     true))
             .ToList();
-
-    static readonly Dictionary<Id, DiagnosticDescriptor> _idDescriptorMap =
+    private static readonly Dictionary<Id, DiagnosticDescriptor> _idDescriptorMap =
         Enum.GetValues(typeof(Id))
             .OfType<Id>()
             .Select(id => (Id: id, Descriptor: new DiagnosticDescriptor(
@@ -85,7 +84,7 @@ internal static partial class Diagnostics
                     true)))
         .ToDictionary(t => t.Id, t => t.Descriptor);
 
-    static Diagnostic Create(
+    private static Diagnostic Create(
         Id id,
         Location location,
         params Object[] messageArgs) =>

@@ -19,7 +19,7 @@ insert_final_newline = false
 
 # Organize usings
 dotnet_separate_import_directive_groups = true
-dotnet_sort_system_directives_first = false
+dotnet_sort_system_directives_first = true
 file_header_template = unset
 
 # this. and Me. preferences
@@ -50,6 +50,7 @@ dotnet_style_null_propagation = true:error
 dotnet_style_object_initializer = true:error
 dotnet_style_operator_placement_when_wrapping = beginning_of_line
 dotnet_style_prefer_auto_properties = true:error
+dotnet_style_prefer_collection_expression = true
 dotnet_style_prefer_compound_assignment = true:error
 dotnet_style_prefer_conditional_expression_over_assignment = true:error
 dotnet_style_prefer_conditional_expression_over_return = true
@@ -180,7 +181,7 @@ csharp_space_between_method_call_parameter_list_parentheses = false
 csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
 csharp_space_between_method_declaration_name_and_open_parenthesis = false
 csharp_space_between_method_declaration_parameter_list_parentheses = false
-csharp_space_between_parentheses = false
+csharp_space_between_parentheses = expressions
 csharp_space_between_square_brackets = false
 
 # Wrapping preferences
@@ -208,24 +209,24 @@ dotnet_naming_rule.private_field_should_be_underscore_camel_case.symbols = priva
 dotnet_naming_rule.private_field_should_be_underscore_camel_case.style = underscore_camel_case
 
 dotnet_naming_rule.any_member_should_be_pascal_case.severity = error
-dotnet_naming_rule.any_member_should_be_pascal_case.symbols = any_other_member
+dotnet_naming_rule.any_member_should_be_pascal_case.symbols = any_member
 dotnet_naming_rule.any_member_should_be_pascal_case.style = pascal_case
 
 # Symbol specifications
 
 dotnet_naming_symbols.interface.applicable_kinds = interface
-dotnet_naming_symbols.interface.applicable_accessibilities = *
+dotnet_naming_symbols.interface.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
 dotnet_naming_symbols.interface.required_modifiers = 
 
 dotnet_naming_symbols.generic_type_parameter.applicable_kinds = type_parameter
 dotnet_naming_symbols.generic_type_parameter.applicable_accessibilities = *
 dotnet_naming_symbols.generic_type_parameter.required_modifiers = 
 
-dotnet_naming_symbols.any_other_member.applicable_kinds = namespace, property, field, event, class, struct, enum, delegate, method
-dotnet_naming_symbols.any_other_member.applicable_accessibilities = *
-dotnet_naming_symbols.any_other_member.required_modifiers = 
+dotnet_naming_symbols.any_member.applicable_kinds = namespace, class, struct, interface, enum, property, method, field, event, delegate
+dotnet_naming_symbols.any_member.applicable_accessibilities = *
+dotnet_naming_symbols.any_member.required_modifiers = 
 
-dotnet_naming_symbols.local_member.applicable_kinds = parameter, local, local_function
+dotnet_naming_symbols.local_member.applicable_kinds = local_function, parameter, local
 dotnet_naming_symbols.local_member.applicable_accessibilities = *
 dotnet_naming_symbols.local_member.required_modifiers = 
 

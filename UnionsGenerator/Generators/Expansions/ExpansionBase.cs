@@ -2,9 +2,10 @@
 
 using RhoMicro.CodeAnalysis.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
+
 using System.Threading;
 
-abstract class ExpansionBase : MacroExpansion<Macro>
+internal abstract class ExpansionBase : MacroExpansion<Macro>
 {
     protected ExpansionBase(TargetDataModel model, Macro macro)
         : base(macro)

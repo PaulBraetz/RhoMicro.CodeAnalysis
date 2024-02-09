@@ -14,6 +14,15 @@ partial record CommentBuilder(IndentedStringBuilder Builder)
     public IndentedStringBuilder OpenTypeParam(String name) =>
         Builder.OpenBlock(CommentBlocks.TypeParam(name));
 
+    public IndentedStringBuilder OpenList(String type) =>
+        Builder.OpenBlock(CommentBlocks.List(type));
+    public IndentedStringBuilder OpenItem() =>
+        Builder.OpenBlock(CommentBlocks.Item);
+    public IndentedStringBuilder OpenTerm() =>
+        Builder.OpenBlock(CommentBlocks.Term);
+    public IndentedStringBuilder OpenDescription() =>
+        Builder.OpenBlock(CommentBlocks.Description);
+
     public IndentedStringBuilder OpenParagraph() =>
         Builder.OpenBlock(CommentBlocks.Paragraph);
     public IndentedStringBuilder OpenCode() =>
@@ -34,5 +43,43 @@ partial record CommentBuilder(IndentedStringBuilder Builder)
     public BlockScope OpenDocBlockScope(String name) => new(OpenDocBlock(name));
     public BlockScope OpenDocBlockScope(String name, String attributeName, String attributeValue) =>
         new(OpenDocBlock(name, attributeName, attributeValue));
+    #endregion
+    #region Self Closing
+    public IndentedStringBuilder SeeRef(String name) =>
+        Builder.Append("<see cref=\"").Append(name).Append("\"/>");
+    public IndentedStringBuilder Langword(String name) =>
+        Builder.Append("<see langword=\"").Append(name).Append("\"/>");
+    public IndentedStringBuilder InheritDoc(String name, Boolean topLevel = true)
+    {
+        if(topLevel)
+            _ = Builder.Append("/// ");
+
+        _ = Builder.Append("<inheritdoc cref=\"").Append(name).Append("\"/>");
+
+        if(topLevel)
+            _ = Builder.AppendLine();
+
+        return Builder;
+    }
+    public IndentedStringBuilder InheritDoc(Boolean topLevel = true)
+    {
+        if(topLevel)
+            _ = Builder.Append("/// ");
+
+        _ = Builder.Append("<inheritdoc/>");
+
+        if(topLevel)
+            _ = Builder.AppendLine();
+
+        return Builder;
+    }
+    public IndentedStringBuilder TypeParamRef(String name) =>
+        Builder.Append("<typeparamref name=\"").Append(name).Append("\"/>");
+    public IndentedStringBuilder ParamRef(String name) =>
+        Builder.Append("<paramref name=\"").Append(name).Append("\"/>");
+    public IndentedStringBuilder InternalUse(String name) =>
+        Builder.Comment.OpenRemarks()
+        .Append("This member is not intended for use by user code inside of or any code outside of ").Comment.SeeRef(name).Append('.')
+        .CloseBlock();
     #endregion
 }

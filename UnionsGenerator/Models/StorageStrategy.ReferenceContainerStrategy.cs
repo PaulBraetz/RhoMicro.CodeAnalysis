@@ -1,16 +1,10 @@
 ﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
-using RhoMicro.CodeAnalysis.Library;
-using RhoMicro.CodeAnalysis.UnionsGenerator.Generators;
-using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
-
 using System;
-using System.Reflection;
-using System.Threading;
 
-abstract partial class StorageStrategy
+internal abstract partial class StorageStrategy
 {
-    sealed class ReferenceContainerStrategy(
+    private sealed class ReferenceContainerStrategy(
         String safeAlias,
         String fullTypeName,
         StorageOption selectedOption,

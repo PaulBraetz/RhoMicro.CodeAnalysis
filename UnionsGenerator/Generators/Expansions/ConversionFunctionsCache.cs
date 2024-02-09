@@ -2,11 +2,7 @@
 
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-sealed class ConversionFunctionsCache(TargetDataModel model) : ExpansionBase(model, Macro.ConversionFunctionsCache)
+internal sealed class ConversionFunctionsCache(TargetDataModel model) : ExpansionBase(model, Macro.ConversionFunctionsCache)
 {
     protected override void Expand(ExpandingMacroBuilder builder)
     {
@@ -14,7 +10,7 @@ sealed class ConversionFunctionsCache(TargetDataModel model) : ExpansionBase(mod
             "file static class " * Model.ConversionFunctionsTypeName /
             """
             {
-                public static readonly global::System.Collections.Concurrent.ConcurrentDictionary<Type, Object> Cache = new();
+                public static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, Object> Cache = new();
             }
 
             """;

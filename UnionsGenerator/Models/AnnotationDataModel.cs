@@ -7,11 +7,8 @@ using RhoMicro.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Text;
 
-sealed class AnnotationDataModel
+internal sealed class AnnotationDataModel
 {
     public readonly IReadOnlyList<RepresentableTypeModel> AllRepresentableTypes;
     public readonly IReadOnlyList<RepresentableTypeModel> RepresentableReferenceTypes;
@@ -20,7 +17,8 @@ sealed class AnnotationDataModel
     public readonly IReadOnlyList<RepresentableTypeModel> AllRepresentableValueTypes;
     public readonly IReadOnlyList<RepresentableTypeModel> RepresentableUnknownTypes;
 
-    public readonly IReadOnlyList<RelationAttribute> Relations;
+    //commented out because of breaking rewrite changes
+    //public readonly IReadOnlyList<RelationAttribute> Relations;
     public readonly UnionTypeSettingsAttribute Settings;
 
     private AnnotationDataModel(
@@ -29,11 +27,14 @@ sealed class AnnotationDataModel
         IReadOnlyList<RepresentableTypeModel> representableReferenceTypes,
         IReadOnlyList<RepresentableTypeModel> representableUnknownTypes,
         IReadOnlyList<RepresentableTypeModel> representablePureValueTypes,
-        IReadOnlyList<RepresentableTypeModel> representableMixedValueTypes,
-        IReadOnlyList<RelationAttribute> relations)
+        IReadOnlyList<RepresentableTypeModel> representableMixedValueTypes
+    //commented out because of breaking rewrite changes
+    //,IReadOnlyList<RelationAttribute> relations
+        )
     {
         Settings = settings;
-        Relations = relations;
+        //commented out because of breaking rewrite changes
+        //Relations = relations;
 
         AllRepresentableTypes = allRepresentableTypes;
         RepresentableReferenceTypes = representableReferenceTypes;
@@ -48,19 +49,21 @@ sealed class AnnotationDataModel
     {
         var attributeData = target.GetAttributes();
 
-        var attributes = attributeData.OfUnionTypeAttribute()/*.Concat(genericAttributes)*/;
+        //var attributes = attributeData.OfUnionTypeAttribute()/*.Concat(genericAttributes)*/;
 
         //DO NOT CHANGE THIS ALGO, compatibility depends on deterministic order of types
-        var orderedRepresentableTypes = attributes
-            .Select(a => a.ExtractData(target))
-            .GroupBy(a => a.Nature == RepresentableTypeNature.UnknownType)
-            .OrderBy(g => g.Key) //generic params come last
-            .Select(g =>
-                g.Key ?
-                g.OrderBy(a => a.Names.FullTypeName) :
-                g.OrderBy(a => a.Names.FullTypeName))
-            .SelectMany(g => g)
-            .ToList(); //ensure reification
+        var orderedRepresentableTypes = Array.Empty<RepresentableTypeModel>();
+        //only commented out because of breaking rewrite changes
+        //attributes
+        //.Select(a => a.ExtractData(target))
+        //.GroupBy(a => a.Nature == RepresentableTypeNature.UnknownType)
+        //.OrderBy(g => g.Key) //generic params come last
+        //.Select(g =>
+        //    g.Key ?
+        //    g.OrderBy(a => a.Names.FullTypeName) :
+        //    g.OrderBy(a => a.Names.FullTypeName))
+        //.SelectMany(g => g)
+        //.ToList(); //ensure reification
 
         // reference types
         // value types
@@ -87,15 +90,18 @@ sealed class AnnotationDataModel
             allRepresentableTypes.Add(representableType);
         }
 
-        var settings = attributeData.OfUnionTypeSettingsAttribute().SingleOrDefault() ??
-            target.ContainingAssembly.GetAttributes().OfUnionTypeSettingsAttribute().SingleOrDefault() ??
+        var settings =
+            //commented out because of breaking rewrite changes
+            //attributeData.OfUnionTypeSettingsAttribute().SingleOrDefault() ??
+            //target.ContainingAssembly.GetAttributes().OfUnionTypeSettingsAttribute().SingleOrDefault() ??
             new UnionTypeSettingsAttribute();
 
-        var relations = attributeData.OfRelationAttribute().ToList();
+        //commented out because of breaking rewrite changes
+        //var relations = attributeData.OfRelationAttribute().ToList();
 
         var result = new AnnotationDataModel(
             settings: settings,
-            relations: relations,
+            //relations: relations,
             allRepresentableTypes: allRepresentableTypes,
             representableReferenceTypes: representableReferenceTypes,
             representablePureValueTypes: representablePureValueTypes,

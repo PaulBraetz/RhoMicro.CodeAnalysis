@@ -14,10 +14,10 @@ using System.Threading;
 
 public sealed partial class AttributeFactoryGenerator
 {
-    readonly struct AttributeSourceModel(String source, ClassDeclarationSyntax declaration, SemanticModel semanticModel, INamedTypeSymbol symbol) : IEquatable<AttributeSourceModel>
+    readonly struct AttributeSourceModel(String source, TypeDeclarationSyntax declaration, SemanticModel semanticModel, INamedTypeSymbol symbol) : IEquatable<AttributeSourceModel>
     {
         public readonly String Source = source;
-        public readonly ClassDeclarationSyntax Declaration = declaration;
+        public readonly TypeDeclarationSyntax Declaration = declaration;
         public readonly SemanticModel SemanticModel = semanticModel;
         public readonly INamedTypeSymbol Symbol = symbol;
 
@@ -25,7 +25,7 @@ public sealed partial class AttributeFactoryGenerator
 
         public static AttributeSourceModel Create(GeneratorAttributeSyntaxContext context, CancellationToken token)
         {
-            var declaration = (ClassDeclarationSyntax)context.TargetNode;
+            var declaration = (TypeDeclarationSyntax)context.TargetNode;
             var semanticModel = context.SemanticModel;
 
             var symbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken: token) ??
@@ -40,7 +40,17 @@ public sealed partial class AttributeFactoryGenerator
             var sourceText = reader.ReadToEnd();
             var quotedSourceText = GetRawSourceTextValue(sourceText);
 
-            var source = _sourceTemplate.Replace(_sourceTextMacro, quotedSourceText);
+            var targetSymbol = (INamedTypeSymbol)context.TargetSymbol;
+            var declarationKeyword = targetSymbol switch
+            {
+                { IsRecord: true, IsReferenceType: true } => "record class",
+                { IsRecord: true, IsValueType: true } => "record struct",
+                { IsReferenceType: true } => "class",
+                { IsValueType: true } => "struct",
+                _ => String.Empty
+            };
+
+            var source = _sourceTemplate.Replace(_declarationKeywordPlaceholder, declarationKeyword).Replace(_sourceTextMacro, quotedSourceText);
 
 #pragma warning disable IDE0045 // Convert to conditional expression
             if(context.Attributes.Length > 0 &&
@@ -54,7 +64,9 @@ public sealed partial class AttributeFactoryGenerator
             {
                 source = source.Replace(_typeCheckPlaceholder,
                     """
-                                if(data.AttributeClass.MetadataName != "{METADATANAME}")
+                                if(data.AttributeClass != null &&
+                                   data.AttributeClass.MetadataName == "{METADATANAME}" &&
+                                   data.AttributeClass.ContainingNamespace.Name == "{NAMESPACE}")
                                 {
                                     return false;
                                 }
@@ -90,6 +102,6 @@ public sealed partial class AttributeFactoryGenerator
         public override Int32 GetHashCode() => 924162744 + EqualityComparer<String>.Default.GetHashCode(Source);
 
         public static Boolean operator ==(AttributeSourceModel left, AttributeSourceModel right) => left.Equals(right);
-        public static Boolean operator !=(AttributeSourceModel left, AttributeSourceModel right) => !(left == right);
+        public static Boolean operator !=(AttributeSourceModel left, AttributeSourceModel right) => !( left == right );
     }
 }

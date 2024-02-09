@@ -4,6 +4,8 @@ using System.Collections;
 
 sealed class EquatableList<T>(IReadOnlyList<T> decorated) : IReadOnlyList<T>, IEquatable<EquatableList<T>?>
 {
+    public static EquatableList<T> Empty { get; } = new(Array.Empty<T>());
+
     private readonly IReadOnlyList<T> _decorated = decorated;
 
     public T this[Int32 index] => _decorated[index];
@@ -20,7 +22,7 @@ sealed class EquatableList<T>(IReadOnlyList<T> decorated) : IReadOnlyList<T>, IE
     public override Int32 GetHashCode()
     {
         var hashCode = 594671118;
-        for(var i = 0; i < _decorated.Count - 1; i++)
+        for(var i = 0; i < _decorated.Count; i++)
         {
             hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(_decorated[i]);
         }

@@ -1,15 +1,13 @@
 ﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
 using RhoMicro.CodeAnalysis.Library;
-using RhoMicro.CodeAnalysis.UnionsGenerator.Generators;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
-using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
-sealed class StrategySourceHost(TargetDataModel target)
+internal sealed class StrategySourceHost(TargetDataModel target)
 {
     private readonly TargetDataModel _target = target;
 
@@ -24,7 +22,7 @@ sealed class StrategySourceHost(TargetDataModel target)
             _ => _dedicatedImpureAndUnknownFieldAdditions
         }).Add(
             (Factory: (b) =>
-            _ = b / "[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]" /
+            _ = b / "[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]" /
                 "private readonly " * strategy.FullTypeName * ' ' * strategy.SafeAlias.ToGeneratedCamelCase() * ';',
             TypeName: strategy.FullTypeName));
 
@@ -50,8 +48,8 @@ sealed class StrategySourceHost(TargetDataModel target)
             return;
 
         _ = builder *
-            "[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]" /
-            "private readonly global::System.Object __referenceTypeContainer;";
+            "[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]" /
+            "private readonly System.Object __referenceTypeContainer;";
     }
 
     private Boolean _valueTypeContainerTypeRequired;
@@ -62,7 +60,7 @@ sealed class StrategySourceHost(TargetDataModel target)
         _valueTypeFieldAdditions.Add((b) =>
         {
             if(!_target.Symbol.IsGenericType)
-                _ = b % "[global::System.Runtime.InteropServices.FieldOffset(0)]";
+                _ = b % "[System.Runtime.InteropServices.FieldOffset(0)]";
 
             _ = b * "public readonly " * strategy.FullTypeName * ' ' * strategy.SafeAlias * ';' /
                 "public " * _target.ValueTypeContainerName * '(' * strategy.FullTypeName * " value) => " /
@@ -74,7 +72,7 @@ sealed class StrategySourceHost(TargetDataModel target)
         if(!_valueTypeContainerTypeRequired)
             return;
 
-        _ = builder * "[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]" /
+        _ = builder * "[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]" /
             "private readonly " * _target.ValueTypeContainerName % " __valueTypeContainer;";
     }
 
@@ -86,10 +84,10 @@ sealed class StrategySourceHost(TargetDataModel target)
         _ = builder * (Docs.Summary, b => _ = b * "Helper types for storing value types efficiently.");
 
         if(!_target.Symbol.IsGenericType)
-            _ = builder % "[global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]";
+            _ = builder % "[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Explicit)]";
 
         _ = builder *
-                "[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]" /
+                "[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]" /
                 "readonly struct " * _target.ValueTypeContainerName % '{' *
                 (b => b.AppendJoin(
                     _valueTypeFieldAdditions,

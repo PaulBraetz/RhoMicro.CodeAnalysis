@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<!--AutoUpdateAssemblyName-->
-	
-	<PropertyGroup>		
+
+	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<IncludeBuildOutput>false</IncludeBuildOutput>
 		<developmentDependency>true</developmentDependency>
@@ -25,17 +25,17 @@
 		<PackageReference Update="NETStandard.Library" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis" Version="*" />
 		<PackageReference Include="PolySharp" Version="*">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 	</ItemGroup>
-	
+
 	<ItemGroup>
 		<ProjectReference Include="..\UtilityGenerators\UtilityGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="bin\Release\netstandard2.0\\RhoMicro.CodeAnalysis.UnionsGenerator.12.0.9.0.dll" />
+		<None Remove="bin\Debug\netstandard2.0\\RhoMicro.CodeAnalysis.UnionsGenerator.13.0.0.674.dll" />
 	</ItemGroup>
 
 	<ItemGroup>

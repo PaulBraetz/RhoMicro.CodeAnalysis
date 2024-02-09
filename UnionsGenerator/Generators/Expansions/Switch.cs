@@ -4,12 +4,12 @@ using Microsoft.CodeAnalysis;
 
 using RhoMicro.CodeAnalysis.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 
 using System;
-using System.Threading;
 using System.Linq;
 
-sealed class Switch(TargetDataModel model) : ExpansionBase(model, Macro.Switch)
+internal sealed class Switch(TargetDataModel model) : ExpansionBase(model, Macro.Switch)
 {
     protected override void Expand(ExpandingMacroBuilder builder)
     {
@@ -35,7 +35,7 @@ sealed class Switch(TargetDataModel model) : ExpansionBase(model, Macro.Switch)
                 ',',
                 representableTypes,
                 (b, a, t) => b.WithOperators(t) *
-                    "global::System.Action<" * a.Names.FullTypeName * "> on" * a.Names.SafeAlias,
+                    "System.Action<" * a.Names.FullTypeName * "> on" * a.Names.SafeAlias,
                 b.CancellationToken)) *
             "){";
 

@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using System;
 
-static class Util
+internal static class Util
 {
     public static Boolean IsGeneratorTarget(SyntaxNode node) =>
         node is TypeDeclarationSyntax tds and not RecordDeclarationSyntax &&
@@ -25,14 +25,16 @@ static class Util
         {
             if(UnionTypeBaseAttribute.TryCreate(attribute, out _))
                 return true;
-            if(RelationAttribute.TryCreate(attribute, out _))
-                return true;
+            //commented out because of breaking rewrite changes
+            //if(RelationAttribute.TryCreate(attribute, out _))
+            //    return true;
             if(UnionTypeSettingsAttribute.TryCreate(attribute, out _))
                 return true;
         }
 
-        var result = symbol is INamedTypeSymbol named &&
-            named.GetMembers().SelectMany(m => m.GetAttributes()).OfUnionFactoryAttribute().Any();
+        //only commented out because of breaking rewrite changes
+        var result = symbol is INamedTypeSymbol; //named &&
+        //named.GetMembers().SelectMany(m => m.GetAttributes()).OfUnionFactoryAttribute().Any();
 
         return result;
     }

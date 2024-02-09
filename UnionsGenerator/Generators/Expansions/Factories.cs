@@ -3,45 +3,44 @@
 using RhoMicro.CodeAnalysis.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
-using System.Threading;
-
-sealed class Factories(TargetDataModel model) : ExpansionBase(model, Macro.Factories)
+internal sealed class Factories(TargetDataModel model) : ExpansionBase(model, Macro.Factories)
 {
     protected override void Expand(ExpandingMacroBuilder builder)
     {
-        var representableTypes = Model.Annotations.AllRepresentableTypes;
-        var target = Model.Symbol;
-        var settings = Model.Annotations.Settings;
+        //only commented out because of breaking rewrite changes
+        //var representableTypes = Model.Annotations.AllRepresentableTypes;
+        //var target = Model.Symbol;
+        //var settings = Model.Annotations.Settings;
 
-        _ = (builder % "#region Factories")
-            .AppendJoin(
-                representableTypes.Where(t => t.Factory.RequiresGeneration),
-                (b, a, t) => b.WithOperators(t) *
-                    (Docs.Summary, b => _ = b * "Creates a new instance of " * target.CommentRef * ".") /
-                    "[global::RhoMicro.CodeAnalysis.UnionFactory]" /
-                    "public static " * target.ToMinimalOpenString() * ' ' * a.Factory.Name * '(' * a.Names.FullTypeName % " value) => new(value);",
-                builder.CancellationToken)
-            .WithOperators(builder.CancellationToken) *
-            "public static Boolean TryCreate<" * settings.GenericTValueName * ">(" *
-            settings.GenericTValueName * " value, out " * target.ToMinimalOpenString() %
-            " instance){instance = default;" * (b => TypeSwitchStatement(
-                builder: b,
-                values: representableTypes,
-                valueTypeExpression: b => _ = b * (b => UtilFullString(b, (b) => _ = b * "typeof(" * settings.GenericTValueName * ')')),
-                caseSelector: t => t.Names,
-                (b, v) => _ = b * "instance = " * v.Factory.Name * '(' * (b => UtilUnsafeConvert(b, settings.GenericTValueName, v.Names.FullTypeName, "value")) * ");return true;",
-                TryCreateDefaultCase)) * '}' /
-            "public static " * target.ToMinimalOpenString() * " Create<" * settings.GenericTValueName * ">(" *
-            settings.GenericTValueName * " value){" *
-            (b => TypeSwitchStatement(
-                b,
-                representableTypes,
-                b => _ = b * (b => UtilFullString(b, b => _ = b * "typeof(" * settings.GenericTValueName * ')')),
-                t => t.Names,
-                (b, v) => _ = b * "return " * v.Factory.Name * "(" * (b => UtilUnsafeConvert(b, settings.GenericTValueName, v.Names.FullTypeName, "value")) * ");",
-                CreateDefaultCase)) %
-            '}' %
-            "#endregion";
+        //_ = (builder % "#region Factories")
+        //    .AppendJoin(
+        //        representableTypes.Where(t => t.Factory.RequiresGeneration),
+        //        (b, a, t) => b.WithOperators(t) *
+        //            (Docs.Summary, b => _ = b * "Creates a new instance of " * target.CommentRef * ".") /
+        //            "[RhoMicro.CodeAnalysis.UnionFactory]" /
+        //            "public static " * target.ToMinimalOpenString() * ' ' * a.Factory.Name * '(' * a.Names.FullTypeName % " value) => new(value);",
+        //        builder.CancellationToken)
+        //    .WithOperators(builder.CancellationToken) *
+        //    "public static Boolean TryCreate<" * settings.GenericTValueName * ">(" *
+        //    settings.GenericTValueName * " value, out " * target.ToMinimalOpenString() %
+        //    " instance){instance = default;" * (b => TypeSwitchStatement(
+        //        builder: b,
+        //        values: representableTypes,
+        //        valueTypeExpression: b => _ = b * (b => UtilFullString(b, (b) => _ = b * "typeof(" * settings.GenericTValueName * ')')),
+        //        caseSelector: t => t.Names,
+        //        (b, v) => _ = b * "instance = " * v.Factory.Name * '(' * (b => UtilUnsafeConvert(b, settings.GenericTValueName, v.Names.FullTypeName, "value")) * ");return true;",
+        //        TryCreateDefaultCase)) * '}' /
+        //    "public static " * target.ToMinimalOpenString() * " Create<" * settings.GenericTValueName * ">(" *
+        //    settings.GenericTValueName * " value){" *
+        //    (b => TypeSwitchStatement(
+        //        b,
+        //        representableTypes,
+        //        b => _ = b * (b => UtilFullString(b, b => _ = b * "typeof(" * settings.GenericTValueName * ')')),
+        //        t => t.Names,
+        //        (b, v) => _ = b * "return " * v.Factory.Name * "(" * (b => UtilUnsafeConvert(b, settings.GenericTValueName, v.Names.FullTypeName, "value")) * ");",
+        //        CreateDefaultCase)) %
+        //    '}' %
+        //    "#endregion";
     }
 
     private void TryCreateDefaultCase(ExpandingMacroBuilder builder)
@@ -50,48 +49,48 @@ sealed class Factories(TargetDataModel model) : ExpansionBase(model, Macro.Facto
             "if(!" * Model.ConversionFunctionsTypeName * ".Cache.TryGetValue(sourceType, out var weakMatch))" /
         """    
             {
-                if(!global::RhoMicro.CodeAnalysis.UnionsGenerator.Generated.Util.IsMarked(sourceType))
+                if(!RhoMicro.CodeAnalysis.UnionsGenerator.Generated.Util.IsMarked(sourceType))
                 {
                     return false;
                 }
         """ * "weakMatch = " * Model.ConversionFunctionsTypeName * ".Cache.GetOrAdd(sourceType, t =>{" *
-        "var tupleType = typeof(global::System.ValueTuple<global::System.Boolean, " * Model.Symbol.ToMinimalOpenString() * ">);" *
+        "var tupleType = typeof(System.ValueTuple<System.Boolean, " * Model.Symbol.ToMinimalOpenString() * ">);" *
         """
                     var matchMethod = sourceType.GetMethod(
                         nameof(Match),
-                         global::System.Reflection.BindingFlags.Instance | global::System.Reflection.BindingFlags.Public)?
+                         System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)?
                          .MakeGenericMethod(tupleType) ??
-                         throw new global::System.Exception("Unable to locate match function on source union type. This indicates a bug in the marker detection algorithm.");
+                         throw new System.Exception("Unable to locate match function on source union type. This indicates a bug in the marker detection algorithm.");
         """ * "var targetFactoryMap = typeof(" * Model.Symbol.ToMinimalOpenString() * ").GetMethods()" *
         """
-                        .Where(c => c.CustomAttributes.Any(a => a.AttributeType == typeof(global::RhoMicro.CodeAnalysis.UnionFactoryAttribute)))
+                        .Where(c => c.CustomAttributes.Any(a => a.AttributeType == typeof(RhoMicro.CodeAnalysis.UnionFactoryAttribute)))
                         .ToDictionary(c => c.GetParameters()[0].ParameterType);
 
                     var handlers = matchMethod.GetParameters()
                         .Select(p => p.ParameterType.GenericTypeArguments[0])
-                        .Select(t => (ParameterExpr: global::System.Linq.Expressions.Expression.Parameter(t), ParameterExprType: t))
+                        .Select(t => (ParameterExpr: System.Linq.Expressions.Expression.Parameter(t), ParameterExprType: t))
                         .Select(t =>
                         {
-                            var delegateType = typeof(global::System.Func<,>).MakeGenericType(t.ParameterExprType, tupleType);
-                            global::System.Linq.Expressions.Expression expression = targetFactoryMap.TryGetValue(t.ParameterExprType, out var factory) ?
-                                global::System.Linq.Expressions.Expression.New(
+                            var delegateType = typeof(System.Func<,>).MakeGenericType(t.ParameterExprType, tupleType);
+                            System.Linq.Expressions.Expression expression = targetFactoryMap.TryGetValue(t.ParameterExprType, out var factory) ?
+                                System.Linq.Expressions.Expression.New(
                                     tupleType.GetConstructors()[0],
-                                    global::System.Linq.Expressions.Expression.Constant(true),
-                                    global::System.Linq.Expressions.Expression.Call(factory, t.ParameterExpr)) :
-                                global::System.Linq.Expressions.Expression.Default(tupleType);
+                                    System.Linq.Expressions.Expression.Constant(true),
+                                    System.Linq.Expressions.Expression.Call(factory, t.ParameterExpr)) :
+                                System.Linq.Expressions.Expression.Default(tupleType);
 
-                            return global::System.Linq.Expressions.Expression.Lambda(delegateType, expression, t.ParameterExpr);
+                            return System.Linq.Expressions.Expression.Lambda(delegateType, expression, t.ParameterExpr);
                         });
 
-                    var paramExpr = global::System.Linq.Expressions.Expression.Parameter(sourceType);
-                    var callExpr = global::System.Linq.Expressions.Expression.Call(paramExpr, matchMethod, handlers);
-                    var lambdaExpr = global::System.Linq.Expressions.Expression.Lambda(callExpr, paramExpr);
+                    var paramExpr = System.Linq.Expressions.Expression.Parameter(sourceType);
+                    var callExpr = System.Linq.Expressions.Expression.Call(paramExpr, matchMethod, handlers);
+                    var lambdaExpr = System.Linq.Expressions.Expression.Lambda(callExpr, paramExpr);
                     var result = lambdaExpr.Compile();
 
                     return result;
                 });
             }
-        """ * "var match = (global::System.Func<TValue, (global::System.Boolean, " * Model.Symbol.ToMinimalOpenString() * ")>)weakMatch;" *
+        """ * "var match = (System.Func<TValue, (System.Boolean, " * Model.Symbol.ToMinimalOpenString() * ")>)weakMatch;" *
         """    
             var matchResult = match.Invoke(value);
             if(!matchResult.Item1)
@@ -103,54 +102,55 @@ sealed class Factories(TargetDataModel model) : ExpansionBase(model, Macro.Facto
             return true;
         """;
     }
-    private void CreateDefaultCase(ExpandingMacroBuilder builder)
+    private void CreateDefaultCase(ExpandingMacroBuilder _)
     {
-        _ = builder * "var sourceType = typeof(TValue);" /
-            "if(!" * Model.ConversionFunctionsTypeName * ".Cache.TryGetValue(sourceType, out var weakMatch)){" /
-            "if(!global::RhoMicro.CodeAnalysis.UnionsGenerator.Generated.Util.IsMarked(sourceType)){" /
-            (b => InvalidCreationThrow(b, $"typeof({Model.Symbol.ToMinimalOpenString()})", "value")) * ';' /
-            "}weakMatch = " * Model.ConversionFunctionsTypeName * ".Cache.GetOrAdd(sourceType, t =>" /
-            "{var tupleType = typeof(global::System.ValueTuple<global::System.Boolean, " * Model.Symbol.ToMinimalOpenString() * ">);" /
-            """
-                    var matchMethod = sourceType.GetMethod(
-                            nameof(Match), 
-                            global::System.Reflection.BindingFlags.Instance | global::System.Reflection.BindingFlags.Public)?
-                        .MakeGenericMethod(tupleType) ?? 
-                        throw new global::System.Exception("Unable to locate match function on source union type. This indicates a bug in the marker detection algorithm.");
-            """ * "var targetFactoryMap = typeof(" * Model.Symbol.ToMinimalOpenString() * ')' *
-            """
-                    .GetMethods()
-                    .Where(c => c.CustomAttributes.Any(a => a.AttributeType == typeof(global::RhoMicro.CodeAnalysis.UnionFactoryAttribute)))
-                    .ToDictionary(c => c.GetParameters()[0].ParameterType);
+        //only commented out because of breaking rewrite changes
+        //_ = builder * "var sourceType = typeof(TValue);" /
+        //    "if(!" * Model.ConversionFunctionsTypeName * ".Cache.TryGetValue(sourceType, out var weakMatch)){" /
+        //    "if(!RhoMicro.CodeAnalysis.UnionsGenerator.Generated.Util.IsMarked(sourceType)){" /
+        //    (b => InvalidCreationThrow(b, $"typeof({Model.Symbol.ToMinimalOpenString()})", "value")) * ';' /
+        //    "}weakMatch = " * Model.ConversionFunctionsTypeName * ".Cache.GetOrAdd(sourceType, t =>" /
+        //    "{var tupleType = typeof(System.ValueTuple<System.Boolean, " * Model.Symbol.ToMinimalOpenString() * ">);" /
+        //    """
+        //            var matchMethod = sourceType.GetMethod(
+        //                    nameof(Match), 
+        //                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)?
+        //                .MakeGenericMethod(tupleType) ?? 
+        //                throw new System.Exception("Unable to locate match function on source union type. This indicates a bug in the marker detection algorithm.");
+        //    """ * "var targetFactoryMap = typeof(" * Model.Symbol.ToMinimalOpenString() * ')' *
+        //    """
+        //            .GetMethods()
+        //            .Where(c => c.CustomAttributes.Any(a => a.AttributeType == typeof(RhoMicro.CodeAnalysis.UnionFactoryAttribute)))
+        //            .ToDictionary(c => c.GetParameters()[0].ParameterType);
 
-                    var handlers = matchMethod.GetParameters()
-                        .Select(p => p.ParameterType.GenericTypeArguments[0])
-                        .Select(t => (ParameterExpr: global::System.Linq.Expressions.Expression.Parameter(t), ParameterExprType: t))
-                        .Select(t =>
-                        {
-                            var delegateType = typeof(global::System.Func<,>).MakeGenericType(t.ParameterExprType, tupleType);
-                            global::System.Linq.Expressions.Expression expression = targetFactoryMap.TryGetValue(t.ParameterExprType, out var factory) ? global::System.Linq.Expressions.Expression.New(tupleType.GetConstructors()[0], global::System.Linq.Expressions.Expression.Constant(true), global::System.Linq.Expressions.Expression.Call(factory, t.ParameterExpr)) : global::System.Linq.Expressions.Expression.Default(tupleType);
-                            return global::System.Linq.Expressions.Expression.Lambda(delegateType, expression, t.ParameterExpr);
-                        });
-                    var paramExpr = global::System.Linq.Expressions.Expression.Parameter(sourceType);
-                    var callExpr = global::System.Linq.Expressions.Expression.Call(paramExpr, matchMethod, handlers);
-                    var lambdaExpr = global::System.Linq.Expressions.Expression.Lambda(callExpr, paramExpr);
-                    var result = lambdaExpr.Compile();
-                    return result;
-                });
-            }
-            """ *
-            "var match = (global::System.Func<TValue, (global::System.Boolean, " * Model.Symbol.ToMinimalOpenString() * ")>)weakMatch;" *
-            """
-            var matchResult = match.Invoke(value);
-            if(!matchResult.Item1)
-            {
-            """ *
-            (b => InvalidCreationThrow(b, $"typeof({Model.Symbol.ToMinimalOpenString()})", "value")) * ';' *
-            """
-            }
-            return matchResult.Item2;
-            """;
+        //            var handlers = matchMethod.GetParameters()
+        //                .Select(p => p.ParameterType.GenericTypeArguments[0])
+        //                .Select(t => (ParameterExpr: System.Linq.Expressions.Expression.Parameter(t), ParameterExprType: t))
+        //                .Select(t =>
+        //                {
+        //                    var delegateType = typeof(System.Func<,>).MakeGenericType(t.ParameterExprType, tupleType);
+        //                    System.Linq.Expressions.Expression expression = targetFactoryMap.TryGetValue(t.ParameterExprType, out var factory) ? System.Linq.Expressions.Expression.New(tupleType.GetConstructors()[0], System.Linq.Expressions.Expression.Constant(true), System.Linq.Expressions.Expression.Call(factory, t.ParameterExpr)) : System.Linq.Expressions.Expression.Default(tupleType);
+        //                    return System.Linq.Expressions.Expression.Lambda(delegateType, expression, t.ParameterExpr);
+        //                });
+        //            var paramExpr = System.Linq.Expressions.Expression.Parameter(sourceType);
+        //            var callExpr = System.Linq.Expressions.Expression.Call(paramExpr, matchMethod, handlers);
+        //            var lambdaExpr = System.Linq.Expressions.Expression.Lambda(callExpr, paramExpr);
+        //            var result = lambdaExpr.Compile();
+        //            return result;
+        //        });
+        //    }
+        //    """ *
+        //    "var match = (System.Func<TValue, (System.Boolean, " * Model.Symbol.ToMinimalOpenString() * ")>)weakMatch;" *
+        //    """
+        //    var matchResult = match.Invoke(value);
+        //    if(!matchResult.Item1)
+        //    {
+        //    """ *
+        //    (b => InvalidCreationThrow(b, $"typeof({Model.Symbol.ToMinimalOpenString()})", "value")) * ';' *
+        //    """
+        //    }
+        //    return matchResult.Item2;
+        //    """;
     }
 }
 

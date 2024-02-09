@@ -4,13 +4,12 @@ using Microsoft.CodeAnalysis;
 
 using RhoMicro.CodeAnalysis;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
-using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
 using System;
 using System.Diagnostics;
 
 [DebuggerDisplay("{Names.SimpleTypeName}")]
-sealed class RepresentableTypeModel(
+internal sealed class RepresentableTypeModel(
     UnionTypeBaseAttribute attribute,
     ITypeSymbol target,
     String commentRef,
@@ -34,8 +33,9 @@ sealed class RepresentableTypeModel(
         ITypeSymbol target)
     {
         var commentRef =
-            attribute.RepresentableTypeIsTypeParameter ?
-            $"<typeparamref name=\"{attribute.RepresentableTypeSymbol!.Name}\"/>" :
+            //only commented out because of breaking rewrite changes
+            //attribute.RepresentableTypeIsTypeParameter ?
+            //$"<typeparamref name=\"{attribute.RepresentableTypeSymbol!.Name}\"/>" :
             $"<see cref=\"{attribute.RepresentableTypeSymbol?.ToFullOpenString().Replace('<', '{').Replace('>', '}')}\"/>";
         var names = RepresentableTypeNames.Create(attribute);
         var nature = RepresentableTypeNatureFactory.Create(attribute);

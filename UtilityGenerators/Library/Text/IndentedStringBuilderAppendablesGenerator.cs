@@ -190,6 +190,9 @@ public sealed class IndentedStringBuilderAppendablesGenerator : IIncrementalGene
                 .Append(' ')
                 .Append(enumerator.Current.Identifier.Text);
 
+            if(enumerator.Current.Default != null)
+                _ = resultBuilder.Append(enumerator.Current.Default.ToString());
+
             return true;
         }
     }
@@ -255,7 +258,7 @@ public sealed class IndentedStringBuilderAppendablesGenerator : IIncrementalGene
                 .Append("new")
                 .OpenBlock(Blocks.Parens with { ClosingDelimiter = ");\n" })
                     .Append("b => ")
-                    .OpenBlock(Blocks.Braces with { ClosingDelimiter = '}' })
+                    .OpenBlock(Blocks.Braces(builder.Options.NewLine) with { ClosingDelimiter = '}' })
                         .Append("b.").Append(name).OpenParensBlock().Append(arguments).CloseBlock().Append(';')
                     .CloseBlock()
                 .CloseBlock();

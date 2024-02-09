@@ -9,11 +9,10 @@ using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
 using System.Collections.Immutable;
 using System.Linq;
-using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
 
-sealed class Conversion(TargetDataModel model) : ExpansionBase(model, Macro.Conversion)
+internal sealed class Conversion(TargetDataModel model) : ExpansionBase(model, Macro.Conversion)
 {
-    static readonly Action<ExpandingMacroBuilder, RepresentableTypeModel, TargetDataModel> _representableTypeConversion = (
+    private static readonly Action<ExpandingMacroBuilder, RepresentableTypeModel, TargetDataModel> _representableTypeConversion = (
         ExpandingMacroBuilder builder,
         RepresentableTypeModel representableType,
         TargetDataModel data) =>
@@ -21,11 +20,12 @@ sealed class Conversion(TargetDataModel model) : ExpansionBase(model, Macro.Conv
         var model = data.Symbol;
         var allAttributes = data.Annotations.AllRepresentableTypes;
 
-        if(representableType.Attribute.RepresentableTypeIsTypeParameter &&
-           !representableType.Attribute.Options.HasFlag(UnionTypeOptions.SupersetOfParameter))
-        {
-            return;
-        }
+        //only commented out because of breaking rewrite changes
+        //if(representableType.Attribute.RepresentableTypeIsTypeParameter &&
+        //   !representableType.Attribute.Options.HasFlag(UnionTypeOptions.SupersetOfParameter))
+        //{
+        //    return;
+        //}
 
         _ = builder /
             (b => Docs.MethodSummary(b,
@@ -57,7 +57,8 @@ sealed class Conversion(TargetDataModel model) : ExpansionBase(model, Macro.Conv
 
             if(allAttributes.Count > 1)
             {
-                _ = builder * ':' * (InvalidConversionThrow, $"typeof({representableType.Names.FullTypeName}).Name");
+                //only commented out because of breaking rewrite changes
+                //_ = builder * ':' * (InvalidConversionThrow, $"typeof({representableType.Names.FullTypeName}).Name");
             }
 
             _ = builder * ';';
@@ -67,14 +68,14 @@ sealed class Conversion(TargetDataModel model) : ExpansionBase(model, Macro.Conv
                 (representableType.Storage.TypesafeInstanceVariableExpression, "union") % ';';
         }
     };
-    static readonly Action<ExpandingMacroBuilder, RelationTypeModel, TargetDataModel> _relationConversion = (
+    private static readonly Action<ExpandingMacroBuilder, RelationTypeModel, TargetDataModel> _relationConversion = (
         ExpandingMacroBuilder builder,
         RelationTypeModel relation,
         TargetDataModel model) =>
     {
         var relationType = relation.RelationType;
 
-        if(relationType is RelationType.None)
+        if(relationType is _Models.RelationType.None)
             return;
 
         var relationTypeSet = relation.Annotations.AllRepresentableTypes
@@ -93,34 +94,36 @@ sealed class Conversion(TargetDataModel model) : ExpansionBase(model, Macro.Conv
         _ = builder *
             "#region " * relationType switch
             {
-                RelationType.Congruent => "Congruency with ",
-                RelationType.Intersection => "Intersection with ",
-                RelationType.Superset => "Superset of ",
-                RelationType.Subset => "Subset of ",
+                _Models.RelationType.Congruent => "Congruency with ",
+                _Models.RelationType.Intersection => "Intersection with ",
+                _Models.RelationType.Superset => "Superset of ",
+                _Models.RelationType.Subset => "Subset of ",
                 _ => "Relation"
             } * relation.Symbol.Name / "public static " *
-            (relationType is RelationType.Congruent or RelationType.Superset ?
+            (relationType is _Models.RelationType.Congruent or _Models.RelationType.Superset ?
             "im" :
             "ex") * "plicit operator " * model.Symbol.Name * '(' * relation.Symbol.ToFullOpenString() /
             " relatedUnion) =>";
 
         if(targetTypeMap.Count == 1)
         {
-            UnknownConversion(
-                builder,
-                model,
-                relationTypeMap.Single().Value,
-                targetTypeMap.Single().Value,
-                "relatedUnion");
+            //only commented out because of breaking rewrite changes
+            //UnknownConversion(
+            //    builder,
+            //    model,
+            //    relationTypeMap.Single().Value,
+            //    targetTypeMap.Single().Value,
+            //    "relatedUnion");
         } else
         {
-            TypeSwitchExpression(
-                builder,
-                targetTypeMap,
-                (b) => _ = b.WithOperators(builder.CancellationToken) * (b => UtilFullString(b, b => _ = b * "relatedUnion.RepresentedType")),
-                (b, m) => _ = b * m.Value.Names.TypeStringName,
-                (b, m) => _ = b.WithOperators(builder.CancellationToken) * (b => UnknownConversion(b, model, relationTypeMap[m.Key], m.Value, "relatedUnion")),
-                (b) => _ = b.WithOperators(builder.CancellationToken) % (InvalidConversionThrow, $"typeof({model.Symbol.ToFullOpenString()})"));
+            //only commented out because of breaking rewrite changes
+            //TypeSwitchExpression(
+            //    builder,
+            //    targetTypeMap,
+            //    (b) => _ = b.WithOperators(builder.CancellationToken) * (b => UtilFullString(b, b => _ = b * "relatedUnion.RepresentedType")),
+            //    (b, m) => _ = b * m.Value.Names.TypeStringName,
+            //    (b, m) => _ = b.WithOperators(builder.CancellationToken) * (b => UnknownConversion(b, model, relationTypeMap[m.Key], m.Value, "relatedUnion")),
+            //    (b) => _ = b.WithOperators(builder.CancellationToken) % (InvalidConversionThrow, $"typeof({model.Symbol.ToFullOpenString()})"));
         }
 
         _ = builder % ';';
@@ -128,29 +131,31 @@ sealed class Conversion(TargetDataModel model) : ExpansionBase(model, Macro.Conv
         //conversion to relation from model
         //public static _plicit operator Relation(Target relatedUnion)
         _ = builder * "public static " *
-            (relationType is RelationType.Congruent or RelationType.Subset ?
+            (relationType is _Models.RelationType.Congruent or _Models.RelationType.Subset ?
             "im" :
             "ex") *
             "plicit operator " * relation.Symbol.ToFullOpenString() * '(' * model.Symbol.Name % " union) => ";
 
         if(relationTypeMap.Count == 1)
         {
-            KnownConversion(
-                builder,
-                relation,
-                targetTypeMap.Single().Value,
-                relationTypeMap.Single().Value,
-                "union");
+            //only commented out because of breaking rewrite changes
+            //KnownConversion(
+            //    builder,
+            //    relation,
+            //    targetTypeMap.Single().Value,
+            //    relationTypeMap.Single().Value,
+            //    "union");
             _ = builder.AppendLine();
         } else
         {
-            SwitchExpression(
-                builder,
-                relationTypeMap,
-                (b) => _ = b * "union.__tag",
-                (b, kvp) => _ = b * targetTypeMap[kvp.Key].GetCorrespondingTag(model),
-                (b, kvp) => _ = b * (b => KnownConversion(b, relation, targetTypeMap[kvp.Key], kvp.Value, "union")),
-                (b) => _ = b % (InvalidConversionThrow, $"typeof({relation.Symbol.ToFullOpenString()})"));
+            //only commented out because of breaking rewrite changes
+            //SwitchExpression(
+            //    builder,
+            //    relationTypeMap,
+            //    (b) => _ = b * "union.__tag",
+            //    (b, kvp) => _ = b * targetTypeMap[kvp.Key].GetCorrespondingTag(model),
+            //    (b, kvp) => _ = b * (b => KnownConversion(b, relation, targetTypeMap[kvp.Key], kvp.Value, "union")),
+            //    (b) => _ = b % (InvalidConversionThrow, $"typeof({relation.Symbol.ToFullOpenString()})"));
         }
 
         _ = builder % ';';
@@ -167,10 +172,11 @@ sealed class Conversion(TargetDataModel model) : ExpansionBase(model, Macro.Conv
                 Model.Annotations.AllRepresentableTypes.Where(a => !omissions.Contains(a)),
                 (IExpandingMacroStringBuilder<Macro> b, RepresentableTypeModel a, CancellationToken t) => b.WithOperators(t) * (b => _representableTypeConversion(b, a, Model)),
                 b.CancellationToken)) %
-            (b => b.AppendJoin(
-                Model.Annotations.Relations.Select(r => r.ExtractData(Model)),
-                (IExpandingMacroStringBuilder<Macro> b, RelationTypeModel r, CancellationToken t) => b.WithOperators(t) * (b => _relationConversion(b, r, Model)),
-                b.CancellationToken)) %
+            //commented out because of breaking rewrite changes
+            //(b => b.AppendJoin(
+            //    Model.Annotations.Relations.Select(r => r.ExtractData(Model)),
+            //    (IExpandingMacroStringBuilder<Macro> b, RelationTypeModel r, CancellationToken t) => b.WithOperators(t) * (b => _relationConversion(b, r, Model)),
+            //    b.CancellationToken)) %
             "#endregion";
     }
 }

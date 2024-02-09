@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using RhoMicro.CodeAnalysis.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Generators;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
+
 using System.Text.RegularExpressions;
 internal static class Extensions
 {
@@ -14,64 +15,6 @@ internal static class Extensions
         foreach(var v in values)
         {
             handler.Invoke(v);
-        }
-    }
-
-    private static readonly Dictionary<ITypeSymbol, Boolean?> _valueTypeCache = new(SymbolEqualityComparer.Default);
-    public static Boolean IsPureValueType(this ITypeSymbol symbol)
-    {
-        evaluate(symbol);
-
-        if(!_valueTypeCache[symbol].HasValue)
-            throw new Exception($"Unable to determine whether {symbol.Name} is value type.");
-
-        var result = _valueTypeCache[symbol]!.Value;
-
-        return result;
-
-        static void evaluate(ITypeSymbol symbol)
-        {
-            if(_valueTypeCache.TryGetValue(symbol, out var currentResult))
-            {
-                //cache could be initialized but undefined (null)
-                if(currentResult.HasValue)
-                    //cache was not null
-                    return;
-            } else
-            {
-                //initialize cache for type
-                _valueTypeCache[symbol] = null;
-            }
-
-            if(!symbol.IsValueType)
-            {
-                _valueTypeCache[symbol] = false;
-                return;
-            }
-
-            var members = symbol.GetMembers();
-            foreach(var member in members)
-            {
-                if(member is IFieldSymbol field && !field.IsStatic)
-                {
-                    //is field type uninitialized in cache?
-                    if(!_valueTypeCache.ContainsKey(field.Type))
-                        //initialize & define
-                        evaluate(field.Type);
-
-                    var fieldTypeIsValueType = _valueTypeCache[field.Type];
-                    if(fieldTypeIsValueType.HasValue && !fieldTypeIsValueType.Value)
-                    {
-                        //field type was initialized but found not to be value type
-                        //apply transitive property
-                        _valueTypeCache[symbol] = false;
-                        return;
-                    }
-                }
-            }
-
-            //no issues found :)
-            _valueTypeCache[symbol] = true;
         }
     }
 
@@ -212,10 +155,7 @@ internal static class Extensions
             return true;
 
         var interfaces = subtype.AllInterfaces;
-        if(interfaces.Contains(supertype, SymbolEqualityComparer.Default))
-            return true;
-
-        return false;
+        return interfaces.Contains(supertype, SymbolEqualityComparer.Default);
 
         static IEnumerable<INamedTypeSymbol> getBaseTypes(ITypeSymbol symbol)
         {
