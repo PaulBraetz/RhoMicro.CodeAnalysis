@@ -2,40 +2,18 @@
 
 using Microsoft.CodeAnalysis;
 
-using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
+using RhoMicro.CodeAnalysis.UnionsGenerator._Transformation.Visitors;
 
-using System;
-using System.Collections.Generic;
-
-internal readonly record struct FactoryModel(Boolean RequiresGeneration, String Name)
+internal readonly record struct FactoryModel(
+    Boolean RequiresGeneration,
+    String Name,
+    TypeSignatureModel Parameter) : IModel<FactoryModel>
 {
-    public static void ConfigureModels(ITypeSymbol target, IEnumerable<RepresentableTypeModel> representableTypes)
-    {
-        var targetName = target.ToFullOpenString();
-        var customFactoryNameMap = target.GetMembers()
-            .OfType<IMethodSymbol>()
-            .Where(m=>m.Parameters.Length == 1)
-            //only commented out because of breaking rewrite changes
-            //.Where(m => m.TryGetFirstUnionFactoryAttribute(out _) &&
-            //    m.Parameters.Length == 1 &&
-            //    !m.ReturnsVoid &&
-            //    m.ReturnType.ToFullOpenString() == targetName)
-            .Select(m => (Key: m.Parameters[0].Type.ToFullOpenString(), Value: m.Name))
-            .GroupBy(t => t.Key)
-            .Select(g => g.First())
-            .ToDictionary(m => m.Key, m => m.Value);
-
-        foreach(var representableType in representableTypes)
-        {
-            var representableTypeName = representableType.Names.FullTypeName;
-            if(customFactoryNameMap.TryGetValue(representableTypeName, out var factoryName))
-            {
-                _ = customFactoryNameMap.Remove(representableTypeName);
-                representableType.Factory = new(false, factoryName);
-            } else
-            {
-                representableType.Factory = new(true, representableType.Names.GeneratedFactoryName);
-            }
-        }
-    }
+    public static FactoryModel CreateCustom(String name, ITypeSymbol symbol, CancellationToken cancellationToken) =>
+        new(RequiresGeneration: false, name, TypeSignatureModel.Create(symbol, cancellationToken));
+    public static FactoryModel CreateGenerated(PartialRepresentableTypeModel model) =>
+        new(RequiresGeneration: true, $"CreateFrom{model.Alias}", model.Signature);
+    public void Receive<TVisitor>(TVisitor visitor)
+        where TVisitor : IVisitor<FactoryModel>
+        => visitor.Visit(this);
 }

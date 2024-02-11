@@ -1,60 +1,56 @@
 ﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
-using Microsoft.CodeAnalysis;
+using System.Threading;
 
-using RhoMicro.CodeAnalysis;
-using RhoMicro.CodeAnalysis.UnionsGenerator.Generators.Expansions;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 
-using System;
-using System.Diagnostics;
-
-[DebuggerDisplay("{Names.SimpleTypeName}")]
-internal sealed class RepresentableTypeModel(
-    UnionTypeBaseAttribute attribute,
-    ITypeSymbol target,
-    String commentRef,
-    RepresentableTypeNature nature,
-    RepresentableTypeNames names,
-    StorageStrategy storage)
+/// <summary>
+/// Models a representable type.
+/// </summary>
+/// <param name="Alias"></param>
+/// <param name="Options"></param>
+/// <param name="Storage"></param>
+/// <param name="Groups"></param>
+/// <param name="Signature"></param>
+/// <param name="Factory"></param>
+/// <param name="OmitConversionOperators"></param>
+sealed record RepresentableTypeModel(
+    String Alias,
+    UnionTypeOptions Options,
+    StorageOption Storage,
+    EquatableList<String> Groups,
+    TypeSignatureModel Signature,
+    Boolean OmitConversionOperators,
+    FactoryModel Factory) :
+    PartialRepresentableTypeModel(Alias, Options, Storage, Groups, Signature, OmitConversionOperators)
 {
-    public FactoryModel Factory { get; set; }
-
-    public readonly UnionTypeBaseAttribute Attribute = attribute;
-    public readonly ITypeSymbol Target = target;
-    public readonly String DocCommentRef = commentRef;
-    public readonly RepresentableTypeNature Nature = nature;
-    public readonly RepresentableTypeNames Names = names;
-    public readonly StorageStrategy Storage = storage;
-
-    public String GetCorrespondingTag(TargetDataModel model) => $"{model.TagTypeName}.{Names.SafeAlias}";
-
+    /// <summary>
+    /// Creates a new representable type model.
+    /// </summary>
+    /// <param name="partialModel"></param>
+    /// <param name="factory"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     public static RepresentableTypeModel Create(
-        UnionTypeBaseAttribute attribute,
-        ITypeSymbol target)
+        PartialRepresentableTypeModel partialModel,
+        FactoryModel factory,
+        CancellationToken cancellationToken)
     {
-        var commentRef =
-            //only commented out because of breaking rewrite changes
-            //attribute.RepresentableTypeIsTypeParameter ?
-            //$"<typeparamref name=\"{attribute.RepresentableTypeSymbol!.Name}\"/>" :
-            $"<see cref=\"{attribute.RepresentableTypeSymbol?.ToFullOpenString().Replace('<', '{').Replace('>', '}')}\"/>";
-        var names = RepresentableTypeNames.Create(attribute);
-        var nature = RepresentableTypeNatureFactory.Create(attribute);
+        Throw.ArgumentNull(partialModel, nameof(partialModel));
 
-        var storageStrategy = StorageStrategy.Create(
-            names.SafeAlias,
-            names.FullTypeName,
-            attribute.Storage,
-            nature,
-            targetIsGeneric: target is INamedTypeSymbol { IsGenericType: true });
-
+        cancellationToken.ThrowIfCancellationRequested();
         var result = new RepresentableTypeModel(
-            attribute,
-            target,
-            commentRef,
-            nature,
-            names,
-            storageStrategy);
+            partialModel.Alias,
+            partialModel.Options,
+            partialModel.Storage,
+            partialModel.Groups,
+            partialModel.Signature,
+            partialModel.OmitConversionOperators,
+            factory);
 
         return result;
     }
+    /// <inheritdoc/>
+    public override void Receive<TVisitor>(TVisitor visitor)
+        => visitor.Visit(this);
 }

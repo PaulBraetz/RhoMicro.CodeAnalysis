@@ -5,8 +5,11 @@ using RhoMicro.CodeAnalysis;
 
 public partial class UnitTest1
 {
-    [UnionType<DateTime>]
+    [UnionType<Double, Int32>(Groups = ["Number"])]
     [UnionType<String>]
+    partial class GroupsUnion;
+
+    [UnionType<String, DateTime>]
     [UnionType<Double>]
     [Relation<CongruentUnion>]
     [Relation<SubsetUnion>]
@@ -14,9 +17,7 @@ public partial class UnitTest1
     [Relation<IntersectionUnion>]
     readonly partial struct Union;
 
-    [UnionType<Double>]
-    [UnionType<DateTime>]
-    [UnionType<String>]
+    [UnionType<Double, String, DateTime>]
     sealed partial class CongruentUnion;
 
     [UnionType<DateTime>]
@@ -37,7 +38,7 @@ public partial class UnitTest1
 
     [UnionType<String>(Options = UnionTypeOptions.Nullable)]
     [UnionType<Object>]
-    partial class Union<[UnionType()] T>;
+    partial class Union<[UnionType] T>;
 
     [Fact]
     public void Test1()

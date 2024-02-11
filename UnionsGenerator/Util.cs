@@ -23,7 +23,7 @@ internal static class Util
         var attributes = symbol.GetAttributes();
         foreach(var attribute in attributes)
         {
-            if(UnionTypeBaseAttribute.TryCreate(attribute, out _))
+            if(AliasedUnionTypeBaseAttribute.TryCreate(attribute, out _))
                 return true;
             //commented out because of breaking rewrite changes
             //if(RelationAttribute.TryCreate(attribute, out _))

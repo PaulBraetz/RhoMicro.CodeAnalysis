@@ -6,18 +6,19 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using RhoMicro.CodeAnalysis;
 using RhoMicro.CodeAnalysis.Library;
 using RhoMicro.CodeAnalysis.Library.Text;
-using RhoMicro.CodeAnalysis.UnionsGenerator._Models;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 using RhoMicro.CodeAnalysis.UnionsGenerator._Transformation.Visitors;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 
 using System;
 
-using FactoryMapProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<EquatableDictionary<_Models.TypeSignatureModel, EquatableDictionary<_Models.TypeSignatureModel, _Models.FactoryModel>>>;
-using PartialUnionTypeModelsProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<EquatableList<_Models.PartialUnionTypeModel>>;
-using PartialTargetTypeModelUnionProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<EquatableDictionary<_Models.TypeSignatureModel, EquatableList<_Models.PartialRepresentableTypeModel>>>;
-using RelationsProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<EquatableDictionary<_Models.TypeSignatureModel, EquatableList<_Models.RelationModel>>>;
-using SettingsMapProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<(_Models.SettingsModel fallbackSettings, EquatableDictionary<_Models.TypeSignatureModel, _Models.SettingsModel> definedSettings)>;
+using FactoryMapProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<EquatableDictionary<Models.TypeSignatureModel, EquatableDictionary<Models.TypeSignatureModel, Models.FactoryModel>>>;
+using PartialUnionTypeModelsProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<EquatableList<Models.PartialUnionTypeModel>>;
+using PartialTargetTypeModelUnionProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<EquatableDictionary<Models.TypeSignatureModel, EquatableList<Models.PartialRepresentableTypeModel>>>;
+using RelationsProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<EquatableDictionary<Models.TypeSignatureModel, EquatableList<Models.RelationModel>>>;
+using SettingsMapProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<(Models.SettingsModel fallbackSettings, EquatableDictionary<Models.TypeSignatureModel, Models.SettingsModel> definedSettings)>;
 using SourceTextProvider = Microsoft.CodeAnalysis.IncrementalValuesProvider<(String hintName, String source)>;
+using System.Linq;
 
 [Generator(LanguageNames.CSharp)]
 internal class UnionsGenerator : IIncrementalGenerator
@@ -28,9 +29,8 @@ internal class UnionsGenerator : IIncrementalGenerator
         var settingsProvider = CreateSettingsProvider(context);
         var relationsProvider = CreateRelationsProvider(context);
 
-        var typeTargetProvider = CreateTypeDeclarationTargetProvider(context);
-        var parameterTargetProvider = CreateTypeParameterTargetProvider(context);
-        var partialTargetProvider = UnionPartialTypeModelProviders(typeTargetProvider, parameterTargetProvider);
+        var typeTargetProvider = CreateUnionTypeProvider(context);
+        var partialTargetProvider = UnionPartialTypeModelProviders(typeTargetProvider);
 
         var targetTypeModelsProvider = UnifyPartialModels(partialTargetProvider, settingsProvider, factoryMapProvider, relationsProvider);
         var sourceTextProvider = CreateSourceTextProvider(targetTypeModelsProvider);
@@ -135,16 +135,12 @@ internal class UnionsGenerator : IIncrementalGenerator
                 ct.ThrowIfCancellationRequested();
                 return models;
             });
-    private static PartialTargetTypeModelUnionProvider UnionPartialTypeModelProviders(
-        PartialUnionTypeModelsProvider typeDeclarationTargetprovider,
-        PartialUnionTypeModelsProvider typeParameterTargetProvider) =>
-        typeDeclarationTargetprovider.Combine(typeParameterTargetProvider)
-            .Select((pair, ct) =>
+    private static PartialTargetTypeModelUnionProvider UnionPartialTypeModelProviders(PartialUnionTypeModelsProvider provider) =>
+        provider
+            .Select((keyValuePairs, ct) =>
             {
                 ct.ThrowIfCancellationRequested();
-
-                var (left, right) = pair;
-                var keyValuePairs = left.Concat(right);
+                
                 var mutableResult = new Dictionary<TypeSignatureModel, (List<PartialRepresentableTypeModel> models, HashSet<TypeSignatureModel> mappedRepresentableTypes)>();
                 var result = new Dictionary<TypeSignatureModel, EquatableList<PartialRepresentableTypeModel>>();
                 foreach(var (key, value) in keyValuePairs)
@@ -186,9 +182,9 @@ internal class UnionsGenerator : IIncrementalGenerator
                 if(ctx.Attributes[0].AttributeClass?.TypeArguments.Length != 1 ||
                    ctx.Attributes[0].AttributeClass!.TypeArguments[0] is not INamedTypeSymbol relationSymbol ||
                    relationSymbol.GetAttributes()
-                    .OfUnionTypeBaseAttribute()
+                    .OfAliasedUnionTypeBaseAttribute()
                     .Concat(relationSymbol.TypeParameters
-                        .SelectMany(p => p.GetAttributes().OfUnionTypeBaseAttribute()))
+                        .SelectMany(p => p.GetAttributes().OfAliasedUnionTypeBaseAttribute()))
                     .Any())
                 {
                     return null;
@@ -376,13 +372,26 @@ internal class UnionsGenerator : IIncrementalGenerator
                 return result.AsEquatable();
             });
     #endregion
-    #region Type Parameter UnionTypeAttribute FAWMN
+    #region UnionType FAWMN
+    private static PartialUnionTypeModelsProvider CreateTypeDeclarationTargetProvider(IncrementalGeneratorInitializationContext context, String name) =>
+        context.SyntaxProvider.ForAttributeWithMetadataName(
+            name,
+            Qualifications.IsUnionTypeDeclarationSyntax,
+            PartialUnionTypeModel.CreateFromTypeDeclaration)
+        .Collect()
+        .WithCollectionComparer()
+        .Select((models, ct) =>
+        {
+            ct.ThrowIfCancellationRequested();
+            var result = models.SelectMany(m => m).ToEquatableList(ct);
+            return result;
+        });
     private static PartialUnionTypeModelsProvider CreateTypeParameterTargetProvider(IncrementalGeneratorInitializationContext context) =>
         context.SyntaxProvider.ForAttributeWithMetadataName(
-                UnionTypeBaseAttribute.NonGenericMetadataName,
-                Qualifications.IsUnionTypeParameterSyntax,
-                PartialUnionTypeModel.CreateFromTypeParameter)
-            .Where(m => m != default)
+            Qualifications.NonGenericFullMetadataName,
+            Qualifications.IsUnionTypeParameterSyntax,
+            PartialUnionTypeModel.CreateFromTypeParameter)
+            .Where(m => m != null)
             .Collect()
             .WithCollectionComparer()
             .Select((models, ct) =>
@@ -390,26 +399,25 @@ internal class UnionsGenerator : IIncrementalGenerator
                 ct.ThrowIfCancellationRequested();
                 return models.AsEquatable();
             })!;
-    #endregion
-    #region Type Declaration UnionTypeAttribute FAWMN
-    private static PartialUnionTypeModelsProvider CreateTypeDeclarationTargetProvider(IncrementalGeneratorInitializationContext context) =>
-        context.SyntaxProvider.ForAttributeWithMetadataName(
-                UnionTypeBaseAttribute.GenericMetadataName,
-                Qualifications.IsUnionTypeDeclarationSyntax,
-                PartialUnionTypeModel.CreateFromTypeDeclaration)
-            .Collect()
-            .WithCollectionComparer()
-            .Select((modelLists, ct) =>
-            {
-                ct.ThrowIfCancellationRequested();
-                return modelLists.SelectMany(l => l).ToEquatableList(ct);
-            })!;
+    private static PartialUnionTypeModelsProvider CreateUnionTypeProvider(IncrementalGeneratorInitializationContext context) =>
+        Qualifications.GenericMetadataNames
+            .Select(name => CreateTypeDeclarationTargetProvider(context, name))
+            .Aggregate(
+                CreateTypeParameterTargetProvider(context),
+                (leftProvider, rightProvider) =>
+                leftProvider.Combine(rightProvider)
+                .Select((models, ct) =>
+                {
+                    ct.ThrowIfCancellationRequested();
+                    var result = models.Left.Concat(models.Right).ToEquatableList(ct);
+                    return result;
+                }));
     #endregion
     #region Constant Sources
     private static void RegisterConstantSources(IncrementalGeneratorPostInitializationContext context)
     {
         context.CancellationToken.ThrowIfCancellationRequested();
-        context.AddSource("RhoMicro_CodeAnalysis_UnionTypeAttribute.g.cs", UnionTypeBaseAttribute.SourceText); //contains implementation source too (same file)
+        context.AddSource("RhoMicro_CodeAnalysis_UnionTypeAttribute.g.cs", AliasedUnionTypeBaseAttribute.SourceText);
         context.AddSource("RhoMicro_CodeAnalysis_RelationTypeAttribute.g.cs", RelationAttribute<Object>.SourceText);
         context.AddSource("RhoMicro_CodeAnalysis_UnionFactoryAttribute.g.cs", UnionTypeFactoryAttribute.SourceText);
         context.AddSource("RhoMicro_CodeAnalysis_UnionTypeSettingsAttribute.g.cs", UnionTypeSettingsAttribute.SourceText);
@@ -440,6 +448,7 @@ internal enum Macro
     ConversionFunctionsCache
 }
 #if false
+//old implementation
 [Generator(LanguageNames.CSharp)]
 internal class UnionsGenerator : IIncrementalGenerator
 {

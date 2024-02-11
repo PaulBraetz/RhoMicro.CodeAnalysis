@@ -27,14 +27,15 @@ public sealed class Analyzer : DiagnosticAnalyzer
             if(c.IsGeneratedCode || !Util.IsAnalysisCandidate(c.Node, c.SemanticModel))
                 return;
 
-            var model = TargetDataModel.Create((TypeDeclarationSyntax)c.Node, c.SemanticModel);
+            //commented out due to breaking rewrite changes
+            //var model = TargetDataModel.Create((TypeDeclarationSyntax)c.Node, c.SemanticModel);
 
-            var accumulator = DiagnosticsAccumulator.Create(model)
-                            .DiagnoseNonHiddenSeverities()
-                            .ReportNonHiddenSeverities()
-                            .Receive(Providers.All, c.CancellationToken);
+            //var accumulator = DiagnosticsAccumulator.Create(model)
+            //                .DiagnoseNonHiddenSeverities()
+            //                .ReportNonHiddenSeverities()
+            //                .Receive(Providers.All, c.CancellationToken);
 
-            accumulator.ReportDiagnostics(c.ReportDiagnostic);
+            //accumulator.ReportDiagnostics(c.ReportDiagnostic);
         }, SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordDeclaration, SyntaxKind.RecordStructDeclaration);
     }
 

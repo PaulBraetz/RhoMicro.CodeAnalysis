@@ -145,65 +145,127 @@ namespace RhoMicro.CodeAnalysis
     /// <summary>
     /// Marks the target type as a union type being able to represent the type passed to the constructor.
     /// </summary>
-#if UNIONS_GENERATOR
-    [GenerateFactory(OmitTypeCheck = true)]
-#endif
-    [AttributeUsage(((AttributeTargets)(-1)))]
+    [AttributeUsage(( (AttributeTargets)( -1 ) ))]
     partial class UnionTypeBaseAttribute : Attribute
     {
-        /// <summary>
-        /// Initializes a new instance.
-        /// </summary>
-        /// <param name="representableType">
-        /// The conrete type representable by the target union type.
-        /// </param>
-        public UnionTypeBaseAttribute(Type? representableType) => RepresentableType = representableType;
-        /// <summary>
-        /// Initializes a new instance.
-        /// </summary>
-        public UnionTypeBaseAttribute() : this(null) { }
-
-        /// <summary>
-        /// Gets or sets the alias to use for members representing the type represented by the union.
-        /// For example, the represented type <see cref="List{T}"/> would be represented using names like
-        /// <c>list</c>. Setting this property to <c>yourAlias</c> will instruct the generator to use
-        /// member names like <c>yourAlias</c> instead of <c>list</c>. Use this property to avoid
-        /// name collisions in generated code. Since the alias will be used for member names, it will
-        /// only be taken into account if it is a valid identifier name.
-        /// </summary>
-        public String? Alias { get; set; }
-
         /// <summary>
         /// Gets or sets the alias groups that the representable type is to be a part of. 
         /// Represnetable types that share a group may be checked for using unified methods 
         /// and properties like <c>IsGroup</c> where <c>Group</c> is the name of the group
         /// that the representable type is a part of.
         /// </summary>
-        public String[] Groups { get; set; } = Array.Empty<String>();
+        public virtual String[] Groups { get; set; } = Array.Empty<String>();
 
         /// <summary>
         /// Gets or sets the generator options to use.
         /// </summary>
-        public UnionTypeOptions Options { get; set; }
-
-        /// <summary>
-        /// Gets the conrete type representable by the target union type.
-        /// </summary>
-        public Type? RepresentableType { get; }
+        public virtual UnionTypeOptions Options { get; set; }
 
         /// <summary>
         /// Gets or sets the option defining storage generation.
         /// </summary>
-        public StorageOption Storage { get; set; }
+        public virtual StorageOption Storage { get; set; }
+    }
+#if UNIONS_GENERATOR
+    [GenerateFactory(OmitTypeCheck = true)]
+#endif
+    [AttributeUsage(( (AttributeTargets)( -1 ) ))]
+    partial class AliasedUnionTypeBaseAttribute : UnionTypeBaseAttribute
+    {
+        /// <summary>
+        /// Gets or sets the alias to use for members representing the type represented by the union.
+        /// For example, the represented type <see cref="List{T}"/> would be represented using names like
+        /// <c>list_of_T</c>. Setting this property to <c>yourAlias</c> will instruct the generator to use
+        /// member names like <c>yourAlias</c> instead of <c>list_of_T</c>. Use this property to avoid
+        /// name collisions in generated code. Since the alias will be used for member names, it will
+        /// only be taken into account if it is a valid identifier name.
+        /// </summary>
+        public String? Alias { get; set; }
+        /// <inheritdoc/>
+        public override String[] Groups { get => base.Groups; set => base.Groups = value; }
+        /// <inheritdoc/>
+        public override UnionTypeOptions Options { get => base.Options; set => base.Options = value; }
+        /// <inheritdoc/>
+        public override StorageOption Storage { get => base.Storage; set => base.Storage = value; }
     }
     /// <summary>
-    /// Marks the target type as a union type being able to represent <typeparamref name="T"/>.
+    /// Marks the target type as a union type being able to represent <typeparamref name="T0"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
-    sealed partial class UnionTypeAttribute<T>() : UnionTypeBaseAttribute(typeof(T));
+    sealed partial class UnionTypeAttribute<T0> : AliasedUnionTypeBaseAttribute;
+    /// <summary>
+    /// Marks the target type as a union type being able to represent 
+    /// <typeparamref name="T0"/>
+    /// and <typeparamref name="T1"/>.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
+    sealed partial class UnionTypeAttribute<T0, T1> : UnionTypeBaseAttribute;
+    /// <summary>
+    /// Marks the target type as a union type being able to represent 
+    /// <typeparamref name="T0"/>,
+    /// <typeparamref name="T1"/>
+    /// and <typeparamref name="T2"/>.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
+    sealed partial class UnionTypeAttribute<T0, T1, T2> : UnionTypeBaseAttribute;
+    /// <summary>
+    /// Marks the target type as a union type being able to represent 
+    /// <typeparamref name="T0"/>,
+    /// <typeparamref name="T1"/>,
+    /// <typeparamref name="T2"/>
+    /// and <typeparamref name="T3"/>.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
+    sealed partial class UnionTypeAttribute<T0, T1, T2, T3> : UnionTypeBaseAttribute;
+    /// <summary>
+    /// Marks the target type as a union type being able to represent 
+    /// <typeparamref name="T0"/>,
+    /// <typeparamref name="T1"/>,
+    /// <typeparamref name="T2"/>,
+    /// <typeparamref name="T3"/>
+    /// and <typeparamref name="T4"/>.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
+    sealed partial class UnionTypeAttribute<T0, T1, T2, T3, T4> : UnionTypeBaseAttribute;
+    /// <summary>
+    /// Marks the target type as a union type being able to represent 
+    /// <typeparamref name="T0"/>,
+    /// <typeparamref name="T1"/>,
+    /// <typeparamref name="T2"/>,
+    /// <typeparamref name="T3"/>,
+    /// <typeparamref name="T4"/>
+    /// and <typeparamref name="T5"/>.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
+    sealed partial class UnionTypeAttribute<T0, T1, T2, T3, T4, T5> : UnionTypeBaseAttribute;
+    /// <summary>
+    /// Marks the target type as a union type being able to represent 
+    /// <typeparamref name="T0"/>,
+    /// <typeparamref name="T1"/>,
+    /// <typeparamref name="T2"/>,
+    /// <typeparamref name="T3"/>,
+    /// <typeparamref name="T4"/>,
+    /// <typeparamref name="T5"/>
+    /// and <typeparamref name="T6"/>.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
+    sealed partial class UnionTypeAttribute<T0, T1, T2, T3, T4, T5, T6> : UnionTypeBaseAttribute;
+    /// <summary>
+    /// Marks the target type as a union type being able to represent 
+    /// <typeparamref name="T0"/>,
+    /// <typeparamref name="T1"/>,
+    /// <typeparamref name="T2"/>,
+    /// <typeparamref name="T3"/>,
+    /// <typeparamref name="T4"/>,
+    /// <typeparamref name="T5"/>,
+    /// <typeparamref name="T6"/>
+    /// and <typeparamref name="T7"/>.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
+    sealed partial class UnionTypeAttribute<T0, T1, T2, T3, T4, T5, T6, T7> : UnionTypeBaseAttribute;
     /// <summary>
     /// Marks the target type as a union type being able to represent the annotated type parameter.
     /// </summary>
     [AttributeUsage(AttributeTargets.GenericParameter, AllowMultiple = false, Inherited = false)]
-    sealed partial class UnionTypeAttribute() : UnionTypeBaseAttribute(null);
+    sealed partial class UnionTypeAttribute : AliasedUnionTypeBaseAttribute;
 }
