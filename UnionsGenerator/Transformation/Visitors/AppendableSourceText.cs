@@ -140,10 +140,10 @@ sealed partial class AppendableSourceText : IIndentedStringBuilderAppendable
             .CloseBlockCore();
     public void RepresentableTypeConversions(IndentedStringBuilder builder)
     {
+#pragma warning disable IDE0047 // Remove unnecessary parentheses
         var convertableTypes = _target.RepresentableTypes
-            .Where(t =>
-                !( t.OmitConversionOperators ||
-                   t.Signature.IsTypeParameter && t.Options.HasFlag(UnionTypeOptions.SupersetOfParameter) ));
+            .Where(t => !( t.OmitConversionOperators /*|| t.Signature.IsTypeParameter && t.Options.HasFlag(UnionTypeOptions.SupersetOfParameter) */));
+#pragma warning restore IDE0047 // Remove unnecessary parentheses
         builder.OpenRegionBlock("Representable Type Conversions")
             .AppendJoinLines(
             StringOrChar.Empty,
@@ -957,7 +957,7 @@ sealed partial class AppendableSourceText : IIndentedStringBuilderAppendable
     }
     public void TagType(IndentedStringBuilder builder)
     {
-        var (_, representableTypes, _, settings, _, _) = _target;
+        var (_, representableTypes, _, settings, _, _, _) = _target;
 
         if(representableTypes.Count < 2)
             return;
@@ -980,7 +980,7 @@ sealed partial class AppendableSourceText : IIndentedStringBuilderAppendable
     }
     public void JsonConverterType(IndentedStringBuilder builder)
     {
-        var (_, representableTypes, _, settings, _, _) = _target;
+        var (_, representableTypes, _, settings, _, _, _) = _target;
 
         using var __ = builder.OpenRegionBlockScope("Json Converter Type");
 

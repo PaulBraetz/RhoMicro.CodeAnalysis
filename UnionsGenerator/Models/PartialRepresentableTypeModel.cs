@@ -61,9 +61,9 @@ record PartialRepresentableTypeModel(
     }
     private static Boolean IsOperatorConversionsOmitted(TypeOrTypeParameterType representableType, INamedTypeSymbol unionType, CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        if(representableType.IsTypeParameter)
-            return true;
+        //cancellationToken.ThrowIfCancellationRequested();
+        //if(representableType.IsTypeParameter)
+        //    return true;
 
         cancellationToken.ThrowIfCancellationRequested();
         if(InheritsFrom(unionType, representableType.UnifiedType, cancellationToken))

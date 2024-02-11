@@ -1,5 +1,5 @@
 CopyToGenerator
-Copyright (C) 2023 Paul Brätz
+Copyright (C) 2024 Paul Brätz
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License Version 3 as published by

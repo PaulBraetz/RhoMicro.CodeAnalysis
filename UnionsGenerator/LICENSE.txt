@@ -1,5 +1,5 @@
 UnionsGenerator
-Copyright (C) 2023 Paul Brätz
+Copyright (C) 2024 Paul Brï¿½tz
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007

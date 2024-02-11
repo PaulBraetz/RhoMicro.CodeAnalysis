@@ -19,6 +19,10 @@ namespace RhoMicro.CodeAnalysis
     enum UnionTypeOptions
     {
         /// <summary>
+        /// The default options.
+        /// </summary>
+        Default = ImplicitConversionIfSolitary,
+        /// <summary>
         /// </summary>
         None = 0x00,
         /// <summary>
@@ -31,11 +35,11 @@ namespace RhoMicro.CodeAnalysis
         /// the representable type is a generic type parameter. By default, it is omitted because of possible
         /// unification for certain generic arguments.
         /// </summary>
-        SupersetOfParameter = 0x02,
+        //SupersetOfParameter = 0x02,
         /// <summary>
         /// Instructs the generator to treat the representable reference type 
-        /// as nullable, allowing for <see langword="null"/> or 
-        /// <see langword="default"/> arguments in factories, conversions etc.
+        /// as nullable, allowing for <see langword="null"/> 
+        /// arguments in factories, conversions etc.
         /// </summary>
         Nullable = 0x04
     }
@@ -159,7 +163,7 @@ namespace RhoMicro.CodeAnalysis
         /// <summary>
         /// Gets or sets the generator options to use.
         /// </summary>
-        public virtual UnionTypeOptions Options { get; set; }
+        public virtual UnionTypeOptions Options { get; set; } = UnionTypeOptions.Default;
 
         /// <summary>
         /// Gets or sets the option defining storage generation.
