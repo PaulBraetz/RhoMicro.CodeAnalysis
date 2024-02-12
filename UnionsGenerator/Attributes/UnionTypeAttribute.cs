@@ -170,10 +170,10 @@ namespace RhoMicro.CodeAnalysis
         /// </summary>
         public virtual StorageOption Storage { get; set; }
     }
+    [AttributeUsage(( (AttributeTargets)( -1 ) ))]
 #if UNIONS_GENERATOR
     [GenerateFactory(OmitTypeCheck = true)]
 #endif
-    [AttributeUsage(( (AttributeTargets)( -1 ) ))]
     partial class AliasedUnionTypeBaseAttribute : UnionTypeBaseAttribute
     {
         /// <summary>
@@ -196,14 +196,16 @@ namespace RhoMicro.CodeAnalysis
     /// Marks the target type as a union type being able to represent <typeparamref name="T0"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
-    sealed partial class UnionTypeAttribute<T0> : AliasedUnionTypeBaseAttribute;
+    sealed partial class UnionTypeAttribute<T0> : AliasedUnionTypeBaseAttribute
+    { }
     /// <summary>
     /// Marks the target type as a union type being able to represent 
     /// <typeparamref name="T0"/>
     /// and <typeparamref name="T1"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
-    sealed partial class UnionTypeAttribute<T0, T1> : UnionTypeBaseAttribute;
+    sealed partial class UnionTypeAttribute<T0, T1> : UnionTypeBaseAttribute
+    { }
     /// <summary>
     /// Marks the target type as a union type being able to represent 
     /// <typeparamref name="T0"/>,
@@ -211,7 +213,8 @@ namespace RhoMicro.CodeAnalysis
     /// and <typeparamref name="T2"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
-    sealed partial class UnionTypeAttribute<T0, T1, T2> : UnionTypeBaseAttribute;
+    sealed partial class UnionTypeAttribute<T0, T1, T2> : UnionTypeBaseAttribute
+    { }
     /// <summary>
     /// Marks the target type as a union type being able to represent 
     /// <typeparamref name="T0"/>,
@@ -220,7 +223,8 @@ namespace RhoMicro.CodeAnalysis
     /// and <typeparamref name="T3"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
-    sealed partial class UnionTypeAttribute<T0, T1, T2, T3> : UnionTypeBaseAttribute;
+    sealed partial class UnionTypeAttribute<T0, T1, T2, T3> : UnionTypeBaseAttribute
+    { }
     /// <summary>
     /// Marks the target type as a union type being able to represent 
     /// <typeparamref name="T0"/>,
@@ -230,7 +234,8 @@ namespace RhoMicro.CodeAnalysis
     /// and <typeparamref name="T4"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
-    sealed partial class UnionTypeAttribute<T0, T1, T2, T3, T4> : UnionTypeBaseAttribute;
+    sealed partial class UnionTypeAttribute<T0, T1, T2, T3, T4> : UnionTypeBaseAttribute
+    { }
     /// <summary>
     /// Marks the target type as a union type being able to represent 
     /// <typeparamref name="T0"/>,
@@ -241,7 +246,8 @@ namespace RhoMicro.CodeAnalysis
     /// and <typeparamref name="T5"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
-    sealed partial class UnionTypeAttribute<T0, T1, T2, T3, T4, T5> : UnionTypeBaseAttribute;
+    sealed partial class UnionTypeAttribute<T0, T1, T2, T3, T4, T5> : UnionTypeBaseAttribute
+    { }
     /// <summary>
     /// Marks the target type as a union type being able to represent 
     /// <typeparamref name="T0"/>,
@@ -253,7 +259,8 @@ namespace RhoMicro.CodeAnalysis
     /// and <typeparamref name="T6"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
-    sealed partial class UnionTypeAttribute<T0, T1, T2, T3, T4, T5, T6> : UnionTypeBaseAttribute;
+    sealed partial class UnionTypeAttribute<T0, T1, T2, T3, T4, T5, T6> : UnionTypeBaseAttribute
+    { }
     /// <summary>
     /// Marks the target type as a union type being able to represent 
     /// <typeparamref name="T0"/>,
@@ -266,10 +273,12 @@ namespace RhoMicro.CodeAnalysis
     /// and <typeparamref name="T7"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
-    sealed partial class UnionTypeAttribute<T0, T1, T2, T3, T4, T5, T6, T7> : UnionTypeBaseAttribute;
+    sealed partial class UnionTypeAttribute<T0, T1, T2, T3, T4, T5, T6, T7> : UnionTypeBaseAttribute
+    { }
     /// <summary>
     /// Marks the target type as a union type being able to represent the annotated type parameter.
     /// </summary>
     [AttributeUsage(AttributeTargets.GenericParameter, AllowMultiple = false, Inherited = false)]
-    sealed partial class UnionTypeAttribute : AliasedUnionTypeBaseAttribute;
+    sealed partial class UnionTypeAttribute : AliasedUnionTypeBaseAttribute
+    { }
 }

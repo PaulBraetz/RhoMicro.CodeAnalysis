@@ -20,9 +20,24 @@ using SettingsMapProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<(Mod
 using SourceTextProvider = Microsoft.CodeAnalysis.IncrementalValuesProvider<(String hintName, String source)>;
 using System.Linq;
 
+/// <summary>
+/// Generates partial union type implementations.
+/// </summary>
 [Generator(LanguageNames.CSharp)]
-internal class UnionsGenerator : IIncrementalGenerator
+public class UnionsGenerator : IIncrementalGenerator
 {
+    /// <summary>
+    /// Gets constant source texts to be generated into target projects.
+    /// </summary>
+    public static IReadOnlyList<String> ConstantSourceTexts { get; } =
+        [
+            AliasedUnionTypeBaseAttribute.SourceText,
+            RelationAttribute<Object>.SourceText,
+            UnionTypeFactoryAttribute.SourceText,
+            UnionTypeSettingsAttribute.SourceText,
+            ConstantSources.Util
+        ];
+    /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var factoryMapProvider = CreateFactoryMapProvider(context);
@@ -140,7 +155,7 @@ internal class UnionsGenerator : IIncrementalGenerator
             .Select((keyValuePairs, ct) =>
             {
                 ct.ThrowIfCancellationRequested();
-                
+
                 var mutableResult = new Dictionary<TypeSignatureModel, (List<PartialRepresentableTypeModel> models, HashSet<TypeSignatureModel> mappedRepresentableTypes)>();
                 var result = new Dictionary<TypeSignatureModel, EquatableList<PartialRepresentableTypeModel>>();
                 foreach(var (key, value) in keyValuePairs)

@@ -10,6 +10,7 @@ using RhoMicro.CodeAnalysis.UnionsGenerator._Transformation.Storage;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 
 using static Library.Text.IndentedStringBuilder.Appendables;
+using System.Diagnostics.CodeAnalysis;
 
 sealed partial class AppendableSourceText : IIndentedStringBuilderAppendable
 {
@@ -58,7 +59,8 @@ sealed partial class AppendableSourceText : IIndentedStringBuilderAppendable
         if(!String.IsNullOrEmpty(signature.Names.Namespace))
             builder.Append("namespace ").Append(signature.Names.Namespace).OpenBlockCore(Blocks.Braces(builder.Options.NewLine));
 
-        builder.AppendCore(ScopedData);
+        builder.AppendLine("using System.Linq;")
+            .AppendCore(ScopedData);
 
         foreach(var containingType in signature.ContainingTypes)
         {
@@ -207,7 +209,7 @@ sealed partial class AppendableSourceText : IIndentedStringBuilderAppendable
                     if(_target.RepresentableTypes.Count > 1)
                     {
                         _ = b.Append(':')
-                        .InvalidConversionThrow($"typeof({representableType.Signature.Names.FullOpenGenericName}).Name");
+                        .InvalidConversionThrow($"typeof({representableType.Signature.Names.FullGenericName}).Name");
                     }
 
                     b.AppendCore(';');
@@ -327,7 +329,7 @@ sealed partial class AppendableSourceText : IIndentedStringBuilderAppendable
     {
         builder.OpenRegionBlock("Equality")
             .Comment.InheritDoc()
-            .AppendLine("public override System.Boolean Equals(Object? obj) =>")
+            .AppendLine("public override System.Boolean Equals(System.Object? obj) =>")
             .Indent()
                 .Append("obj is ").Append(_target.Signature.Names.GenericName).AppendLine(" union && Equals(union);")
             .Detent()
@@ -343,11 +345,18 @@ sealed partial class AppendableSourceText : IIndentedStringBuilderAppendable
                     if(_target.Signature.Nature == TypeNature.ReferenceType)
                     {
                         b.AppendLine("ReferenceEquals(other, this)")
-                        .AppendLine("|| other != null")
-                        .AppendCore("&& ");
+                            .AppendLine("|| other != null")
+                            .AppendCore("&& ");
                     }
-                }).Append(_target.Settings.TagFieldName).Append(" == other.").AppendLine(_target.Settings.TagFieldName)
-                .Append("&& ").TagSwitchExpr(
+
+                    if(_target.RepresentableTypes.Count > 1)
+                    {
+                        b.Append("this.").Append(_target.Settings.TagFieldName)
+                            .Append(" == other.")
+                            .AppendLine(_target.Settings.TagFieldName)
+                            .AppendCore("&& ");
+                    }
+                }).TagSwitchExpr(
                     _target,
                     (b, t) => b.Append(_storageStrategies[t].EqualsInvocation("other")))
                 .AppendLine(';')
@@ -388,12 +397,12 @@ sealed partial class AppendableSourceText : IIndentedStringBuilderAppendable
             {
                 if(_target.Settings.ToStringSetting == ToStringSetting.Simple)
                 {
-                    builder.Append("public override String ToString() =>")
+                    builder.Append("public override System.String ToString() =>")
                         .Append(simpleToStringExpression)
                         .AppendCore(';');
                 } else
                 {
-                    builder.Append("public override String ToString()")
+                    builder.Append("public override System.String ToString()")
                         .OpenBracesBlock()
                         .Append("var stringRepresentation = ").Append(simpleToStringExpression)
                         .AppendLine(';')
@@ -440,6 +449,55 @@ sealed partial class AppendableSourceText : IIndentedStringBuilderAppendable
     public void IsAsFunctions(IndentedStringBuilder builder)
     {
         builder.OpenRegionBlock("Is/As Functions")
+            .AppendJoin(
+                StringOrChar.Empty,
+                _target.RepresentableTypes,
+                (b, t) =>
+                {
+                    b.Comment.OpenSummary()
+                        .Append("Determines whether this instance is representing a value of type ")
+                        .Comment.Ref(t.Signature).Append('.')
+                    .CloseBlock()
+                    .Comment.OpenReturns()
+                        .Comment.Langword("true").Append(" if this instance is representing a value of type ")
+                        .Comment.Ref(t.Signature).Append("; otherwise, ")
+                        .Comment.Langword("false").Append('.')
+                    .CloseBlock()
+                    .Comment.OpenParam("value")
+                        .Append("If this instance is representing a value of type ").Comment.Ref(t.Signature)
+                        .Append(", this parameter will contain that value; otherwise, ").Comment.Langword("default").Append('.')
+                    .CloseBlock()
+                    .Append("public System.Boolean TryAs").Append(t.Alias).Append('(')
+                    .Append(b =>
+                    {
+                        if(t.Signature.Nature is not TypeNature.ReferenceType)
+                            return;
+                        b.AppendCore("[System.Diagnostics.CodeAnalysis.NotNullWhen(true)]");
+                    })
+                    .Append(" out ").Append(t.Signature.Names.FullGenericNullableName).Append(" value)")
+                    .OpenBracesBlock()
+                        .Append(b =>
+                        {
+                            if(_target.RepresentableTypes.Count == 1)
+                            {
+                                b.Append("value = ").Append(_storageStrategies.Single().Value.StrongInstanceVariableExpression("this")).AppendLine(';')
+                                .AppendCore("return true;");
+                            } else
+                            {
+                                b.Append("if(")
+                                .Append("this").Append('.').Append(_target.Settings.TagFieldName)
+                                .Append(" == ")
+                                .Append(_target.Settings.TagTypeName).Append('.').Append(t.Alias).Append(')')
+                                .OpenBracesBlock()
+                                    .Append("value = ").Append(_storageStrategies[t].StrongInstanceVariableExpression("this")).AppendLine(';')
+                                    .Append("return true;")
+                                .CloseBlock()
+                                .AppendLine("value = default;")
+                                .AppendCore("return false;");
+                            }
+                        })
+                    .CloseBlockCore();
+                })
             .Comment.OpenSummary()
                 .Append("Determines whether this instance is representing a value of type ")
                 .Comment.TypeParamRef(_target.Settings.GenericTValueName).Append('.')
@@ -524,7 +582,7 @@ sealed partial class AppendableSourceText : IIndentedStringBuilderAppendable
                 .Comment.Langword("true").Append(" if this instance is representing an instance of ")
                 .Comment.ParamRef("type").Append("; otherwise, ").Comment.Langword("false").Append('.')
             .CloseBlock()
-            .AppendLine("public System.Boolean Is(Type type) =>")
+            .AppendLine("public System.Boolean Is(System.Type type) =>")
             .Append(b =>
             {
                 _ = _target.RepresentableTypes.Count > 0
@@ -623,14 +681,14 @@ sealed partial class AppendableSourceText : IIndentedStringBuilderAppendable
             .Comment.OpenSummary()
                 .Append("Gets the types of value this union type can represent.")
             .CloseBlock()
-            .AppendLine("public static System.Collections.Generic.IReadOnlyCollection<Type> RepresentableTypes { get; } = ")
+            .AppendLine("public static System.Collections.Generic.IReadOnlyCollection<System.Type> RepresentableTypes { get; } = ")
             .Indent()
                 .Append(_target.ScopedDataTypeName).Append(".RepresentableTypes;")
             .Detent()
             .Comment.OpenSummary()
                 .Append("Gets the type of value represented by this instance.")
             .CloseBlock()
-            .AppendLine("public Type RepresentedType => ")
+            .AppendLine("public System.Type RepresentedType => ")
             .TagSwitchExpr(
                 _target,
                 (b, a) => b.Typeof(a.Signature))
@@ -711,8 +769,8 @@ sealed partial class AppendableSourceText : IIndentedStringBuilderAppendable
         builder.OpenRegionBlock("Scoped Data")
             .Append("file static class ").Append(_target.ScopedDataTypeName)
             .OpenBracesBlock()
-                .AppendLine("public static System.Collections.Concurrent.ConcurrentDictionary<Type, Object> Cache { get; } = new();")
-                .AppendLine("public static System.Collections.Generic.HashSet<Type> RepresentableTypes { get; } = ")
+                .AppendLine("public static System.Collections.Concurrent.ConcurrentDictionary<System.Type, System.Object> Cache { get; } = new();")
+                .AppendLine("public static System.Collections.Generic.HashSet<System.Type> RepresentableTypes { get; } = ")
                 .AppendLine("new ()")
                 .OpenBracesBlock()
                     .AppendJoinLines(
@@ -762,7 +820,7 @@ sealed partial class AppendableSourceText : IIndentedStringBuilderAppendable
             .Comment.Langword("true").Append(" if an instance of ").Comment.SeeRef(_target).Append(" could successfully be created; otherwise, ")
             .Comment.Langword("false").AppendLine('.')
             .CloseBlock()
-            .Append("public static Boolean TryCreate<").Append(tValueName)
+            .Append("public static System.Boolean TryCreate<").Append(tValueName)
             .Append(">(").Append(tValueName).Append(" value, ").Append(b =>
             {
                 if(_target.Signature.Nature == TypeNature.ReferenceType)
@@ -828,7 +886,7 @@ sealed partial class AppendableSourceText : IIndentedStringBuilderAppendable
             .AppendLineCore();
 
         void invalidCreationThrow(IndentedStringBuilder builder) =>
-            builder.Append("throw new InvalidOperationException($\"Unable to create an instance of ")
+            builder.Append("throw new System.InvalidOperationException($\"Unable to create an instance of ")
                 .Append(_target.Signature.Names.FullGenericName)
                 .Append(" from an instance of {typeof(").Append(_target.Settings.GenericTValueName).AppendCore(")}.\");");
     }
@@ -968,7 +1026,7 @@ sealed partial class AppendableSourceText : IIndentedStringBuilderAppendable
                 .Append("Defines tags to discriminate between representable types.")
                 .CloseBlock()
                 .GeneratedUnnavigableInternalCode(_target)
-                .Append("private enum ").Append(settings.TagTypeName).Append(" : Byte")
+                .Append("private enum ").Append(settings.TagTypeName).Append(" : System.Byte")
                 .OpenBracesBlock()
                 .AppendJoinLines(representableTypes, (b, t) =>
                     b.Comment.OpenSummary()
@@ -1013,9 +1071,9 @@ sealed partial class AppendableSourceText : IIndentedStringBuilderAppendable
 
         if(_target.RepresentableTypes.Count == 1)
         {
-            builder.Append("value.").AppendCore(
+            builder.AppendCore(
                 _storageStrategies[_target.RepresentableTypes[0]]
-                .InstanceVariableExpression());
+                .InstanceVariableExpression("value"));
         } else
         {
             _ = builder.TagSwitchExpr(
@@ -1077,13 +1135,13 @@ sealed partial class AppendableSourceText : IIndentedStringBuilderAppendable
                     .Append("throw new System.Text.Json.JsonException($\"Unable to deserialize a union instance representing an instance of {RepresentedType} as an instance of ")
                     .Append(_target.Signature.Names.FullGenericName).AppendCore("\")"))
             .AppendLine(';')
-            .AppendLine("public required String RepresentedType { get; set; }")
-            .AppendLine("public required Object? RepresentedValue { get; set; }")
+            .AppendLine("public required System.String RepresentedType { get; set; }")
+            .AppendLine("public required System.Object? RepresentedValue { get; set; }")
             .CloseBlock()
             .Comment.InheritDoc()
             .Append("public override ").Append(_target.Signature.Names.GenericName)
             .Append(_target.Signature.Nature == TypeNature.ReferenceType ? "?" : String.Empty)
-            .AppendLine(" Read(ref System.Text.Json.Utf8JsonReader reader, Type typeToConvert, System.Text.Json.JsonSerializerOptions options)")
+            .AppendLine(" Read(ref System.Text.Json.Utf8JsonReader reader, System.Type typeToConvert, System.Text.Json.JsonSerializerOptions options)")
             .OpenBracesBlock()
                 .AppendLine("var dto = System.Text.Json.JsonSerializer.Deserialize<Dto?>(ref reader, options);")
                 .AppendLine("if(dto == null)")

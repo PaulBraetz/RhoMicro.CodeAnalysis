@@ -22,6 +22,7 @@ internal static partial class ConstantSources
         using System.Collections.Concurrent;
         using System.Collections.Generic;
         using System.Text;
+        using System.Linq;
         using System;
 
         {{GeneratedCode}}

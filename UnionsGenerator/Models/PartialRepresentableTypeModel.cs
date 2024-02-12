@@ -66,6 +66,10 @@ record PartialRepresentableTypeModel(
         //    return true;
 
         cancellationToken.ThrowIfCancellationRequested();
+        if(representableType.UnifiedType.TypeKind == TypeKind.Interface)
+            return true;
+
+        cancellationToken.ThrowIfCancellationRequested();
         if(InheritsFrom(unionType, representableType.UnifiedType, cancellationToken))
             return true;
 

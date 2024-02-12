@@ -151,7 +151,7 @@ abstract partial class StorageStrategy
         => InstanceVariableAssignmentExpression(valueExpression, "this");
 
     public IndentedStringBuilderAppendable ToStringInvocation(String instance) =>
-        new(b => _ = b.Operators + '(' + InstanceVariableExpression(instance) + NullableFieldQuestionMark + ".ToString() ?? String.Empty)");
+        new(b => _ = b.Operators + '(' + InstanceVariableExpression(instance) + NullableFieldQuestionMark + ".ToString() ?? System.String.Empty)");
     public IndentedStringBuilderAppendable ToStringInvocation()
         => ToStringInvocation("this");
 

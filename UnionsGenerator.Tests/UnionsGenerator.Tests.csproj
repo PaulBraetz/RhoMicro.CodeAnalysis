@@ -12,49 +12,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Include="..\UnionsGenerator\Attributes\RelationAttribute.cs" Link="GeneratorSource\RelationAttribute.cs" />
-	  <Compile Include="..\UnionsGenerator\Attributes\UnionTypeAttribute.cs" Link="GeneratorSource\UnionTypeAttribute.cs" />
-	  <Compile Include="..\UnionsGenerator\Attributes\UnionTypeAttribute.Internal.cs" Link="GeneratorSource\UnionTypeAttribute.Internal.cs" />
-	  <Compile Include="..\UnionsGenerator\Attributes\UnionTypeFactoryAttribute.cs" Link="GeneratorSource\UnionTypeFactoryAttribute.cs" />
-	  <Compile Include="..\UnionsGenerator\Attributes\UnionTypeSettingsAttribute.cs" Link="GeneratorSource\UnionTypeSettingsAttribute.cs" />
-	  <Compile Include="..\UnionsGenerator\Generators\SettingsAttributeData.cs" Link="GeneratorSource\SettingsAttributeData.cs" />
-	  <Compile Include="..\UnionsGenerator\Util.cs" Link="GeneratorSource\Util.cs" />
-	  <Compile Include="..\UnionsGenerator\Utils\ConstantSources.cs" Link="GeneratorSource\ConstantSources.cs" />
-	  <Compile Include="..\UnionsGenerator\Utils\Qualifications.cs" Link="GeneratorSource\Qualifications.cs" />
-	  <Compile Include="..\UnionsGenerator\Utils\Throw.cs" Link="GeneratorSource\Throw.cs" />
-	  <Compile Include="..\UnionsGenerator\_Models\FactoryModel.cs" Link="GeneratorSource\FactoryModel.cs" />
-	  <Compile Include="..\UnionsGenerator\_Models\IModel.cs" Link="GeneratorSource\IModel.cs" />
-	  <Compile Include="..\UnionsGenerator\_Models\NamedOrTypeParameterType.cs" Link="GeneratorSource\NamedOrTypeParameterType.cs" />
-	  <Compile Include="..\UnionsGenerator\_Models\PartialRepresentableTypeModel.cs" Link="GeneratorSource\PartialRepresentableTypeModel.cs" />
-	  <Compile Include="..\UnionsGenerator\_Models\PartialUnionTypeModel.cs" Link="GeneratorSource\PartialUnionTypeModel.cs" />
-	  <Compile Include="..\UnionsGenerator\_Models\RelatedTypeModel.cs" Link="GeneratorSource\RelatedTypeModel.cs" />
-	  <Compile Include="..\UnionsGenerator\_Models\RelationModel.cs" Link="GeneratorSource\RelationModel.cs" />
-	  <Compile Include="..\UnionsGenerator\_Models\RelationType.cs" Link="GeneratorSource\RelationType.cs" />
-	  <Compile Include="..\UnionsGenerator\_Models\RepresentableTypeModel.cs" Link="GeneratorSource\RepresentableTypeModel.cs" />
-	  <Compile Include="..\UnionsGenerator\_Models\SettingsModel.cs" Link="GeneratorSource\SettingsModel.cs" />
-	  <Compile Include="..\UnionsGenerator\_Models\SymbolDisplayFormats.cs" Link="GeneratorSource\SymbolDisplayFormats.cs" />
-	  <Compile Include="..\UnionsGenerator\_Models\TypeNamesModel.cs" Link="GeneratorSource\TypeNamesModel.cs" />
-	  <Compile Include="..\UnionsGenerator\_Models\TypeNature.cs" Link="GeneratorSource\TypeNature.cs" />
-	  <Compile Include="..\UnionsGenerator\_Models\TypeSignatureModel.cs" Link="GeneratorSource\TypeSignatureModel.cs" />
-	  <Compile Include="..\UnionsGenerator\_Models\UnionTypeModel.cs" Link="GeneratorSource\UnionTypeModel.cs" />
-	  <Compile Include="..\UnionsGenerator\_Transformation\CommentBuilder.cs" Link="GeneratorSource\CommentBuilder.cs" />
-	  <Compile Include="..\UnionsGenerator\_Transformation\IndentedStringBuilder.cs" Link="GeneratorSource\IndentedStringBuilder.cs" />
-	  <Compile Include="..\UnionsGenerator\_Transformation\Storage\StorageSelectionViolation.cs" Link="GeneratorSource\StorageSelectionViolation.cs" />
-	  <Compile Include="..\UnionsGenerator\_Transformation\Storage\StorageStrategy.cs" Link="GeneratorSource\StorageStrategy.cs" />
-	  <Compile Include="..\UnionsGenerator\_Transformation\Storage\StorageStrategy.FieldContainerStrategy.cs" Link="GeneratorSource\StorageStrategy.FieldContainerStrategy.cs" />
-	  <Compile Include="..\UnionsGenerator\_Transformation\Storage\StorageStrategy.ReferenceContainerStrategy.cs" Link="GeneratorSource\StorageStrategy.ReferenceContainerStrategy.cs" />
-	  <Compile Include="..\UnionsGenerator\_Transformation\Storage\StorageStrategy.ValueContainerStrategy.cs" Link="GeneratorSource\StorageStrategy.ValueContainerStrategy.cs" />
-	  <Compile Include="..\UnionsGenerator\_Transformation\Storage\StrategySourceHost.cs" Link="GeneratorSource\StrategySourceHost.cs" />
-	  <Compile Include="..\UnionsGenerator\_Transformation\Storage\StringExtensions.cs" Link="GeneratorSource\StringExtensions.cs" />
-	  <Compile Include="..\UnionsGenerator\_Transformation\Visitors\AppendableSourceText.cs" Link="GeneratorSource\AppendableSourceText.cs" />
-	  <Compile Include="..\UnionsGenerator\_Transformation\Visitors\IModelVisitor.cs" Link="GeneratorSource\IModelVisitor.cs" />
-	  <Compile Include="..\UnionsGenerator\_Transformation\Visitors\IVisitor.cs" Link="GeneratorSource\IVisitor.cs" />
-	  <Compile Include="..\UnionsGenerator\_Transformation\Visitors\SourceTextVisitor.cs" Link="GeneratorSource\SourceTextVisitor.cs" />
-	  <Compile Include="..\UnionsGenerator\_Transformation\Visitors\StructuralRepresentationVisitor.cs" Link="GeneratorSource\StructuralRepresentationVisitor.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<PackageReference Include="Microsoft.CodeAnalysis" Version="*" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />
 		<PackageReference Include="xunit" Version="2.4.2" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
@@ -68,11 +25,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\UtilityGenerators\UtilityGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="GeneratorSource\" />
+	  <ProjectReference Include="..\UnionsGenerator.Tests.Compilation\UnionsGenerator.Tests.Compilation.csproj" />
 	</ItemGroup>
 
 </Project>

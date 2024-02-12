@@ -22,5 +22,6 @@ namespace RhoMicro.CodeAnalysis
 #if UNIONS_GENERATOR
     [GenerateFactory]
 #endif
-    sealed partial class UnionTypeFactoryAttribute : Attribute;
+    sealed partial class UnionTypeFactoryAttribute : Attribute
+    { }
 }
