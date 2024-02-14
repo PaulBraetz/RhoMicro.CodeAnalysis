@@ -2,42 +2,36 @@
 
 using Microsoft.CodeAnalysis;
 
-using RhoMicro.CodeAnalysis.UnionsGenerator._Transformation.Visitors;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Models.Storage;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Visitors;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 
-readonly record struct RelatedTypeModel(TypeSignatureModel Signature, EquatableSet<TypeSignatureModel> RepresentableTypes) : IModel<RelatedTypeModel>
+sealed record RelatedTypeModel(TypeSignatureModel Signature, EquatableSet<TypeSignatureModel> RepresentableTypeSignatures) : IModel<RelatedTypeModel>
 {
     public static RelatedTypeModel Create(INamedTypeSymbol relationSymbol, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var representableTypes = GetRepresentableTypes(relationSymbol, cancellationToken);
+        var representableTypeSignatures = GetRepresentableTypeSignatures(relationSymbol, cancellationToken);
         var signature = TypeSignatureModel.Create(relationSymbol, cancellationToken);
-        var result = new RelatedTypeModel(signature, representableTypes);
+        var result = new RelatedTypeModel(signature, representableTypeSignatures);
 
         return result;
     }
-    private static EquatableSet<TypeSignatureModel> GetRepresentableTypes(INamedTypeSymbol relationSymbol, CancellationToken cancellationToken)
+    private static EquatableSet<TypeSignatureModel> GetRepresentableTypeSignatures(INamedTypeSymbol relationSymbol, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var declarationSignatures = relationSymbol.GetAttributes()
-            .Where(Qualifications.IsUnionTypeDeclarationAttribute)
-            .Select(data =>
-            {
-                var type = data.AttributeClass!.TypeArguments[0];
-                var result = TypeSignatureModel.Create(type, cancellationToken);
-                return result;
-            });
+        var declarationSignatures = PartialUnionTypeModel.CreateFromTypeDeclaration(relationSymbol, cancellationToken);
         var typeParamSignatures = relationSymbol.TypeParameters
-            .Select((p, i) => (
-                index: i,
-                representable: p.GetAttributes()
-                    .Where(Qualifications.IsUnionTypeParameterAttribute)
-                    .Any()))
-            .Where(t => t.representable)
-            .Select(t => relationSymbol.TypeArguments[t.index])
-            .Select(t => TypeSignatureModel.Create(t, cancellationToken));
+            .Select(p => PartialUnionTypeModel.CreateFromTypeParameter(p, cancellationToken))
+            .Where(m => m != null);
+        
+        var relationTypeSignature = TypeSignatureModel.Create(relationSymbol, cancellationToken);
 
         var result = declarationSignatures.Concat(typeParamSignatures)
+            .Where(m => m!.Signature.Equals(relationTypeSignature))
+            .Where(p => p != null)
+            .Select(p => p!.RepresentableType.Signature)
+            .Distinct()
             .ToEquatableSet(cancellationToken);
 
         return result;

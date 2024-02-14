@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 
-using RhoMicro.CodeAnalysis.UnionsGenerator._Transformation.Visitors;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Visitors;
 
 using System;
 
@@ -42,8 +42,12 @@ internal readonly record struct RelationModel(
         if(isBidirectional)
             return RelationType.BidirectionalRelation;
 
-        var relationTypes = relatedTypeModel.RepresentableTypes;
-        var targetTypes = RelatedTypeModel.Create(targetType, cancellationToken).RepresentableTypes;
+        var relationTypes = relatedTypeModel.RepresentableTypeSignatures
+            .Select(s=>s.Names.FullGenericNullableName)
+            .ToList();
+        var targetTypes = RelatedTypeModel.Create(targetType, cancellationToken).RepresentableTypeSignatures
+            .Select(s => s.Names.FullGenericNullableName)
+            .ToList();
 
         //is target subset of relation?
         if(targetTypes.All(relationTypes.Contains))
@@ -59,7 +63,7 @@ internal readonly record struct RelationModel(
             return RelationType.Superset;
 
         //is relation intersection of target
-        return relationTypes.Any(targetTypes.Contains) ? RelationType.Intersection : RelationType.None;
+        return relationTypes.Any(targetTypes.Contains) ? RelationType.Intersection : RelationType.Disjunct;
     }
     public void Receive<TVisitor>(TVisitor visitor)
         where TVisitor : IVisitor<RelationModel>

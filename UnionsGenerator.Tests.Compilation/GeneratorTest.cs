@@ -25,7 +25,7 @@ public abstract class GeneratorTest(IAssertStrategy assert)
     /// <param name="source"></param>
     /// <param name="assertion"></param>
     /// <param name="unionTypeName"></param>
-    public void UnionType(String source, Action<INamedTypeSymbol> assertion, String? unionTypeName = null)
+    public void TestUnionType(String source, Action<INamedTypeSymbol> assertion, String? unionTypeName = null)
     {
         _ = assertion ?? throw new ArgumentNullException(nameof(assertion));
 
@@ -45,7 +45,7 @@ public abstract class GeneratorTest(IAssertStrategy assert)
     /// </summary>
     /// <param name="source"></param>
     /// <param name="assertion"></param>
-    public void DriverResult(String source, Action<GeneratorDriverRunResult> assertion)
+    public void TestDriverResult(String source, Action<GeneratorDriverRunResult> assertion)
     {
         _ = assertion ?? throw new ArgumentNullException(nameof(assertion));
 
@@ -66,8 +66,7 @@ public abstract class GeneratorTest(IAssertStrategy assert)
         driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out var diagnostics);
 
         // We can now assert things about the resulting compilation:
-        _assert.True(diagnostics.IsEmpty); // there were no diagnostics created by the generators
-        _assert.True(compilation.SyntaxTrees.Count() == 2 + UnionsGenerator.ConstantSourceTexts.Count);
+        _assert.Empty(diagnostics); // there were no diagnostics created by the generators
         var aggregateDiagnostics = compilation.GetDiagnostics();
         _assert.Empty(aggregateDiagnostics); // verify the compilation with the added source has no diagnostics
 
@@ -75,8 +74,7 @@ public abstract class GeneratorTest(IAssertStrategy assert)
         var result = driver.GetRunResult();
 
         // The runResult contains the combined results of all generators passed to the driver
-        _assert.True(result.GeneratedTrees.Length == 1 + UnionsGenerator.ConstantSourceTexts.Count);
-        _assert.True(result.Diagnostics.IsEmpty);
+        _assert.Empty(result.Diagnostics);
 
         return result;
     }

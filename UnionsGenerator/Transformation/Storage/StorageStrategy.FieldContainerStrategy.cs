@@ -4,16 +4,16 @@ using RhoMicro.CodeAnalysis.Library.Text;
 using static RhoMicro.CodeAnalysis.Library.Text.IndentedStringBuilder.Appendables;
 
 using System;
-using RhoMicro.CodeAnalysis.UnionsGenerator._Transformation.Storage;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Storage;
 
-abstract partial class StorageStrategy
+partial class StorageStrategy
 {
     private sealed class FieldContainerStrategy(
-        UnionTypeModel targetType,
-        RepresentableTypeModel unionTypeAttribute,
+        SettingsModel settings,
+        PartialRepresentableTypeModel representableType,
         StorageOption selectedOption,
         StorageSelectionViolation violation)
-        : StorageStrategy(targetType, unionTypeAttribute, selectedOption, violation)
+        : StorageStrategy(settings, representableType, selectedOption, violation)
     {
         public override StorageOption ActualOption => StorageOption.Field;
         public override IndentedStringBuilderAppendable ConvertedInstanceVariableExpression(

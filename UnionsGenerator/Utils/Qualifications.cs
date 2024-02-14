@@ -20,21 +20,24 @@ static class Qualifications
     public static String GetGenericFullMetadataName(Int32 typeParamCount) => _genericNames[typeParamCount];
     public static IEnumerable<String> GenericMetadataNames => _genericNames.Values;
 
-    public const Int32 MaxRepresentableTypesCount = 256;
+    public const Int32 MaxRepresentableTypesCount = 255; //limit to 255 due to tag type being byte + None tag
 
-    private static Boolean IsUnionTypeNamespaceAttribute(this AttributeData data) =>
-        data.AttributeClass?.ToDisplayString(
+    private static Boolean IsAttributesNamespaceAttribute(this AttributeData data) =>
+        data.AttributeClass?.ContainingNamespace.ToDisplayString(
             SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted))
         == MetadataNamespace;
     public static Boolean IsUnionTypeDeclarationAttribute(this AttributeData data) =>
-        data.IsUnionTypeNamespaceAttribute()
+        data.IsAttributesNamespaceAttribute()
         && data.AttributeClass!.MetadataName.StartsWith(GenericMetadataName)
         && data.AttributeClass.TypeArguments.Length < MaxRepresentableTypesCount;
     public static Boolean IsUnionTypeParameterAttribute(this AttributeData data) =>
-        data.IsUnionTypeNamespaceAttribute()
+        data.IsAttributesNamespaceAttribute()
         && data.AttributeClass?.MetadataName == NonGenericMetadataName
         && data.AttributeClass.TypeArguments.Length == 0;
     public static Boolean IsUnionTypeAttribute(this AttributeData data) => data.IsUnionTypeParameterAttribute() || data.IsUnionTypeDeclarationAttribute();
+    public static Boolean IsUnionTypeSettingsAttribute(this AttributeData data) =>
+        data.IsAttributesNamespaceAttribute()
+        && data.AttributeClass?.MetadataName == typeof(UnionTypeSettingsAttribute).Name;
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Boolean IsUnionTypeParameterSyntax(SyntaxNode? node, CancellationToken cancellationToken)
     {
@@ -63,6 +66,20 @@ static class Qualifications
         cancellationToken.ThrowIfCancellationRequested();
         //declaration must be partial
         return ( (TypeDeclarationSyntax)node ).Modifiers.Any(SyntaxKind.PartialKeyword);
+    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Boolean IsUnionTypeFactorySymbol(IMethodSymbol methodSymbol, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if(!methodSymbol.IsStatic
+           || SymbolEqualityComparer.IncludeNullability.Equals(methodSymbol.ReturnType, methodSymbol.ContainingSymbol)
+           || methodSymbol.Parameters.Length != 1
+           || methodSymbol.TypeParameters.Length != 0)
+        {
+            return false;
+        }
+
+        return true;
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Boolean IsUnionTypeFactoryDeclarationSyntax(SyntaxNode? node, CancellationToken cancellationToken)

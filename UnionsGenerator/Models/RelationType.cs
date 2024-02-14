@@ -8,7 +8,7 @@ internal enum RelationType
     /// <summary>
     /// There is no relation between the provided type and target type.
     /// </summary>
-    None,
+    Disjunct,
     /// <summary>
     /// The relation is defined on both the target type as well as the relation type.
     /// </summary>

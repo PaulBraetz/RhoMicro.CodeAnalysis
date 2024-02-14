@@ -1,6 +1,6 @@
 ﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
-using RhoMicro.CodeAnalysis.UnionsGenerator._Transformation.Visitors;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Visitors;
 
 /// <summary>
 /// Represents a base model, capable of receiving visitors for Open/Closed-compliant extension of functionality.
