@@ -135,7 +135,7 @@ enum MiscellaneousSettings
     /// <summary>
     /// The default settings.
     /// </summary>
-    Default = GenerateJsonConverter,
+    Default = None,
     /// <summary>
     /// Indicates whether the generated source code should be available as a string constant on the union type itself.
     /// This setting is generally only useful if the generated implementation should be emitted from another generator.

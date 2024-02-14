@@ -11,10 +11,10 @@ using static Lexemes;
 #endif
 partial class Tokenizer
 {
-    [UnionType(typeof(Token))]
-    [UnionType(typeof(TokenType))]
+    [UnionType<Token, TokenType>]
     readonly partial struct TokenOrType;
     public static Tokenizer Instance { get; } = new();
+    
     public TokenizeResult Tokenize(SourceText sourceText, CancellationToken cancellationToken
 #if DSL_GENERATOR
         , String filePath = ""
@@ -253,7 +253,7 @@ partial class Tokenizer
         {
             discardToken(); //discard quote token
             var containsCharacters = false;
-            while((lookAhead() != Quote || lookBehind() == Escape) && !isAtEnd())
+            while(( lookAhead() != Quote || lookBehind() == Escape ) && !isAtEnd())
             {
                 if(lookAhead() == NewLine)
                 {

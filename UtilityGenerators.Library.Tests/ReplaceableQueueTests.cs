@@ -7,8 +7,8 @@ using System.Text;
 
 public partial class ReplaceableQueueTests
 {
-    [UnionType(typeof(String), Alias = "String")]
-    [UnionType(typeof(Int32), Alias = "Macro")]
+    [UnionType<String>(Alias = "String")]
+    [UnionType<Int32>(Alias = "Macro")]
     public readonly partial struct StringOrMacro;
 
     public static Object[][] Data { get; } = [
@@ -87,7 +87,7 @@ public partial class ReplaceableQueueTests
         var queue = new ExpandingMacroStringBuilder.Queue<String, Int32>();
         foreach(var item in items)
         {
-            item.Switch(m => queue.EnqueueMacro(m), s => queue.EnqueueValue(s));
+            item.Switch(s => queue.EnqueueValue(s), m => queue.EnqueueMacro(m));
         }
 
         foreach(var replacement in replacements)

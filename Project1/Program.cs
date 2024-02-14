@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 internal class Program
 {
-    private static void Main(string[] args)
+    private static void Main(String[] _)
     {
         Console.WriteLine(typeof(Stream).AssemblyQualifiedName);
         //TestIntersectionMapping();

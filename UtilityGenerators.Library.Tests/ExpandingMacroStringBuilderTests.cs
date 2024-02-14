@@ -5,9 +5,8 @@ using System;
 
 public partial class ExpandingMacroStringBuilderTests
 {
-    [UnionType(typeof(Char), Alias = "Char")]
-    [UnionType(typeof(String), Alias = "String")]
-    [UnionType(typeof(Int32), Alias = "Macro")]
+    [UnionType<Char, String>]
+    [UnionType<Int32>(Alias = "Macro")]
     [UnionTypeSettings(Layout = LayoutSetting.Auto)]
     public readonly partial struct ValueOrPlaceholder;
 

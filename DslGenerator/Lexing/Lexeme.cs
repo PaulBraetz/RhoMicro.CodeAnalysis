@@ -5,10 +5,10 @@ using System.Text.RegularExpressions;
 #if DSL_GENERATOR
 [IncludeFile]
 #endif
-[UnionType(typeof(String))]
-[UnionType(typeof(Char))]
-[UnionType(typeof(StringSlice))]
-[UnionTypeSettings(ToStringSetting = ToStringSetting.Simple, EmitGeneratedSourceCode = true)]
+[UnionType<String, Char, StringSlice>]
+[UnionTypeSettings(
+    ToStringSetting = ToStringSetting.Simple,
+    Miscellaneous = MiscellaneousSettings.Default | MiscellaneousSettings.EmitGeneratedSourceCode)]
 readonly partial struct Lexeme : IEquatable<String>, IEquatable<Char>, IEquatable<StringSlice>
 {
     public Int32 Length => Match(
@@ -22,14 +22,14 @@ readonly partial struct Lexeme : IEquatable<String>, IEquatable<Char>, IEquatabl
         Match(v => v.GetHashCode(), v => v.GetHashCode(), v => v.GetHashCode());
     public Boolean Equals(Char c) =>
         Match(
-            s => s.Equals(c),
+            s => s.Length == 1 && s[0] == c,
             thisChar => thisChar == c,
-            s => s.Length == 1 && s[0] == c);
+            s => s.Equals(c));
     public Boolean Equals(String s) =>
         Match(
-            slice => slice.Equals(s),
+            thisString => thisString == s,
             c => s.Length == 1 && s[0] == c,
-            thisString => thisString == s);
+            slice => slice.Equals(s));
     public Boolean Equals(StringSlice s) =>
         Match(s.Equals, s.Equals, s.Equals);
     public String ToEscapedString() =>

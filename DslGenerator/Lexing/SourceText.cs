@@ -6,12 +6,12 @@ using System.Text;
 #if DSL_GENERATOR
 [IncludeFile]
 #endif
-[UnionType(typeof(String))]
-[UnionType(typeof(Stream))]
+[UnionType<String, Stream>]
 readonly partial struct SourceText : IDisposable
 {
     public String ToString(CancellationToken cancellationToken) =>
         Match(
+            s => s,
             s =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -28,12 +28,11 @@ readonly partial struct SourceText : IDisposable
                 var result = resultBuilder.ToString();
 
                 return result;
-            },
-            s => s);
+            });
     public static SourceText Empty { get; } = String.Empty;
     public void Dispose()
     {
-        if(IsStream)
-            AsStream.Dispose();
+        if(TryAsStream(out var s))
+            s.Dispose();
     }
 }

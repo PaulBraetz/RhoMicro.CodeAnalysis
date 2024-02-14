@@ -96,7 +96,5 @@ public sealed class DslGenerator : IIncrementalGenerator
             diagnostics.ReportToContext(ctx);
         });
         IncludedFileSources.RegisterToContext(context);
-        context.RegisterPostInitializationOutput(ctx =>
-            ctx.AddSource("Lexeme_Union.g.cs", Lexeme.GeneratedSourceCode));
     }
 }

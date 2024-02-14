@@ -7,18 +7,19 @@ using RhoMicro.CodeAnalysis;
 using RhoMicro.CodeAnalysis.Library;
 using RhoMicro.CodeAnalysis.Library.Text;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
-using RhoMicro.CodeAnalysis.UnionsGenerator._Transformation.Visitors;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Visitors;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 
 using System;
 
-using FactoryMapProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<EquatableDictionary<Models.TypeSignatureModel, EquatableDictionary<Models.TypeSignatureModel, Models.FactoryModel>>>;
+using FactoryMapProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<EquatableDictionary<Models.TypeSignatureModel, EquatableList<Models.FactoryModel>>>;
 using PartialUnionTypeModelsProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<EquatableList<Models.PartialUnionTypeModel>>;
-using PartialTargetTypeModelUnionProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<EquatableDictionary<Models.TypeSignatureModel, EquatableList<Models.PartialRepresentableTypeModel>>>;
+using PartialTargetTypeModelUnionProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<EquatableDictionary<Models.TypeSignatureModel, (EquatableList<Models.PartialRepresentableTypeModel> representableTypes, Boolean isEqualsRequired)>>;
 using RelationsProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<EquatableDictionary<Models.TypeSignatureModel, EquatableList<Models.RelationModel>>>;
 using SettingsMapProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<(Models.SettingsModel fallbackSettings, EquatableDictionary<Models.TypeSignatureModel, Models.SettingsModel> definedSettings)>;
 using SourceTextProvider = Microsoft.CodeAnalysis.IncrementalValuesProvider<(String hintName, String source)>;
 using System.Linq;
+using System.Collections.Immutable;
 
 /// <summary>
 /// Generates partial union type implementations.
@@ -106,27 +107,30 @@ public class UnionsGenerator : IIncrementalGenerator
                 ct.ThrowIfCancellationRequested();
 
                 var relations = tuple.Right;
-                var factories = tuple.Left.Right;
+                var factoriesMap = tuple.Left.Right;
                 var (fallbackSettings, definedSettings) = tuple.Left.Left.Right;
                 var partials = tuple.Left.Left.Left;
 
                 var targetTypeModels = new List<UnionTypeModel>();
 
-                foreach(var (targetTypeSig, partialUnionTypes) in partials)
+                foreach(var (targetTypeSig, data) in partials)
                 {
+                    var (representableTypes, isEqualsRequired) = data;
                     ct.ThrowIfCancellationRequested();
 
                     var settings = getSettings(targetTypeSig);
                     var relationAttributes = getRelations(targetTypeSig);
-                    var unionTypeModels = partialUnionTypes.Select(partial =>
-                    {
-                        var factory = getFactory(targetTypeSig, partial);
-                        var result = RepresentableTypeModel.Create(partial, factory, ct);
-                        return result;
-                    }).Take(256) //limit to 256 due to tag type being byte
-                    .ToEquatableList(ct);
+                    var factories = getFactories(targetTypeSig);
 
-                    var targetModel = UnionTypeModel.Create(targetTypeSig, unionTypeModels, relationAttributes, settings, ct);
+                    var targetModel = UnionTypeModel.Create(
+                        targetTypeSig,
+                        representableTypes,
+                        factories,
+                        relationAttributes,
+                        settings,
+                        isEqualsRequired,
+                        ct);
+
                     targetTypeModels.Add(targetModel);
                 }
 
@@ -140,11 +144,10 @@ public class UnionsGenerator : IIncrementalGenerator
                     definedSettings.TryGetValue(targetTypeSig, out var settings) ?
                     settings :
                     fallbackSettings;
-                FactoryModel getFactory(TypeSignatureModel targetTypeSig, PartialRepresentableTypeModel partialModel) =>
-                    factories!.TryGetValue(targetTypeSig, out var representableTypeFactoryMap) &&
-                    representableTypeFactoryMap.TryGetValue(partialModel.Signature, out var factory) ?
-                    factory :
-                    FactoryModel.CreateGenerated(partialModel);
+                EquatableList<FactoryModel> getFactories(TypeSignatureModel targetTypeSig) =>
+                    factoriesMap!.TryGetValue(targetTypeSig, out var factories)
+                    ? factories
+                    : EquatableList<FactoryModel>.Empty;
             }).SelectMany((models, ct) =>
             {
                 ct.ThrowIfCancellationRequested();
@@ -156,30 +159,83 @@ public class UnionsGenerator : IIncrementalGenerator
             {
                 ct.ThrowIfCancellationRequested();
 
-                var mutableResult = new Dictionary<TypeSignatureModel, (List<PartialRepresentableTypeModel> models, HashSet<TypeSignatureModel> mappedRepresentableTypes)>();
-                var result = new Dictionary<TypeSignatureModel, EquatableList<PartialRepresentableTypeModel>>();
-                foreach(var (key, value) in keyValuePairs)
+                var mutableResult = new Dictionary<TypeSignatureModel, (List<PartialRepresentableTypeModel> representableTypes, HashSet<TypeSignatureModel> mappedRepresentableTypes)>();
+                var result = new Dictionary<TypeSignatureModel, (EquatableList<PartialRepresentableTypeModel> representableTypes, Boolean isEqualsRequired)>();
+                var isEqualsRequiredAccumulator = true;
+                foreach(var (key, value, isEqualsRequired) in keyValuePairs)
                 {
+                    isEqualsRequiredAccumulator &= isEqualsRequired;
+
                     ct.ThrowIfCancellationRequested();
                     if(!mutableResult.TryGetValue(key, out var data))
                     {
                         data = ([], []);
                         mutableResult.Add(key, data);
-                        result.Add(key, new(data.models));
+                        result.Add(key, (new(data.representableTypes), isEqualsRequired));
+                    } else
+                    {
+                        result[key] = (result[key].representableTypes, isEqualsRequired);
                     }
 
                     if(data.mappedRepresentableTypes.Add(value.Signature))
-                        data.models.Add(value);
+                        data.representableTypes.Add(value);
                 }
 
-                return new EquatableDictionary<TypeSignatureModel, EquatableList<PartialRepresentableTypeModel>>(result);
+                return new EquatableDictionary<TypeSignatureModel, (EquatableList<PartialRepresentableTypeModel> representableTypes, Boolean isEqualsRequired)>(result);
             });
     #endregion
     #region Relations FAWMN
-    private static RelationsProvider CreateRelationsProvider(IncrementalGeneratorInitializationContext context) =>
-        context.SyntaxProvider.ForAttributeWithMetadataName<
-            (TypeSignatureModel targetSignature, RelationModel attributeModel)?>(
-            "RhoMicro.CodeAnalysis.UnionRelationAttribute`1",
+    private static RelationsProvider CreateRelationsProvider(IncrementalGeneratorInitializationContext context)
+    {
+        var result = Enumerable.Range(2, 8)
+            .Select(i => $"RhoMicro.CodeAnalysis.RelationAttribute`{i}")
+            .Select(createProvider)
+            .Aggregate(
+                createProvider("RhoMicro.CodeAnalysis.RelationAttribute`1"),
+                (leftProvider, rightProvider) =>
+                leftProvider.Combine(rightProvider)
+                .Select((tuple, ct) =>
+                {
+                    ct.ThrowIfCancellationRequested();
+                    var (leftList, rightList) = tuple;
+                    var result = leftList.Concat(rightList)
+                        .GroupBy(t => t.targetSignature)
+                        .Select(g => (targetSignature: g.Key, relations: g.SelectMany(t => t.relations).ToEquatableList(ct)))
+                        .ToEquatableList(ct);
+
+                    return result;
+                }))
+            .Select((tuples, ct) =>
+            {
+                ct.ThrowIfCancellationRequested();
+
+                var mutableResult = new Dictionary<TypeSignatureModel, List<RelationModel>>();
+                var result = new Dictionary<TypeSignatureModel, EquatableList<RelationModel>>();
+                for(var i = 0; i < tuples.Count; i++)
+                {
+                    ct.ThrowIfCancellationRequested();
+
+                    var (targetSignature, relations) = tuples[i];
+                    if(!mutableResult.TryGetValue(targetSignature, out var models))
+                    {
+                        models = [];
+                        mutableResult.Add(targetSignature, models);
+                        result.Add(targetSignature, new(models));
+                    }
+
+                    models.AddRange(relations);
+                }
+
+                //Map(UnionTypeSignature, List(Relation))
+                return result.AsEquatable();
+            });
+
+        return result;
+
+        IncrementalValueProvider<EquatableList<(TypeSignatureModel targetSignature, EquatableList<RelationModel> relations)>> createProvider(String name) =>
+            context.SyntaxProvider.ForAttributeWithMetadataName<
+            (TypeSignatureModel targetSignature, EquatableList<RelationModel> relations)?>(
+            name,
             Qualifications.IsUnionTypeDeclarationSyntax,
             (ctx, ct) =>
             {
@@ -193,47 +249,46 @@ public class UnionsGenerator : IIncrementalGenerator
                 }
 
                 ct.ThrowIfCancellationRequested();
-                //check if T in [Relation<T>] is named type & is actual union type (has attribute on self or type param) <== consider marker attribute on generated impl?
-                if(ctx.Attributes[0].AttributeClass?.TypeArguments.Length != 1 ||
-                   ctx.Attributes[0].AttributeClass!.TypeArguments[0] is not INamedTypeSymbol relationSymbol ||
-                   relationSymbol.GetAttributes()
-                    .OfAliasedUnionTypeBaseAttribute()
-                    .Concat(relationSymbol.TypeParameters
-                        .SelectMany(p => p.GetAttributes().OfAliasedUnionTypeBaseAttribute()))
-                    .Any())
-                {
-                    return null;
-                }
-
                 var targetSignature = TypeSignatureModel.Create(target, ct);
-                var attributeModel = RelationModel.Create(target, relationSymbol, ct);
-
-                return (targetSignature, attributeModel);
-            }).Where(m => m.HasValue)
-        .Collect()
-        .WithCollectionComparer()
-        .Select((tuples, ct) =>
-        {
-            ct.ThrowIfCancellationRequested();
-
-            var mutableResult = new Dictionary<TypeSignatureModel, List<RelationModel>>();
-            var result = new Dictionary<TypeSignatureModel, EquatableList<RelationModel>>();
-            for(var i = 0; i < tuples.Length; i++)
-            {
-                var (targetSignature, relationAttributeModel) = tuples[i]!.Value;
-                if(!mutableResult.TryGetValue(targetSignature, out var models))
+                var relations = new List<RelationModel>();
+                //check if T in [Relation<T>] is named type & is actual union type (has attribute on self or type param) <== consider marker attribute on generated impl?
+                for(var i = 0; i < ctx.Attributes.Length; i++)
                 {
-                    models = [];
-                    mutableResult.Add(targetSignature, models);
-                    result.Add(targetSignature, new(models));
+                    ct.ThrowIfCancellationRequested();
+                    if(ctx.Attributes[i].AttributeClass?.TypeArguments.Length is null or < 1)
+                        continue;
+
+                    foreach(var potentialRelationSymbol in ctx.Attributes[i].AttributeClass!.TypeArguments)
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        if(potentialRelationSymbol is INamedTypeSymbol relationSymbol &&
+                           relationSymbol.GetAttributes()
+                                .OfAliasedUnionTypeBaseAttribute()
+                                .Concat(relationSymbol.TypeParameters
+                                    .SelectMany(p => p.GetAttributes().OfAliasedUnionTypeBaseAttribute()))
+                                .Any())
+                        {
+                            var model = RelationModel.Create(target, relationSymbol, ct);
+                            relations.Add(model);
+                        }
+                    }
                 }
 
-                models.Add(relationAttributeModel);
-            }
-
-            //Map(UnionTypeSignature, List(Relation))
-            return result.AsEquatable();
-        });
+                return (targetSignature, relations.AsEquatable());
+            }).Where(m => m.HasValue && m.Value.relations.Count > 0)
+            .Select((t, ct) =>
+            {
+                ct.ThrowIfCancellationRequested();
+                return t!.Value;
+            })
+            .Collect()
+            .WithCollectionComparer()
+            .Select((tuples, ct) =>
+            {
+                ct.ThrowIfCancellationRequested();
+                return tuples.AsEquatable();
+            });
+    }
     #endregion
     #region Settings FAWMN
     private static IncrementalValueProvider<(SettingsAttributeData data, SettingsModel parsed)> CreateAssemblySettingsProvider(IncrementalGeneratorInitializationContext context) =>
@@ -367,20 +422,20 @@ public class UnionsGenerator : IIncrementalGenerator
             {
                 ct.ThrowIfCancellationRequested();
 
-                var mutableResult = new Dictionary<TypeSignatureModel, Dictionary<TypeSignatureModel, FactoryModel>>();
-                var result = new Dictionary<TypeSignatureModel, EquatableDictionary<TypeSignatureModel, FactoryModel>>();
+                var mutableResult = new Dictionary<TypeSignatureModel, (HashSet<TypeSignatureModel> set, List<FactoryModel> list)>();
+                var result = new Dictionary<TypeSignatureModel, EquatableList<FactoryModel>>();
                 for(var i = 0; i < tuples.Length; i++)
                 {
                     var (targetSignature, representableTypeSignature, factory) = tuples[i]!.Value;
-                    if(!mutableResult.TryGetValue(targetSignature, out var factoryMap))
+                    if(!mutableResult.TryGetValue(targetSignature, out var mutableItem))
                     {
-                        factoryMap = [];
-                        mutableResult.Add(targetSignature, factoryMap);
-                        result.Add(targetSignature, new(factoryMap));
+                        mutableItem = ([], []);
+                        mutableResult.Add(targetSignature, mutableItem);
+                        result.Add(targetSignature, new(mutableItem.list));
                     }
 
-                    if(!factoryMap.ContainsKey(representableTypeSignature))
-                        factoryMap.Add(representableTypeSignature, factory);
+                    if(mutableItem.set.Add(representableTypeSignature))
+                        mutableItem.list.Add(factory);
                 }
 
                 //Map(UnionTypeSignature, Map(RepresentableTypeSignature, Factory))

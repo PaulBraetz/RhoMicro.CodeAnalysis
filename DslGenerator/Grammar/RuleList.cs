@@ -25,7 +25,8 @@ record RuleList(IReadOnlyList<RuleDefinition> Definitions) : SyntaxNode
                 .CloseBlock()
                 .CloseBlock());
     }
-
+    public override void Receive(SyntaxNodeVisitor visitor) =>
+        visitor.Visit(this);
     public override void AppendDisplayStringTo(IndentedStringBuilder builder, CancellationToken cancellationToken) =>
         _ = Definitions.Aggregate(builder, (sb, r) => sb.AppendDisplayString(r, cancellationToken).Append('\n'));
     protected override void AppendCtorArgs(IndentedStringBuilder builder, CancellationToken cancellationToken) =>

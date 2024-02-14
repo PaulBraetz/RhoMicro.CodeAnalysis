@@ -90,6 +90,7 @@ public partial class ReadMeAssertions
         {
             Assert.Fail("Expected union to be text.");
         }
+
         if(!u.IsTextGroup)
         {
             Assert.Fail("Expected union to be text.");
@@ -100,6 +101,7 @@ public partial class ReadMeAssertions
         {
             Assert.Fail("Expected union to be number.");
         }
+
         if(u.IsTextGroup)
         {
             Assert.Fail("Expected union to be number.");
