@@ -76,7 +76,9 @@ jobs:
         uses: actions/setup-dotnet@v4
         
       - name: Publish NuGet Package
-        run: dotnet nuget push --api-key ${{ secrets.NugetApiToken }} $NuGetDirectory
+        run: dotnet nuget push --api-key $NUGETAPITOKEN $NuGetDirectory
+        env: 
+          NUGETAPITOKEN: ${{ secrets.NUGETAPITOKEN }}
 
 
 
