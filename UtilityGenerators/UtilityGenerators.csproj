@@ -64,8 +64,9 @@
 		<None Include="LICENSE.txt" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
 	</ItemGroup>
 
-	<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+	<!--TODO: write build task from generator using RoslynCodeTaskFactory; see https://github.com/ikvmnet/ikvm/blob/main/src/IKVM.MSBuild/buildTransitive/IKVM.MSBuild.NoTasks.targets-->
+	<!--<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
 	  <Exec Command="Library\Generator\UtilityGenerators.Library.Generator.exe ../UtilityGenerators.Library Library/LibraryGenerator.g.cs" ConsoleToMsBuild="true" />
-	</Target>
+	</Target>-->
 
 </Project>
