@@ -1,4 +1,4 @@
-﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator._Transformation.Storage;
+﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Storage;
 using System;
 using System.Collections.Generic;
 using System.Text;

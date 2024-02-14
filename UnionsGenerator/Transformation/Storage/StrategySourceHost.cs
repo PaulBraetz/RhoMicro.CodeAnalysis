@@ -1,4 +1,4 @@
-﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator._Transformation.Storage;
+﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Storage;
 
 using RhoMicro.CodeAnalysis.Library;
 using RhoMicro.CodeAnalysis.Library.Text;
@@ -12,11 +12,14 @@ using RhoMicro.CodeAnalysis.UnionsGenerator.Models.Storage;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 using System.Reflection;
 
-sealed class StrategySourceHost
+sealed class StrategySourceHost(
+    SettingsModel settings,
+    TypeSignatureModel unionTypeSignature,
+    Boolean unionTypeIsGeneric,
+    EquatableList<RepresentableTypeModel> representableTypes)
 {
-    public StrategySourceHost(UnionTypeModel target) => _target = target;
-
-    private readonly UnionTypeModel _target;
+    private readonly SettingsModel _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+    private readonly EquatableList<RepresentableTypeModel> _representableTypes = representableTypes ?? throw new ArgumentNullException(nameof(representableTypes));
 
     private readonly List<(IndentedStringBuilderAppendable Appendable, String TypeName)> _dedicatedReferenceFieldAdditions = [];
     private readonly List<(IndentedStringBuilderAppendable Appendable, String TypeName)> _dedicatedPureValueTypeFieldAdditions = [];
@@ -34,11 +37,11 @@ sealed class StrategySourceHost
             {
                 _ = b
                 .Comment.OpenSummary()
-                .Append("Contains the value of instances of ").Comment.SeeRef(_target).Append(" representing an instance of ")
+                .Append("Contains the value of instances of ").Comment.SeeRef(unionTypeSignature).Append(" representing an instance of ")
                 .Comment.Ref(strategy.RepresentableType.Signature)
                 .Append('.')
                 .CloseBlock()
-                .GeneratedUnnavigableInternalCode(_target)
+                .GeneratedUnnavigableInternalCode(unionTypeSignature)
                 .Append("private readonly ").Append(fullName).Append(strategy.NullableFieldQuestionMark).Append(' ').Append(strategy.FieldName).AppendLine(';');
             }),
             TypeName: fullName));
@@ -66,11 +69,11 @@ sealed class StrategySourceHost
             return;
 
         _ = builder.Comment.OpenSummary()
-            .Append("Contains the value of instances of ").Comment.SeeRef(_target).Append(" representing one of these types:")
+            .Append("Contains the value of instances of ").Comment.SeeRef(unionTypeSignature).Append(" representing one of these types:")
             .Comment.OpenList("bullet");
 
-        var referenceTypes = _target.RepresentableTypes
-            .Select(t => StorageStrategy.Create(_target, t))
+        var referenceTypes = representableTypes
+            .Select(t => t.StrategyContainer.Value)
             .Where(s => s.ActualOption == StorageOption.Reference)
             .Select(s => s.RepresentableType.Signature);
         foreach(var referenceType in referenceTypes)
@@ -82,32 +85,33 @@ sealed class StrategySourceHost
 
         _ = builder.CloseBlock()
             .CloseBlock()
-            .GeneratedUnnavigableInternalCode(_target)
-            .Append("private readonly System.Object? ").Append(_target.Settings.ReferenceTypeContainerName).AppendLine(';');
+            .GeneratedUnnavigableInternalCode(unionTypeSignature)
+            .Append("private readonly System.Object? ").Append(settings.ReferenceTypeContainerName).AppendLine(';');
     }
 
     private Boolean _valueTypeContainerTypeRequired;
     public void AddValueTypeContainerType() => _valueTypeContainerTypeRequired = true;
     public void AddValueTypeContainerField() => _valueTypeContainerTypeRequired = true;
     private readonly List<IndentedStringBuilderAppendable> _valueTypeFieldAdditions = [];
+
     public void AddValueTypeContainerInstanceFieldAndCtor(StorageStrategy strategy) =>
         _valueTypeFieldAdditions.Add(new((b) =>
         {
             var fullName = strategy.RepresentableType.Signature.Names.FullGenericName;
 
             _ = b.Comment.OpenSummary()
-                .Append("Contains the value of instances of ").Comment.SeeRef(_target).Append(" representing an instance of ")
+                .Append("Contains the value of instances of ").Comment.SeeRef(unionTypeSignature).Append(" representing an instance of ")
                 .Comment.Ref(strategy.RepresentableType.Signature)
                 .Append('.')
                 .CloseBlock()
                 .Append(b =>
                 {
-                    if(!_target.IsGenericType)
+                    if(!unionTypeIsGeneric)
                         b.Append("[System.Runtime.InteropServices.FieldOffset(0)]").AppendLineCore();
                 })
                 .Append("public readonly ").Append(fullName)
                 .Append(' ').Append(strategy.RepresentableType.Alias).AppendLine(';')
-                .Append("public ").Append(_target.Settings.ValueTypeContainerTypeName).Append('(')
+                .Append("public ").Append(settings.ValueTypeContainerTypeName).Append('(')
                 .Append(fullName).Append(" value) => this.")
                 .Append(strategy.RepresentableType.Alias).AppendLine(" = value;");
         }));
@@ -118,11 +122,11 @@ sealed class StrategySourceHost
             return;
 
         _ = builder.Comment.OpenSummary()
-            .Append("Contains the value of instances of ").Comment.SeeRef(_target).Append(" representing one of these types:")
+            .Append("Contains the value of instances of ").Comment.SeeRef(unionTypeSignature).Append(" representing one of these types:")
             .Comment.OpenList("bullet");
 
-        var valueTypes = _target.RepresentableTypes
-            .Select(t => StorageStrategy.Create(_target, t))
+        var valueTypes = representableTypes
+            .Select(t => t.StrategyContainer.Value)
             .Where(s => s.ActualOption == StorageOption.Value)
             .Select(s => s.RepresentableType.Signature);
         foreach(var valueType in valueTypes)
@@ -134,9 +138,9 @@ sealed class StrategySourceHost
 
         _ = builder.CloseBlock()
             .CloseBlock()
-            .GeneratedUnnavigableInternalCode(_target)
-            .Append("private readonly ").Append(_target.Settings.ValueTypeContainerTypeName)
-            .Append(' ').Append(_target.Settings.ValueTypeContainerName).Append(';');
+            .GeneratedUnnavigableInternalCode(unionTypeSignature)
+            .Append("private readonly ").Append(settings.ValueTypeContainerTypeName)
+            .Append(' ').Append(settings.ValueTypeContainerName).Append(';');
     }
     public void ValueTypeContainerType(IndentedStringBuilder builder)
     {
@@ -146,13 +150,13 @@ sealed class StrategySourceHost
         _ = builder.Comment.OpenSummary()
             .Append("Helper type for storing value types efficiently.")
             .CloseBlock()
-            .GeneratedUnnavigableInternalCode(_target);
+            .GeneratedUnnavigableInternalCode(unionTypeSignature);
 
-        if(!_target.IsGenericType)
+        if(!unionTypeIsGeneric)
             _ = builder.AppendLine("[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Explicit)]");
 
         _ = builder
-            .Append("readonly struct ").Append(_target.Settings.ValueTypeContainerTypeName)
+            .Append("readonly struct ").Append(settings.ValueTypeContainerTypeName)
             .OpenBracesBlock()
             .AppendJoinLines(StringOrChar.Empty, _valueTypeFieldAdditions)
             .CloseBlock();

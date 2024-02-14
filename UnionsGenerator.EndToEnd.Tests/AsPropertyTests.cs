@@ -22,20 +22,20 @@ public partial class AsPropertyTests
     public void NotAsIntWhenRepresentingList()
     {
         Union<Byte> u = new List<String>();
-        _ = Assert.Throws<InvalidOperationException>(() => u.AsInt);
+        Assert.Equal(default, u.AsInt);
     }
     [Fact]
     public void NotAsIntWhenRepresentingByte()
     {
         Union<Byte> u = (Byte)32;
-        _ = Assert.Throws<InvalidOperationException>(() => u.AsInt);
+        Assert.Equal(default, u.AsInt);
     }
 
     [Fact]
     public void NotAsListWhenRepresentingInt32()
     {
         Union<Byte> u = 32;
-        _ = Assert.Throws<InvalidOperationException>(() => u.AsList_of_String);
+        Assert.Equal(default, u.AsList_of_String);
     }
     [Fact]
     public void AsListWhenRepresentingList()
@@ -48,20 +48,20 @@ public partial class AsPropertyTests
     public void NotAsListWhenRepresentingByte()
     {
         Union<Byte> u = (Byte)32;
-        _ = Assert.Throws<InvalidOperationException>(() => u.AsList_of_String);
+        Assert.Equal(default, u.AsList_of_String);
     }
 
     [Fact]
     public void NotAsByteWhenRepresentingInt32()
     {
         Union<Byte> u = 32;
-        _ = Assert.Throws<InvalidOperationException>(() => u.AsValueT);
+        Assert.Equal(default, u.AsValueT);
     }
     [Fact]
     public void NotAsByteWhenRepresentingList()
     {
         Union<Byte> u = new List<String>();
-        _ = Assert.Throws<InvalidOperationException>(() => u.AsValueT);
+        Assert.Equal(default, u.AsValueT);
     }
     [Fact]
     public void AsByteWhenRepresentingByte()

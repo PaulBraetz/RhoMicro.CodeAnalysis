@@ -5,7 +5,7 @@ public class ConstructorTests : TestBase
 {
     [Fact]
     public void GeneratesPrivateInterfaceAccessibilityForPublicIfInconvertible() =>
-        UnionType(
+        TestUnionType(
         """
         using RhoMicro.CodeAnalysis;
         [UnionType<System.Collections.IEnumerable>]
@@ -18,7 +18,7 @@ public class ConstructorTests : TestBase
             || c.Parameters.Single().Type.TypeKind == Microsoft.CodeAnalysis.TypeKind.Interface));
     [Fact]
     public void GeneratesPrivateObjectAccessibilityForPublicIfInconvertible() =>
-        UnionType(
+        TestUnionType(
         """
         using RhoMicro.CodeAnalysis;
         [UnionType<System.Object>]
@@ -31,7 +31,7 @@ public class ConstructorTests : TestBase
             || c.Parameters.Single().Type.SpecialType == Microsoft.CodeAnalysis.SpecialType.System_Object));
     [Fact]
     public void GeneratesPrivateSupertypeAccessibilityForPublicIfInconvertible() =>
-        UnionType(
+        TestUnionType(
         """
         using RhoMicro.CodeAnalysis;
         class Supertype { }
@@ -46,7 +46,7 @@ public class ConstructorTests : TestBase
         unionTypeName: "IntOrString");
     [Fact]
     public void GeneratesPrivateAccessibilityForPublicIfInconvertible() =>
-        UnionType(
+        TestUnionType(
         """
         using RhoMicro.CodeAnalysis;
         [UnionType<System.Int32>]
@@ -57,7 +57,7 @@ public class ConstructorTests : TestBase
         s => s.Constructors.All(c => c.DeclaredAccessibility == Microsoft.CodeAnalysis.Accessibility.Private));
     [Fact]
     public void GeneratesPrivateAccessibilityForPrivate() =>
-        UnionType(
+        TestUnionType(
         """
         using RhoMicro.CodeAnalysis;
         [UnionType<System.Int32>]
@@ -68,7 +68,7 @@ public class ConstructorTests : TestBase
         s => s.Constructors.All(c => c.DeclaredAccessibility == Microsoft.CodeAnalysis.Accessibility.Private));
     [Fact]
     public void GeneratesPublicAccessibilityForPublic() =>
-        UnionType(
+        TestUnionType(
         """
         using RhoMicro.CodeAnalysis;
         [UnionType<System.Int32>]

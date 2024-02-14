@@ -2,8 +2,10 @@
 
 using Microsoft.CodeAnalysis;
 
-using RhoMicro.CodeAnalysis.UnionsGenerator._Transformation.Visitors;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Visitors;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
@@ -12,6 +14,13 @@ internal record PartialUnionTypeModel(
     PartialRepresentableTypeModel RepresentableType)
     : IModel<PartialUnionTypeModel>
 {
+    public static PartialUnionTypeModel? CreateFromTypeParameter(ITypeParameterSymbol target, CancellationToken cancellationToken) =>
+        CreateFromTypeParameter(
+            target,
+            target.GetAttributes()
+                .Where(Qualifications.IsUnionTypeParameterAttribute)
+                .ToImmutableArray(),
+            cancellationToken);
     public static PartialUnionTypeModel? CreateFromTypeParameter(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
     {
         //transform parent declaration of type parameter target of [UnionType]
@@ -21,36 +30,69 @@ internal record PartialUnionTypeModel(
         if(context.TargetSymbol is not ITypeParameterSymbol typeParam)
             return null;
 
+        var result = CreateFromTypeParameter(typeParam, context.Attributes, cancellationToken);
+
+        return result;
+    }
+    private static PartialUnionTypeModel? CreateFromTypeParameter(ITypeParameterSymbol target, ImmutableArray<AttributeData> attributes, CancellationToken cancellationToken)
+    {
         cancellationToken.ThrowIfCancellationRequested();
-        if(!AliasedUnionTypeBaseAttribute.TryCreate(context.Attributes[0], out var attribute))
+        if(attributes.Length < 1)
             return null;
 
         cancellationToken.ThrowIfCancellationRequested();
-        var signature = TypeSignatureModel.Create(context.TargetSymbol.ContainingType, cancellationToken);
-        var representableType = attribute!.GetPartialModel(new(typeParam), typeParam.ContainingType, cancellationToken);
+        if(!AliasedUnionTypeBaseAttribute.TryCreate(attributes[0], out var attribute))
+            return null;
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var signature = TypeSignatureModel.Create(target.ContainingType, cancellationToken);
+        var representableType = attribute!.GetPartialModel(new(target), target.ContainingType, cancellationToken);
         var result = new PartialUnionTypeModel(signature, representableType);
 
         return result;
     }
+    public static EquatableList<PartialUnionTypeModel> CreateFromTypeDeclaration(
+        INamedTypeSymbol target,
+        CancellationToken cancellationToken) =>
+        CreateFromTypeDeclaration(
+            target,
+            target.GetAttributes()
+                .Where(Qualifications.IsUnionTypeDeclarationAttribute)
+                .ToImmutableArray(),
+            cancellationToken);
     public static EquatableList<PartialUnionTypeModel> CreateFromTypeDeclaration(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
     {
         //transform target of [UnionType<T>]
 
         cancellationToken.ThrowIfCancellationRequested();
         //check that target of [UnionType<T>] is regular struct or class
-        if(context.TargetSymbol is not INamedTypeSymbol target ||
-           target.TypeKind is not TypeKind.Struct and not TypeKind.Class ||
+        if(context.TargetSymbol is not INamedTypeSymbol target)
+            return EquatableList<PartialUnionTypeModel>.Empty;
+
+        var result = CreateFromTypeDeclaration(target, context.Attributes, cancellationToken);
+
+        return result;
+    }
+    private static EquatableList<PartialUnionTypeModel> CreateFromTypeDeclaration(
+        INamedTypeSymbol target,
+        ImmutableArray<AttributeData> attributes,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if(target.TypeKind is not TypeKind.Struct and not TypeKind.Class ||
            target.IsRecord)
         {
             return EquatableList<PartialUnionTypeModel>.Empty;
         }
 
-        var result = context.Attributes
+        var result = attributes
             .SelectMany(data => CreatePartials(data, target, cancellationToken))
             .ToEquatableList(cancellationToken);
 
         return result!;
     }
+
     private static IEnumerable<PartialUnionTypeModel> CreatePartials(
         AttributeData attributeData,
         INamedTypeSymbol target,

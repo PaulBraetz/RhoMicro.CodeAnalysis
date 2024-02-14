@@ -32,7 +32,7 @@ CLI:
 dotnet add package RhoMicro.CodeAnalysis.UnionsGenerator
 ```
 
-*Note: The source code generator will generate netstandard2.0 compliant code that potentially uses newer language features. It is expected that consumers enable the `<LangVersion>latest</LangVersion>` flag. This could change in the future to support a wider number of language versions, however the netstandard2.0 constraint will remain. The generator generates members that rely on special types not required by netstandard2.0, therefore under some circumstances (like in analyzers) a polyfill (see [PolySharp](https://www.nuget.org/packages/PolySharp/)) is required.*
+*Note: The source code generator will generate netstandard2.0 compliant code that potentially uses newer language features. It is expected that consumers enable the `<LangVersion>11.0</LangVersion>` flag. This could change in the future to support a wider number of language versions, however the netstandard2.0 constraint will remain. The generator generates members (e.g.: [NotNullWhenAttribute](https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.codeanalysis.notnullwhenattribute?view=netstandard-2.1) ) that rely on special types not required by netstandard2.0, therefore under some circumstances (i.e. in analyzers) a polyfill (see [PolySharp](https://www.nuget.org/packages/PolySharp/#readme-body-tab)) is required.*
 
 ## How To Use
 

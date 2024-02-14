@@ -1,4 +1,4 @@
-﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator._Transformation.Visitors;
+﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Visitors;
 
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 

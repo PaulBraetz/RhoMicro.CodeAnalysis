@@ -1,4 +1,4 @@
-﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator._Transformation.Visitors
+﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Visitors
 {
     using RhoMicro.CodeAnalysis;
     using RhoMicro.CodeAnalysis.Library.Text;
@@ -40,7 +40,7 @@ namespace RhoMicro.CodeAnalysis.Library.Text
         public IndentedStringBuilder ModelString(RelatedTypeModel model) =>
             OpenSameLineBracesBlock()
             .Property(nameof(model.Signature), ModelString, model.Signature)
-            .Property(nameof(model.RepresentableTypes), ModelString, model.RepresentableTypes, isLast: true)
+            .Property(nameof(model.RepresentableTypeSignatures), ModelString, model.RepresentableTypeSignatures, isLast: true)
             .CloseSameLineBracesBlock();
         public IndentedStringBuilder ModelString(RelationModel model) =>
             OpenSameLineBracesBlock()

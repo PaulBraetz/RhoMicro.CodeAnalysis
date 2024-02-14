@@ -3,7 +3,7 @@
 using System;
 
 using RhoMicro.CodeAnalysis.Library.Text;
-using RhoMicro.CodeAnalysis.UnionsGenerator._Transformation.Storage;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Storage;
 
 using static RhoMicro.CodeAnalysis.Library.Text.IndentedStringBuilder.Appendables;
 
@@ -11,37 +11,38 @@ abstract partial class StorageStrategy
 {
     #region Constructor
     private StorageStrategy(
-        UnionTypeModel targetType,
-        RepresentableTypeModel unionTypeAttribute,
+        SettingsModel settings,
+        PartialRepresentableTypeModel representableType,
         StorageOption selectedOption,
         StorageSelectionViolation violation)
     {
-        TargetType = targetType;
-        RepresentableType = unionTypeAttribute;
+        Settings = settings;
+        RepresentableType = representableType;
         SelectedOption = selectedOption;
         Violation = violation;
-        FieldName = unionTypeAttribute.Alias.ToGeneratedCamelCase();
+        FieldName = representableType.Alias.ToGeneratedCamelCase();
         NullableFieldBang = RepresentableType.Options.HasFlag(UnionTypeOptions.Nullable) ? String.Empty : "!";
         NullableFieldQuestionMark = RepresentableType.Signature is { Nature: TypeNature.UnknownType or TypeNature.ReferenceType } ? "?" : String.Empty;
     }
     #endregion
     #region Fields
     public String FieldName { get; }
-    public UnionTypeModel TargetType { get; }
-    public RepresentableTypeModel RepresentableType { get; }
+    protected SettingsModel Settings { get; }
+    public PartialRepresentableTypeModel RepresentableType { get; }
     public StorageOption SelectedOption { get; }
     public abstract StorageOption ActualOption { get; }
     public StorageSelectionViolation Violation { get; }
-    public String NullableFieldBang { get; }
+    protected String NullableFieldBang { get; }
     public String NullableFieldQuestionMark { get; }
     #endregion
     #region Factory
     public static StorageStrategy Create(
-        UnionTypeModel targetType,
-        RepresentableTypeModel unionTypeAttribute)
+        SettingsModel settings,
+        Boolean unionTypeIsGeneric,
+        PartialRepresentableTypeModel representableType)
     {
-        var selectedOption = unionTypeAttribute.Storage;
-        var result = unionTypeAttribute.Signature.Nature switch
+        var selectedOption = representableType.Storage;
+        var result = representableType.Signature.Nature switch
         {
             TypeNature.PureValueType => createForPureValueType(),
             TypeNature.ImpureValueType => createForImpureValueType(),
@@ -52,11 +53,11 @@ abstract partial class StorageStrategy
         return result;
 
         StorageStrategy createReference(StorageSelectionViolation violation = StorageSelectionViolation.None) =>
-            new ReferenceContainerStrategy(targetType, unionTypeAttribute, selectedOption, violation);
+            new ReferenceContainerStrategy(settings, representableType, selectedOption, violation);
         StorageStrategy createValue(StorageSelectionViolation violation = StorageSelectionViolation.None) =>
-            new ValueContainerStrategy(targetType, unionTypeAttribute, selectedOption, violation);
+            new ValueContainerStrategy(settings, representableType, selectedOption, violation);
         StorageStrategy createField(StorageSelectionViolation violation = StorageSelectionViolation.None) =>
-            new FieldContainerStrategy(targetType, unionTypeAttribute, selectedOption, violation);
+            new FieldContainerStrategy(settings, representableType, selectedOption, violation);
 
         /*
         read tables like so:
@@ -73,9 +74,9 @@ abstract partial class StorageStrategy
             selectedOption switch
             {
                 StorageOption.Reference => createReference(StorageSelectionViolation.PureValueReferenceSelection),
-                StorageOption.Value => targetType.IsGenericType ? createField(StorageSelectionViolation.PureValueValueSelectionGeneric) : createValue(),
+                StorageOption.Value => unionTypeIsGeneric ? createField(StorageSelectionViolation.PureValueValueSelectionGeneric) : createValue(),
                 StorageOption.Field => createField(),
-                _ => targetType.IsGenericType ? createField() : createValue()
+                _ => unionTypeIsGeneric ? createField() : createValue()
             };
         /*
     ImpureValue Reference   => reference(box)

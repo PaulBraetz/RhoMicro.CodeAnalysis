@@ -1,5 +1,4 @@
-﻿
-namespace RhoMicro.CodeAnalysis.UnionsGenerator._Transformation.Visitors;
+﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Visitors;
 
 using RhoMicro.CodeAnalysis.Library.Text;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
@@ -8,7 +7,7 @@ sealed class SourceTextVisitor(IndentedStringBuilder builder) : IVisitor<UnionTy
 {
     private readonly IndentedStringBuilder _builder = builder;
 
-    public void Visit(UnionTypeModel model) => _builder.Append(AppendableSourceText.Create(model));
+    public void Visit(UnionTypeModel model) => _builder.Append(new AppendableSourceText(model));
 
     public override String ToString() => _builder.ToString();
 }

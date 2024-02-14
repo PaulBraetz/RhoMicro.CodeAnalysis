@@ -1,5 +1,6 @@
 ﻿namespace RhoMicro.CodeAnalysis.Library.Text;
 using System;
+using System.Collections.Immutable;
 
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
@@ -60,6 +61,53 @@ partial class IndentedStringBuilder
                 {
                     b.Append(target.Settings.TagTypeName).Append('.').Append(t.Alias).AppendCore(" => ");
                     caseExpr.Invoke(b, t);
+                }
+            })
+            .CloseBlockCore();
+
+        return this;
+    }
+    public IndentedStringBuilder TagSwitchExpr(
+        UnionTypeModel target,
+        ImmutableHashSet<TypeSignatureModel> representableTypesSet,
+        Action<IndentedStringBuilder, TypeSignatureModel> caseExpr,
+        String instanceExpr,
+        Action<IndentedStringBuilder>? specialDefault = null)
+    {
+        if(representableTypesSet.Count == 1)
+        {
+            caseExpr.Invoke(this, representableTypesSet.Single());
+
+            return this;
+        }
+
+        var aliasMap = target.RepresentableTypes.ToDictionary(t => t.Signature, t => t.Alias);
+
+        Append(instanceExpr).Append('.').Append(target.Settings.TagFieldName).Append(" switch")
+            .OpenBracesBlock()
+            .AppendJoinLines(representableTypesSet.Append(null), (b, s) =>
+            {
+                if(s == null)
+                {
+                    var useSpecialDefault = specialDefault != null && representableTypesSet.Count != target.RepresentableTypes.Count;
+                    if(useSpecialDefault)
+                    {
+                        b.Append("> (").Append(target.Settings.TagTypeName).Append(')')
+                        .Append(target.RepresentableTypes.Count.ToString()).Append(" => ").Append(ConstantSources.InvalidTagStateThrow).AppendCore(',');
+                    }
+
+                    b.AppendCore("_ => ");
+                    if(useSpecialDefault)
+                    {
+                        specialDefault!.Invoke(b);
+                    } else
+                    {
+                        b.AppendCore(ConstantSources.InvalidTagStateThrow);
+                    }
+                } else
+                {
+                    b.Append(target.Settings.TagTypeName).Append('.').Append(aliasMap[s]).AppendCore(" => ");
+                    caseExpr.Invoke(b, s);
                 }
             })
             .CloseBlockCore();
@@ -152,9 +200,45 @@ partial class IndentedStringBuilder
 
         return this;
     }
-    public IndentedStringBuilder InvalidConversionThrow(String typeNameExpression) =>
-        Append("throw new System.InvalidOperationException($\"Unable to convert the union instance to an instance of {")
-        .Append(typeNameExpression).Append("}.\")");
+    public IndentedStringBuilder FullMetadataNameSwitchExpr(
+        ImmutableHashSet<TypeSignatureModel> representableTypesSet,
+        Action<IndentedStringBuilder> metadataNameExpr,
+        Action<IndentedStringBuilder, TypeSignatureModel> caseExpr,
+        Action<IndentedStringBuilder> defaultCase)
+    {
+        if(representableTypesSet.Count == 1)
+        {
+            caseExpr.Invoke(this, representableTypesSet.Single());
+
+            return this;
+        }
+
+        Append(metadataNameExpr).Append(" switch")
+            .OpenBracesBlock()
+            .AppendJoinLines(representableTypesSet.Append(null), (b, s) =>
+            {
+                if(s == null)
+                {
+                    b.AppendCore("_ => ");
+                    defaultCase.Invoke(b);
+                } else
+                {
+                    b.Append('"').Append(s.Names.FullMetadataName).AppendCore("\" => ");
+                    caseExpr.Invoke(b, s);
+                }
+            })
+            .CloseBlockCore();
+
+        return this;
+    }
+    public IndentedStringBuilder InvalidConversionThrow(String fromTypeNameExpression, String representedTypeNameExpression, String toTypeNameExpression) =>
+        Append("throw new System.InvalidOperationException($\"Unable to convert from an instance of {")
+        .Append(fromTypeNameExpression)
+        .Append("} representing a value of type {")
+        .Append(representedTypeNameExpression)
+        .Append("} to an instance of {")
+        .Append(toTypeNameExpression)
+        .Append("}.\")");
     public IndentedStringBuilder MetadataNameSwitchStmt(
         UnionTypeModel target,
         Action<IndentedStringBuilder> typeExpr,
@@ -200,8 +284,22 @@ partial class IndentedStringBuilder
 
         return this;
     }
+    public IndentedStringBuilder ToUnionTypeConversion(
+        UnionTypeModel unionType,
+        RepresentableTypeModel unionTypeRepresentableType,
+        String relationTypeParameterName) =>
+        Append('(').Append(unionType.Signature.Names.GenericName).Append('.').Append(unionTypeRepresentableType.Factory.Name)
+        .Append("((").Append(unionTypeRepresentableType.Signature.Names.FullGenericNullableName).Append(')').Append(relationTypeParameterName).Append("))");
+    public IndentedStringBuilder ToRelatedTypeConversion(
+        RelatedTypeModel relatedType,
+        RepresentableTypeModel unionTypeRepresentableType,
+        String unionTypeParameterName) =>
+        Append("((").Append(relatedType.Signature.Names.FullGenericNullableName).Append(')')
+        .Append(unionTypeRepresentableType.StrategyContainer.Value.StrongInstanceVariableExpression(unionTypeParameterName)).Append(')');
     public IndentedStringBuilder GeneratedUnnavigableInternalCode(UnionTypeModel model) =>
-        Comment.InternalUse(model)
+        GeneratedUnnavigableInternalCode(model.Signature);
+    public IndentedStringBuilder GeneratedUnnavigableInternalCode(TypeSignatureModel signature) =>
+        Comment.InternalUse(signature)
         .AppendLine(ConstantSources.GeneratedCode)
         .AppendLine(ConstantSources.EditorBrowsableNever);
     public IndentedStringBuilder AppendJoinLines<T>(

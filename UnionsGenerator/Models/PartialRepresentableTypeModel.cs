@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 
-using RhoMicro.CodeAnalysis.UnionsGenerator._Transformation.Visitors;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Visitors;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 
 using System.Threading;
