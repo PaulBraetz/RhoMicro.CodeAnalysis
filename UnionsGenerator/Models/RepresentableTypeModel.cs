@@ -2,6 +2,7 @@
 
 using System.Threading;
 
+using RhoMicro.CodeAnalysis.UnionsGenerator.Models.Storage;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 
 /// <summary>
@@ -13,6 +14,7 @@ using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 /// <param name="Groups"></param>
 /// <param name="Signature"></param>
 /// <param name="Factory"></param>
+/// <param name="StrategyContainer"></param>
 /// <param name="OmitConversionOperators"></param>
 sealed record RepresentableTypeModel(
     String Alias,
@@ -21,7 +23,8 @@ sealed record RepresentableTypeModel(
     EquatableList<String> Groups,
     TypeSignatureModel Signature,
     Boolean OmitConversionOperators,
-    FactoryModel Factory) :
+    FactoryModel Factory,
+    StaticallyEquatableContainer<StorageStrategy> StrategyContainer) :
     PartialRepresentableTypeModel(Alias, Options, Storage, Groups, Signature, OmitConversionOperators)
 {
     /// <summary>
@@ -29,14 +32,18 @@ sealed record RepresentableTypeModel(
     /// </summary>
     /// <param name="partialModel"></param>
     /// <param name="factory"></param>
+    /// <param name="strategy"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public static RepresentableTypeModel Create(
         PartialRepresentableTypeModel partialModel,
         FactoryModel factory,
+        StorageStrategy strategy,
         CancellationToken cancellationToken)
     {
         Throw.ArgumentNull(partialModel, nameof(partialModel));
+
+        var container = new StaticallyEquatableContainer<StorageStrategy>(strategy, true);
 
         cancellationToken.ThrowIfCancellationRequested();
         var result = new RepresentableTypeModel(
@@ -46,7 +53,8 @@ sealed record RepresentableTypeModel(
             partialModel.Groups,
             partialModel.Signature,
             partialModel.OmitConversionOperators,
-            factory);
+            factory,
+            container);
 
         return result;
     }

@@ -3,16 +3,16 @@
 using System;
 
 using RhoMicro.CodeAnalysis.Library.Text;
-using RhoMicro.CodeAnalysis.UnionsGenerator._Transformation.Storage;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Storage;
 
-abstract partial class StorageStrategy
+partial class StorageStrategy
 {
     private sealed class ValueContainerStrategy(
-        UnionTypeModel targetType,
-        RepresentableTypeModel unionTypeAttribute,
+        SettingsModel settings,
+        PartialRepresentableTypeModel representableType,
         StorageOption selectedOption,
         StorageSelectionViolation violation)
-        : StorageStrategy(targetType, unionTypeAttribute, selectedOption, violation)
+        : StorageStrategy(settings, representableType, selectedOption, violation)
     {
         public override StorageOption ActualOption => StorageOption.Value;
         public override IndentedStringBuilderAppendable ConvertedInstanceVariableExpression(
@@ -21,14 +21,14 @@ abstract partial class StorageStrategy
             IndentedStringBuilder.Appendables.UtilUnsafeConvert(
                 RepresentableType.Signature.Names.FullGenericNullableName,
                 targetType,
-                $"{instance}.{TargetType.Settings.ValueTypeContainerName}.{RepresentableType.Alias}");
+                $"{instance}.{Settings.ValueTypeContainerName}.{RepresentableType.Alias}");
         public override IndentedStringBuilderAppendable StrongInstanceVariableExpression(
             String instance) =>
-            new(b => _ = b.Operators + '(' + instance + '.' + TargetType.Settings.ValueTypeContainerName + '.' + RepresentableType.Alias + ')');
+            new(b => _ = b.Operators + '(' + instance + '.' + Settings.ValueTypeContainerName + '.' + RepresentableType.Alias + ')');
         public override IndentedStringBuilderAppendable InstanceVariableAssignmentExpression(
             String valueExpression,
             String instance) =>
-            new(b => _ = b.Operators + instance + '.' + TargetType.Settings.ValueTypeContainerName + " = new(" + valueExpression + ')');
+            new(b => _ = b.Operators + instance + '.' + Settings.ValueTypeContainerName + " = new(" + valueExpression + ')');
         public override IndentedStringBuilderAppendable InstanceVariableExpression(
             String instance) =>
             StrongInstanceVariableExpression(instance);

@@ -3,7 +3,11 @@
 using System;
 using System.Collections.Immutable;
 
-using RhoMicro.CodeAnalysis.UnionsGenerator._Transformation.Visitors;
+using Microsoft.CodeAnalysis;
+
+using RhoMicro.CodeAnalysis.UnionsGenerator.Generators;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Visitors;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 
 sealed record SettingsModel(
 #region Settings
@@ -24,6 +28,7 @@ sealed record SettingsModel(
     String ValueTypeContainerName,
     String ReferenceTypeContainerName,
     String TagFieldName,
+    String TagNoneName,
     String JsonConverterTypeName,
 #endregion
 #region Flags
@@ -60,6 +65,33 @@ sealed record SettingsModel(
     nameof(JsonConverterTypeName),
 #endregion
     }.ToImmutableHashSet();
+    public static SettingsModel Create(INamedTypeSymbol type, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var assemblySettings = type.ContainingAssembly.GetAttributes()
+            .Where(Qualifications.IsUnionTypeSettingsAttribute)
+            .Select(SettingsAttributeData.CreateAssemblySettingsWithDefaults)
+            .FirstOrDefault()
+            ?? SettingsAttributeData.Default;
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var settings = type.GetAttributes()
+            .Where(Qualifications.IsUnionTypeSettingsAttribute)
+            .Select(a => SettingsAttributeData.CreateDeclaredSettingsWithDefaults(a, assemblySettings))
+            .OfUnionTypeSettingsAttribute()
+            .SingleOrDefault()
+            ?? new();
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var implementsToString = type.GetMembers("ToString")
+            .OfType<IMethodSymbol>()
+            .Any(m => m.Parameters.Length == 0);
+
+        var result = Create(settings, implementsToString);
+
+        return result;
+    }
     public static SettingsModel Create(UnionTypeSettingsAttribute attribute, Boolean implementsToString) => new(
     #region Settings
     ToStringSetting: attribute.ToStringSetting,
@@ -79,6 +111,7 @@ sealed record SettingsModel(
     ValueTypeContainerName: attribute.ValueTypeContainerName,
     ReferenceTypeContainerName: attribute.ReferenceTypeContainerName,
     TagFieldName: attribute.TagFieldName,
+    TagNoneName: attribute.TagNoneName,
     JsonConverterTypeName: attribute.JsonConverterTypeName,
     #endregion
     #region Non-Attribute Flags

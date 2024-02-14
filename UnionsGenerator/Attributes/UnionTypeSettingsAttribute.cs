@@ -239,6 +239,10 @@ sealed partial class UnionTypeSettingsAttribute : Attribute
     /// </summary>
     public String TagFieldName { get; set; } = "__tag";
     /// <summary>
+    /// The name to use for the default (uninitialized) tag value.
+    /// </summary>
+    public String TagNoneName { get; set; } = "__None";
+    /// <summary>
     /// The name of the generated json converter type.
     /// </summary>
     public String JsonConverterTypeName { get; set; } = "JsonConverter";

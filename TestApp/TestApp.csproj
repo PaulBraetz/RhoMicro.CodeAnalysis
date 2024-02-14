@@ -16,14 +16,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageProjectReference Include="..\UnionsGenerator\UnionsGenerator.csproj" PackageTargetPath="nuget" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <PackageReference Include="Microsoft.CodeAnalysis" Version="4.8.0" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\UnionsGenerator\UnionsGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\UnionsGenerator\UnionsGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
+
 </Project>

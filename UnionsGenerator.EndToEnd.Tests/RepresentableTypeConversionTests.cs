@@ -5,7 +5,7 @@ namespace RhoMicro.CodeAnalysis.UnionsGenerator.EndToEnd.Tests;
 using System;
 using System.Numerics;
 
-public partial class ConversionOperatorsTests
+public partial class RepresentableTypeConversionTests
 {
     [UnionType<String>(Alias = "ErrorMessage")]
     readonly partial struct Result<[UnionType(Alias = "Result")] T>;
