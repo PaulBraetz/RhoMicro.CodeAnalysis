@@ -16,7 +16,7 @@
 			Generate hybrid (tagged/type) union types.
 		</Description>
 		<PackageTags>Source Generator; Union Types; Unions</PackageTags>
-		<PackageIconUrl>PackageLogo.svg</PackageIconUrl>
+		<PackageIconUrl>https://raw.githubusercontent.com/PaulBraetz/RhoMicro.CodeAnalysis/master/UnionsGenerator/PackageLogo.svg</PackageIconUrl>
 	</PropertyGroup>
 
 	<PropertyGroup>
