@@ -48,7 +48,7 @@ jobs:
       run: dotnet build -c Release
 
     - name: Create Nuget Packages
-      run: dotnet pack -c Release -o "$Env:NuGetDirectory" -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg --include-source --force --nologo -p:PackageVersion=${{github.ref_name}}
+      run: dotnet pack -c Release -o "$Env:NuGetDirectory" --include-symbols --include-source --symbolPackageFormat snupkg --force --nologo -p:PackageVersion=${{github.ref_name}}
 
     - name: Publish NuGet Package
       run: |
