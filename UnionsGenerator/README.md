@@ -1,4 +1,6 @@
-# Unions
+![Logo](ReadmeLogo.svg)
+
+# UnionsGenerator
 
 Read about union types here: https://en.wikipedia.org/wiki/Union_type
 
