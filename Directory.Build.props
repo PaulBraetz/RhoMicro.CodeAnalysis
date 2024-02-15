@@ -29,6 +29,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup Label="PackageInfo">
+		<Deterministic>true</Deterministic>
 		<IsPackable>false</IsPackable>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
