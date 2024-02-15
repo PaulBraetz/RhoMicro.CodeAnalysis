@@ -24,9 +24,6 @@ jobs:
     if: github.ref_type != 'tag'
     runs-on: ubuntu-latest
     steps:
-    - name: Echo NugetDirectory
-      run: echo $NuGetDirectory
-
     - uses: actions/checkout@v4
 
     - name: Setup .NET
@@ -51,11 +48,11 @@ jobs:
       run: dotnet build -c Release
 
     - name: Create Nuget Packages
-      run: dotnet pack -c Release -o "$NuGetDirectory" -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg --include-source --force --nologo -p:PackageVersion=${{github.ref_name}}
+      run: dotnet pack -c Release -o "$Env:NuGetDirectory" -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg --include-source --force --nologo -p:PackageVersion=${{github.ref_name}}
 
     - name: Publish NuGet Package
       run: |
-          foreach($file in (Get-ChildItem "$NuGetDirectory" -Recurse -Include *.*nupkg)) {
+          foreach($file in (Get-ChildItem "$Env:NuGetDirectory" -Recurse -Include *.*nupkg)) {
               dotnet nuget push $file --api-key "$NUGETAPITOKEN" --source https://api.nuget.org/v3/index.json --skip-duplicate
           }
       env: 
