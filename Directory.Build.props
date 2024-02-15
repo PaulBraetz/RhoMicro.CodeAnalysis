@@ -35,7 +35,6 @@
 		<Copyright>2024</Copyright>
 		<Company>RhoMicro</Company>
 		<PackageId>$(MSBuildProjectName)</PackageId>
-		<PackageVersion>$(Version)-alpha.$(AutoIncrementedAssemblyRevision)</PackageVersion>
 		<PackageId Condition="'$(SolutionName)'!=''">$(SolutionName).$(MSBuildProjectName)</PackageId>
 		<RepositoryUrl>https://github.com/PaulBraetz/RhoMicro.CodeAnalysis/tree/master/$(MSBuildProjectName)</RepositoryUrl>
 		<ProjectUrl>$(RepositoryUrl)</ProjectUrl>
