@@ -7,30 +7,15 @@ internal class Program
     { }
 }
 
-[UnionType<DateTime, Double>(Groups = ["ValueType"])]
-[UnionType<String>(Alias = "Text")]
-[Relation<CongruentUnion, SubsetUnion>]
-[Relation<SupersetUnion>]
-[Relation<IntersectionUnion>]
-readonly partial struct Union;
+[UnionType<ErrorCode, MultipleUsersError, User>]
+readonly partial struct GetUserResult;
 
-[UnionType<Double>]
-[UnionType<DateTime>]
-[UnionType<String>(Alias = "Characters")]
-sealed partial class CongruentUnion;
+sealed record User(String Name);
 
-[UnionType<DateTime>]
-[UnionType<String>]
-partial class SubsetUnion;
+enum ErrorCode
+{
+    NotFound,
+    Unauthorized
+}
 
-[UnionType<DateTime>]
-[UnionType<String>]
-[UnionType<Double>]
-[UnionType<Int32>]
-partial struct SupersetUnion;
-
-[UnionType<Int16>]
-[UnionType<String>]
-[UnionType<Double>]
-[UnionType<List<Byte>>]
-partial class IntersectionUnion;
+readonly record struct MultipleUsersError(Int32 Count);
