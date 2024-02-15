@@ -20,12 +20,12 @@ This source code generator is licensed to you under the GplV3 (see the [license]
 
 Package Reference:
 ```
-	<ItemGroup>
-	  <PackageReference Include="RhoMicro.CodeAnalysis.UnionsGenerator" Version="*">
-	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	    <PrivateAssets>all</PrivateAssets>
-	  </PackageReference>
-	</ItemGroup>
+<ItemGroup>
+	<PackageReference Include="RhoMicro.CodeAnalysis.UnionsGenerator" Version="*">
+	<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	<PrivateAssets>all</PrivateAssets>
+	</PackageReference>
+</ItemGroup>
 ```
 CLI:
 ```
