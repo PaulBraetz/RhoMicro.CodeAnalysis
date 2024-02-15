@@ -10,7 +10,7 @@ on:
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   DOTNET_NOLOGO: true
-  NuGetDirectory: ${{ github.workspace }}/dist/nuget
+  NuGetDirectory: ${{ github.workspace }}/nuget
 
 jobs:
 #TODO: check nuget/GH auth flows, is token required etc.?
@@ -31,7 +31,7 @@ jobs:
       run: dotnet test -c Release
 
     - name: Create Nuget Packages
-      run: dotnet pack -c Release -o $NuGetDirectory
+      run: dotnet pack -c Release -o $NuGetDirectory -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg
 
     - name: Install Meziantous Validator
       run: dotnet tool update Meziantou.Framework.NuGetPackageValidation.Tool --global
