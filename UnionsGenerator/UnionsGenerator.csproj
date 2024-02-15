@@ -43,6 +43,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Include="PackageLogo.svg" Pack="true" PackagePath=""/>
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="README.md" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
 		<None Include="LICENSE.txt" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />

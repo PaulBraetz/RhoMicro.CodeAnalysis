@@ -1,4 +1,6 @@
-# Unions
+![Logo](ReadmeLogo.svg)
+
+# UnionsGenerator
 
 Read about union types here: https://en.wikipedia.org/wiki/Union_type
 
@@ -49,11 +51,9 @@ u = 32; //implicitly converted
 u = false; //CS0029	Cannot implicitly convert type 'bool' to 'Union'
 ```
 
-### Available Attributes and Instructions
+### `UnionTypeAttribute<T0>` and `UnionTypeAttribute`
 
-#### `UnionTypeAttribute<T0>` and `UnionTypeAttribute`
-
-##### General Usage
+#### General Usage
 
 Use `UnionTypeAttribute<T0>` to add `T0` to the list of representable types:
 ```cs
@@ -97,7 +97,7 @@ if(n.IsSingleName)
 }
 ```
 
-##### `Options`
+#### `Options`
 
 Define miscellaneous behaviour for the represented type using `Options`.
 
@@ -204,7 +204,7 @@ Optimize the generated storage implementation for the representable type against
 > be stored inside a dedicated strongly typed container.
 > Boxing will not occur.
 
-##### `Groups`
+#### `Groups`
 
 Group representable types into categories by assigning `Groups`:
 ```cs
@@ -252,9 +252,7 @@ Settings inheritance is therefore ordered like so:
 - if settings could be located on assembly, settings defined therein are applied and override default settings
 - if settings could be located on union type, settings defined therein are applied and override default or assembly settings
 
-#### Available Settings
-
-##### `ConstructorAccessibility`
+#### `ConstructorAccessibility`
 
 Define the accessibility of generated constructors:
 
@@ -270,7 +268,7 @@ Define the accessibility of generated constructors:
 - `Public`
 > Generated constructors should always be public.
 
-##### `DiagnosticsLevel`
+#### `DiagnosticsLevel`
 
 Define the reporting of diagnostics:
 
@@ -286,7 +284,7 @@ Define the reporting of diagnostics:
 - `All`
 > Instructs the analyzer to report all diagnostics.
 
-##### `ToStringSetting`
+#### `ToStringSetting`
 
 Define how implementations of `ToString` should be generated:
 
@@ -304,7 +302,7 @@ Define how implementations of `ToString` should be generated:
 > The generator will generate an implementation that returns the result of
 > calling ToString on the currently represented value.
 
-##### `Layout`
+#### `Layout`
 
 Generate a layout attribute for size optimization:
 
@@ -314,7 +312,7 @@ Generate a layout attribute for size optimization:
 - `Auto`
 > Do not generate any annotations.
 
-##### Identifiers
+#### Identifiers
 
 Define various identifiers used in the generated implementation:
 - `TypeDeclarationPreface`
