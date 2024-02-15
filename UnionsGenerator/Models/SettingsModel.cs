@@ -16,6 +16,7 @@ sealed record SettingsModel(
     DiagnosticsLevelSettings DiagnosticsLevel,
     ConstructorAccessibilitySetting ConstructorAccessibility,
     InterfaceMatchSetting InterfaceMatchSetting,
+    EqualityOperatorsSetting EqualityOperatorsSetting,
     MiscellaneousSettings Miscellaneous,
 #endregion
 #region Strings
@@ -50,6 +51,7 @@ sealed record SettingsModel(
     nameof(DiagnosticsLevel),
     nameof(ConstructorAccessibility),
     nameof(InterfaceMatchSetting),
+    nameof(EqualityOperatorsSetting),
     nameof(Miscellaneous),
 #endregion
 #region Strings
@@ -62,6 +64,7 @@ sealed record SettingsModel(
     nameof(ValueTypeContainerName),
     nameof(ReferenceTypeContainerName),
     nameof(TagFieldName),
+    nameof(TagNoneName),
     nameof(JsonConverterTypeName),
 #endregion
     }.ToImmutableHashSet();
@@ -99,6 +102,7 @@ sealed record SettingsModel(
     DiagnosticsLevel: attribute.DiagnosticsLevel,
     ConstructorAccessibility: attribute.ConstructorAccessibility,
     InterfaceMatchSetting: attribute.InterfaceMatchSetting,
+    EqualityOperatorsSetting: attribute.EqualityOperatorsSetting,
     Miscellaneous: attribute.Miscellaneous,
     #endregion
     #region Strings
