@@ -25,11 +25,9 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-		<PackageOutputPath>$(SolutionDir)\dist\nuget</PackageOutputPath>
 	</PropertyGroup>
 
 	<PropertyGroup Label="PackageInfo">
-		<Deterministic>true</Deterministic>
 		<IsPackable>false</IsPackable>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
@@ -42,8 +40,6 @@
 		<PackageId Condition="'$(SolutionName)'!=''">$(SolutionName).$(MSBuildProjectName)</PackageId>
 		<RepositoryUrl>https://github.com/PaulBraetz/RhoMicro.CodeAnalysis/tree/master/$(MSBuildProjectName)</RepositoryUrl>
 		<ProjectUrl>$(RepositoryUrl)</ProjectUrl>
-		<IncludeSymbols>true</IncludeSymbols>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -64,15 +60,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="DotNet.ReproducibleBuilds" Version="1.1.1" PrivateAssets="All"/>
+	</ItemGroup>
+	
+	<ItemGroup>
 		<None Remove=".editorconfig"></None>
 	</ItemGroup>
-
-	<Target Name="RemoveDirectories" BeforeTargets="PreBuildEvent">
-		<RemoveDir Directories="$(OutputDirectory);$(DebugDirectory);" />
-		<ItemGroup>
-			<OldProjectPackages Include="$(SolutionDir)\dist\nuget\$(PackageId)*.*" />
-		</ItemGroup>
-		<Delete Files="@(OldProjectPackages)"/>
-		<Message Text="Cleaned project and dist artifacts." Importance="high" />
-	</Target>
 </Project>
