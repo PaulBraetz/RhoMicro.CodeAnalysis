@@ -16,6 +16,7 @@
 			Generate hybrid (tagged/type) union types.
 		</Description>
 		<PackageTags>Source Generator; Union Types; Unions</PackageTags>
+		<PackageIconUrl>https://raw.githubusercontent.com/PaulBraetz/RhoMicro.CodeAnalysis/master/UnionsGenerator/PackageLogo.svg</PackageIconUrl>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -36,7 +37,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Remove=".~lock.Logo_Explorations.odg#" />
 		<None Remove="bin\Debug\netstandard2.0\\RhoMicro.CodeAnalysis.UnionsGenerator.13.0.0.674.dll" />
+		<None Remove="Logo_Explorations.odg" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -44,4 +47,5 @@
 		<None Include="README.md" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
 		<None Include="LICENSE.txt" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
 	</ItemGroup>
+	
 </Project>
