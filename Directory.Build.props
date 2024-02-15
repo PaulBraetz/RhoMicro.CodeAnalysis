@@ -40,6 +40,8 @@
 		<PackageVersion>$(Version)-alpha.$(AutoIncrementedAssemblyRevision)</PackageVersion>
 		<PackageId Condition="'$(SolutionName)'!=''">$(SolutionName).$(MSBuildProjectName)</PackageId>
 		<RepositoryUrl>https://github.com/PaulBraetz/RhoMicro.CodeAnalysis/tree/master/$(MSBuildProjectName)</RepositoryUrl>
+		<ProjectUrl>$(RepositoryUrl)</ProjectUrl>
+		<DebugType>embedded</DebugType>
 	</PropertyGroup>
 
 	<PropertyGroup>
