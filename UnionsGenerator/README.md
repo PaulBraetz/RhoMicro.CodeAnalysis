@@ -49,11 +49,9 @@ u = 32; //implicitly converted
 u = false; //CS0029	Cannot implicitly convert type 'bool' to 'Union'
 ```
 
-### Available Attributes and Instructions
+### `UnionTypeAttribute<T0>` and `UnionTypeAttribute`
 
-#### `UnionTypeAttribute<T0>` and `UnionTypeAttribute`
-
-##### General Usage
+#### General Usage
 
 Use `UnionTypeAttribute<T0>` to add `T0` to the list of representable types:
 ```cs
@@ -97,7 +95,7 @@ if(n.IsSingleName)
 }
 ```
 
-##### `Options`
+#### `Options`
 
 Define miscellaneous behaviour for the represented type using `Options`.
 
@@ -137,7 +135,7 @@ u = "Nonnull String";
 u = (List<String>?)null; //CS8604 - Possible null reference argument for parameter.
 ```
 
-##### `Storage`
+#### `Storage`
 
 Optimize the generated storage implementation for the representable type against boxing or size constraints using `Storage`.
 
@@ -204,7 +202,7 @@ Optimize the generated storage implementation for the representable type against
 > be stored inside a dedicated strongly typed container.
 > Boxing will not occur.
 
-##### `Groups`
+#### `Groups`
 
 Group representable types into categories by assigning `Groups`:
 ```cs
