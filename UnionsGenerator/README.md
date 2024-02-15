@@ -77,7 +77,7 @@ u = GenericUnion<Int32, String>.CreateFromT0(32);
 ```
 *Note: due to compiler restrictions no conversions from or to generic type parameters are generated. Using factory methods is an alternative way of creating union instances.*
 
-##### Alias
+- `Alias`
 
 Define aliae for generated members using `Alias` , e.g.: 
 ```cs
@@ -97,11 +97,11 @@ if(n.IsSingleName)
 }
 ```
 
-##### Options
+##### `Options`
 
 Define miscellaneous behaviour for the represented type using `Options`.
 
-###### ImplicitConversionIfSolitary
+- `ImplicitConversionIfSolitary`
 
 Instructs the generator to emit an implicit conversion to the representable type if it is the only one.
 In effect, this option will enable the union type to act as an alias wrapper for the representable type.
@@ -119,7 +119,7 @@ Int32Alias u = i;
 i = u;
 ```
 
-###### Nullable
+- `Nullable`
 
 Instructs the generator to treat the representable reference type 
 as nullable, allowing for `null` arguments in factories, conversions etc.
@@ -137,78 +137,74 @@ u = "Nonnull String";
 u = (List<String>?)null; //CS8604 - Possible null reference argument for parameter.
 ```
 
-##### Storage
+#### `Storage`
 
 Optimize the generated storage implementation for the representable type against boxing or size constraints using `Storage`.
 
-###### Auto
+- `Auto`
+> The generator will automatically decide on a storage strategy.
+> 
+> If the representable type is known to be a value type,
+> this will store values of that type inside a shared value type container.
+> Boxing will not occur.
+> 
+> If the representable type is known to be a reference type,
+> this will store values of that type inside a shared reference type container.
+> 
+> If the representable type is neither known to be a reference type
+> nor a value type, this option will cause values of that type to 
+> be stored inside a shared reference type container.
+> If the representable type is a generic type parameter,
+> boxing will occur for value type arguments to that parameter.
 
-The generator will automatically decide on a storage strategy.
+- `Reference`
+> The generator will always store values of the representable type
+> inside a shared reference type container.
+> 
+> If the representable type is known to be a value type,
+> boxing will occur.
+> 
+> If the representable type is a generic type parameter,
+> boxing will occur for value type arguments to that parameter.
 
-If the representable type is known to be a value type,
-this will store values of that type inside a shared value type container.
-Boxing will not occur.
+- `Value`
+> The generator will attempt to store values of the representable type
+> inside a value type container.
+> 
+> If the representable type is known to be a value type,
+> this will store values of that type inside a shared value type container.
+> Boxing will not occur.
+> 
+> If the representable type is known to be a reference type,
+> this will store values of that type inside a shared reference type container.
+> Boxing will not occur.
+> 
+> If the representable type is neither known to be a reference type
+> nor a value type, this option will cause values of that type to 
+> be stored inside a shared value type container.
+> If the representable type is a generic type parameter,
+> an exception of type TypeLoadException will occur for
+> reference type arguments to that parameter.
 
-If the representable type is known to be a reference type,
-this will store values of that type inside a shared reference type container.
+- `Field`
+> The generator will attempt to store values of the representable type
+> inside a dedicated container for that type.
+> 
+> If the representable type is known to be a value type,
+> this will store values of that type inside a dedicated 
+> value type container.
+> Boxing will not occur.
+> 
+> If the representable type is known to be a reference type,
+> this will store values of that type inside a 
+> dedicated reference type container.
+> 
+> If the representable type is neither known to be a reference type
+> nor a value type, this option will cause values of that type to 
+> be stored inside a dedicated strongly typed container.
+> Boxing will not occur.
 
-If the representable type is neither known to be a reference type
-nor a value type, this option will cause values of that type to 
-be stored inside a shared reference type container.
-If the representable type is a generic type parameter,
-boxing will occur for value type arguments to that parameter.
-
-###### Reference
-
-The generator will always store values of the representable type
-inside a shared reference type container.
-
-If the representable type is known to be a value type,
-boxing will occur.
-
-If the representable type is a generic type parameter,
-boxing will occur for value type arguments to that parameter.
-
-###### Value
-
-The generator will attempt to store values of the representable type
-inside a value type container.
-
-If the representable type is known to be a value type,
-this will store values of that type inside a shared value type container.
-Boxing will not occur.
-
-If the representable type is known to be a reference type,
-this will store values of that type inside a shared reference type container.
-Boxing will not occur.
-
-If the representable type is neither known to be a reference type
-nor a value type, this option will cause values of that type to 
-be stored inside a shared value type container.
-If the representable type is a generic type parameter,
-an exception of type TypeLoadException will occur for
-reference type arguments to that parameter.
-
-###### Field
-
-The generator will attempt to store values of the representable type
-inside a dedicated container for that type.
-
-If the representable type is known to be a value type,
-this will store values of that type inside a dedicated 
-value type container.
-Boxing will not occur.
-
-If the representable type is known to be a reference type,
-this will store values of that type inside a 
-dedicated reference type container.
-
-If the representable type is neither known to be a reference type
-nor a value type, this option will cause values of that type to 
-be stored inside a dedicated strongly typed container.
-Boxing will not occur.
-
-##### Groups
+##### `Groups`
 
 Group representable types into categories by assigning `Groups`:
 ```cs
