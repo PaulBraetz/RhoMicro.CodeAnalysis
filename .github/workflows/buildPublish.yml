@@ -30,36 +30,29 @@ jobs:
     - name: Run Tests
       run: dotnet test -c Release
 
-    - name: Create Nuget Packages
-      run: dotnet pack -c Release -o $NuGetDirectory -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg --include-source --force --nologo -p:PackageVersion=${{github.ref_name}}
-
-    - name: Upload Packages To Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: nuget
-        if-no-files-found: error
-        retention-days: 7
-        path: ${{ env.NuGetDirectory }}
-    
   deploy:
     if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     needs: [ build ]
     steps:
-      - uses: actions/checkout@v4
-      
-      - uses: actions/download-artifact@v4
-        with:
-          name: nuget
-          path: ${{ env.NuGetDirectory }}
+    - uses: actions/checkout@v4
 
-      - name: Setup .NET Core
-        uses: actions/setup-dotnet@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+
+    - name: Dotnet Build
+      run: dotnet build -c Release
+      
+    - name: Create Nuget Packages
+      run: dotnet pack -c Release -o $NuGetDirectory -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg --include-source --force --nologo -p:PackageVersion=${{github.ref_name}}
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v4
         
-      - name: Publish NuGet Package
-        run: dotnet nuget push -s $NuGetDirectory --api-key $NUGETAPITOKEN --skip-duplicate
-        env: 
-          NUGETAPITOKEN: ${{ secrets.NUGETAPITOKEN }}
+    - name: Publish NuGet Package
+      run: dotnet nuget push -s $NuGetDirectory --api-key $NUGETAPITOKEN --skip-duplicate
+      env: 
+        NUGETAPITOKEN: ${{ secrets.NUGETAPITOKEN }}
 
 
 
