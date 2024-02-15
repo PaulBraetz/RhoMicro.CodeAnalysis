@@ -248,86 +248,109 @@ For sample usage, see [Groups](#groups).
 
 ### `UnionTypeSettingsAttribute`
 
-TODO: update to current changes
+Use the `UnionTypeSettingsAttribute` to supply additional instructions to the generator. The attribute may be applied to either an assembly or a union type. When targeting a union type, it defines settings specific to that type. If, however, the attribute is annotating an assembly, it supplies the default settings for every union type in that assembly.
 
-This attribute may target either a union type or an assembly. When targeting a union type, it defines settings specific to that type. If, however, the attribute is annotating an assembly, it supplies the default settings for every union type in that assembly.
+Settings inheritance is therefore ordered like so:
 
-- `ConstructorAccessibility`: define the accessibility of generated constructors:
-```cs
-public enum ConstructorAccessibilitySetting
-{
-    // Generated constructors should always be private, unless
-    // no conversion operators are generated for the type they
-    // accept. This would be the case for interface types or
-    // supertypes of the target union.
-    PublicIfInconvertible,
-    // Generated constructors should always be private.
-    Private,
-    // Generated constructors should always be public
-    Public
-}
-```
+- default settings are applied (see [UnionTypeSettingsAttribute](Attributes/UnionTypeSettingsAttribute.cs))
+- if settings could be located on assembly, settings defined therein are applied and override default settings
+- if settings could be located on union type, settings defined therein are applied and override default or assembly settings
 
-- `DiagnosticsLevel`: define the reporting of diagnostics:
-```cs
-[Flags]
-public enum DiagnosticsLevelSettings
-{
-    // Instructs the analyzer to report info diagnostics.
-    Info = 0x01,
-    // Instructs the analyzer to report warning diagnostics.
-    Warning = 0x02,
-    // Instructs the analyzer to report error diagnostics.
-    Error = 0x04,
-    // Instructs the analyzer to report all diagnostics.
-    All = Info + Warning + Error
-}
-```
+#### Available Settings
 
-- `ToStringSetting`: define how implementations of `ToString` should be generated:
-```cs
-public enum ToStringSetting
-{
-    // The generator will emit an implementation that returns detailed information, including:
-    // - the name of the union type
-    // - a list of types representable by the union type
-    // - an indication of which type is being represented by the instance
-    // - the value currently being represented by the instance
-    Detailed,
-    // The generator will not generate an implementation of ToString.
-    None,
-    // The generator will generate an implementation that returns the result of
-    // calling ToString on the currently represented value.
-    Simple
-}
-```
+##### `ConstructorAccessibility`
 
-- `Layout`: generate a layout attribute for size optimization
-```cs
-public enum LayoutSetting
-{
-    // Generate an annotation optimized for size.
-    Small,
-    // Do not generate any annotations.
-    Auto
-}
-```
+Define the accessibility of generated constructors:
 
+- `PublicIfInconvertible`
+>Generated constructors should always be private, unless 
+>no conversion operators are generated for the type they 
+>accept. This would be the case for interface types or 
+>supertypes of the target union. 
 
-- Generic Names: define how generic type parameter names should be generated:
-```cs
-// Gets or sets the name of the generic parameter for generic Is, As and factory methods. 
-// Set this property in order to avoid name collisions with generic union type parameters
-public String GenericTValueName { get; set; }
-// Gets or sets the name of the generic parameter for the Match method. 
-// Set this property in order to avoid name collisions with generic union type parameters
-public String MatchTypeName { get; set; }
-```
+- `Private`
+> Generated constructors should always be private.
+
+- `Public`
+> Generated constructors should always be public.
+
+##### `DiagnosticsLevel`
+
+Define the reporting of diagnostics:
+
+- `Info`
+> Instructs the analyzer to report info diagnostics.
+
+- `Warning`
+> Instructs the analyzer to report warning diagnostics.
+
+- `Error`
+> Instructs the analyzer to report error diagnostics.
+
+- `All`
+> Instructs the analyzer to report all diagnostics.
+
+##### `ToStringSetting`
+
+Define how implementations of `ToString` should be generated:
+
+- `Detailed`
+> The generator will emit an implementation that returns detailed information, including:
+> - the name of the union type
+> - a list of types representable by the union type
+> - an indication of which type is being represented by the instance
+> - the value currently being represented by the instance
+
+- `None`
+> The generator will not generate an implementation of ToString.
+
+- `Simple`
+> The generator will generate an implementation that returns the result of
+> calling ToString on the currently represented value.
+
+##### `Layout`
+
+Generate a layout attribute for size optimization:
+
+- `Small`
+> Generate an annotation optimized for size.
+
+- `Auto`
+> Do not generate any annotations.
+
+##### Identifiers
+
+Define various identifiers used in the generated implementation:
+- `TypeDeclarationPreface`
+> A raw code preface to prepend before the generated type declaration.
+- `GenericTValueName`
+> The name of the generic parameter for generic <c>Is</c>, <c>As</c> and factory methods. 
+> Set this property in order to avoid name collisions with generic union type parameters
+- `TryConvertTypeName`
+> The name of the generic parameter for the <c>TryConvert</c> method. 
+> Set this property in order to avoid name collisions with generic union type parameters
+- `MatchTypeName`
+> The name of the generic parameter for the <c>Match</c> method. 
+> Set this property in order to avoid name collisions with generic union type parameters
+- `TagTypeName`
+> The name to use for the discriminating tag type.
+- `ValueTypeContainerTypeName`
+> The name to use for the container type containing value types.
+- `ValueTypeContainerName`
+> The name to use for the field containing value types.
+- `ReferenceTypeContainerName`
+> The name to use for the field containing reference types.
+- `TagFieldName`
+> The name to use for the field containing the discriminating tag.
+- `TagNoneName`
+> The name to use for the default (uninitialized) tag value.
+- `JsonConverterTypeName`
+> The name of the generated json converter type.
 
 ### `RelationAttribute`
 
 This attribute defines a relation between the targeted union type the supplied type. The following relations are available:
-- `None`
+- `Disjunct`
 - `Congruent`
 - `Superset`
 - `Subset`
@@ -335,36 +358,65 @@ This attribute defines a relation between the targeted union type the supplied t
 
 The generator will automatically detect the relation between two union types. The only requirement is for one of the two types to be annotated with the `RelationAttribute`:
 ```cs
-[UnionType(typeof(DateTime))]
-[UnionType(typeof(String))]
-[UnionType(typeof(Double))]
-[Relation(typeof(CongruentUnion))]
-[Relation(typeof(SubsetUnion))]
-[Relation(typeof(SupersetUnion))]
-[Relation(typeof(IntersectionUnion))]
+[UnionType<DateTime, String, Double>]
+[Relation<CongruentUnion, SubsetUnion, SupersetUnion, IntersectionUnion>]
 readonly partial struct Union;
 
-[UnionType(typeof(Double))]
-[UnionType(typeof(DateTime))]
-[UnionType(typeof(String))]
+[UnionType<Double, DateTime, String>]
 sealed partial class CongruentUnion;
 
-[UnionType(typeof(DateTime))]
-[UnionType(typeof(String))]
+[UnionType<DateTime, String>]
 partial class SubsetUnion;
 
-[UnionType(typeof(DateTime))]
-[UnionType(typeof(String))]
-[UnionType(typeof(Double))]
-[UnionType(typeof(Int32))]
+[UnionType<DateTime, String, Double, Int32>]
 partial struct SupersetUnion;
 
-[UnionType(typeof(Int16))]
-[UnionType(typeof(String))]
-[UnionType(typeof(Double))]
-[UnionType(typeof(List<Byte>))]
+[UnionType<Int16, String, Double, List<Byte>>]
 partial class IntersectionUnion;
 ```
+
+Upon detecting a union relation, the generator will emit conversion operators approriate to the inferred relation type:
+
+- `Disjunct`
+> There is no relation between the provided type and target type.
+> They do not share any representable types.
+> No conversion operators will be generated.
+
+- `BidirectionalRelation`
+> The relation is defined on both the target type as well as the provided type.
+> Only for one of the two union types will conversion operators be generated.
+
+- `Superset`
+> The target type is a superset of the provided type.
+> The target type may represent all of the provided types representable types.
+> This means that two conversion operations will be generated:
+> - an <em>implicit</em> conversion operator from the provided type to the target type
+> - an <em>explicit</em> conversion operator from the target type to the provided type
+> This option is not available if the provided type has already defined a relation to the target type.
+
+- `Subset`
+> The target type is a subset of the provided type.
+> The provided type may represent all of the target types representable types.
+> This means that two conversion operations will be generated:
+> - an <em>implicit</em> conversion operator from the target type to the provided type
+> - an <em>explicit</em> conversion operator from the provided type to the target type
+> This option is not available if the provided type has already defined a relation to the target type.
+
+- `Intersection`
+> The target type intersects the provided type.
+> The target type may represent some, but not all of the provided types representable types; and vice-versa.
+> This means that two conversion operations will be generated:
+> - an <em>explicit</em> conversion operator from the target type to the provided type
+> - an <em>explicit</em> conversion operator from the provided type to the target type
+> This option is not available if the provided type has already defined a relation to the target type.
+
+- `Congruent`
+> The target type is congruent to the provided type.
+> The target type may represent all of the provided types representable types; and vice-versa.
+> This means that two conversion operations will be generated:
+> - an <em>implicit</em> conversion operator from the target type to the provided type
+> - an <em>implicit</em> conversion operator from the provided type to the target type
+> This option is not available if the provided type has already defined a relation to the target type.
 
 ## Contrived Example
 
@@ -387,9 +439,7 @@ The `User` type represents a user. The `ErrorCode` represents an error that does
 We define a union type to represent our imaginary query:
 
 ```cs
-[UnionType(typeof(ErrorCode))]
-[UnionType(typeof(MultipleUsersError))]
-[UnionType(typeof(User))]
+[UnionType<ErrorCode, MultipleUsersError, User>]
 readonly partial struct GetUserResult;
 ```
 Instances of `GetUserResult` can represent *either* an instance of `ErrorCode`, `MultipleUsersError` or `User`.
@@ -483,50 +533,320 @@ sealed class UserModel
 }
 ```
 
-Here is a list of some generated members on the `GetUserResult` union type (implementations have been elided):
+Here is a list of some generated members on the `GetUserResult` union type (implementations and some details have been elided):
 ```cs
-/*Factories*/
-public static GetUserResult Create(ErrorCode value);
-public static GetUserResult Create(MultipleUsersResult value);
-public static GetUserResult Create(User value);
-public static Boolean TryCreate<TValue>(TValue value, out GetUserResult instance);
-public static GetUserResult Create<TValue>(TValue value);
+/// <summary>
+/// Creates a new instance of <see cref="GetUserResult"/>representing an instance of <see cref="ErrorCode"/>.
+/// </summary>
+private GetUserResult(ErrorCode value)
+	
+/// <summary>
+/// Creates a new instance of <see cref="GetUserResult"/>representing an instance of <see cref="MultipleUsersError"/>.
+/// </summary>
+private GetUserResult(MultipleUsersError value)
+	
+/// <summary>
+/// Creates a new instance of <see cref="GetUserResult"/>representing an instance of <see cref="User"/>.
+/// </summary>
+private GetUserResult(User value)
+		
+/// <summary>
+/// Creates a new instance of <see cref="GetUserResult"/> representing an instance of <see cref="ErrorCode"/>.
+/// </summary>
+/// <param name="value">
+/// The value to be represented by the new instance of <see cref="GetUserResult"/>.
+/// </param>
+/// <returns>
+/// A new instance of <see cref="GetUserResult"/> representing <paramref name="value"/>.
+/// </returns>
+public static GetUserResult CreateFromErrorCode([RhoMicro.CodeAnalysis.UnionTypeFactory]ErrorCode value)
+	
+/// <summary>
+/// Creates a new instance of <see cref="GetUserResult"/> representing an instance of <see cref="MultipleUsersError"/>.
+/// </summary>
+/// <param name="value">
+/// The value to be represented by the new instance of <see cref="GetUserResult"/>.
+/// </param>
+/// <returns>
+/// A new instance of <see cref="GetUserResult"/> representing <paramref name="value"/>.
+/// </returns>
+public static GetUserResult CreateFromMultipleUsersError([RhoMicro.CodeAnalysis.UnionTypeFactory]MultipleUsersError value)
+	
+/// <summary>
+/// Creates a new instance of <see cref="GetUserResult"/> representing an instance of <see cref="User"/>.
+/// </summary>
+/// <param name="value">
+/// The value to be represented by the new instance of <see cref="GetUserResult"/>.
+/// </param>
+/// <returns>
+/// A new instance of <see cref="GetUserResult"/> representing <paramref name="value"/>.
+/// </returns>
+public static GetUserResult CreateFromUser([RhoMicro.CodeAnalysis.UnionTypeFactory]User value)
 
-/*Handling Methods*/
+/// <summary>
+/// Attempts to create an instance of <see cref="GetUserResult"/> from an instance of <typeparamref name="TValue"/>.
+/// </summary>
+/// <param name="value">
+/// The value from which to attempt to create an instance of <see cref="GetUserResult"/>.
+/// </param>
+/// <param name="result">
+/// If an instance of <see cref="GetUserResult"/> could successfully be created, this parameter will contain the newly created instance; otherwise, <see langword="default"/>.
+/// </param>
+/// <returns>
+/// <see langword="true"/> if an instance of <see cref="GetUserResult"/> could successfully be created; otherwise, <see langword="false"/>.
+/// </returns>
+public static System.Boolean TryCreate<TValue>(TValue value,  out GetUserResult result)
+
+/// <summary>
+/// Creates an instance of <see cref="GetUserResult"/> from an instance of <typeparamref name="TValue"/>.
+/// </summary>
+/// <param name="value">
+/// The value from which to create an instance of <see cref="GetUserResult"/>.
+/// </param>
+/// <returns>
+/// A new instance of <see cref="GetUserResult"/> representing <paramref name="value"/>.
+/// </returns>
+public static GetUserResult Create<TValue>(TValue value)
+		
+/// <summary>
+/// Invokes a handler based on the type of value being represented.
+/// </summary>
+/// <param name="onErrorCode">
+/// The handler to invoke if the union is currently representing an instance of <see cref="ErrorCode"/>.
+/// </param>
+/// <param name="onMultipleUsersError">
+/// The handler to invoke if the union is currently representing an instance of <see cref="MultipleUsersError"/>.
+/// </param>
+/// <param name="onUser">
+/// The handler to invoke if the union is currently representing an instance of <see cref="User"/>.
+/// </param>
 public void Switch(
-    Action<ErrorCode> onErrorCode, 
-    Action<MultipleUsersResult> onMultipleUsersResult,
-    Action<User> onUser);
+	System.Action<ErrorCode> onErrorCode,
+	System.Action<MultipleUsersError> onMultipleUsersError,
+	System.Action<User> onUser)
+		
+/// <summary>
+/// Invokes a projection based on the type of value being represented.
+/// </summary>
+/// <param name="onErrorCode">
+/// The projection to invoke if the union is currently representing an instance of <see cref="ErrorCode"/>.
+/// </param>
+/// <param name="onMultipleUsersError">
+/// The projection to invoke if the union is currently representing an instance of <see cref="MultipleUsersError"/>.
+/// </param>
+/// <param name="onUser">
+/// The projection to invoke if the union is currently representing an instance of <see cref="User"/>.
+/// </param>
+/// <typeparam name="TMatchResult">
+/// The type of value produced by the projections passed.
+/// </typeparam>
+/// <returns>
+/// The projected value.
+/// </returns>
+public TMatchResult Match<TMatchResult>(
+	System.Func<ErrorCode, TMatchResult> onErrorCode,
+	System.Func<MultipleUsersError, TMatchResult> onMultipleUsersError,
+	System.Func<User, TMatchResult> onUser)
+		
+/// <summary>
+/// Gets the types of value this union type can represent.
+/// </summary>
+public static System.Collections.Generic.IReadOnlyCollection<System.Type> RepresentableTypes { get; }
 
-public TResult Match<TResult>(
-    Func<ErrorCode, TResult> onErrorCode,
-    Func<MultipleUsersResult, TResult> onMultipleUsersResult,
-    Func<User, TResult> onUser);
+/// <summary>
+/// Gets the type of value represented by this instance.
+/// </summary>
+public System.Type RepresentedType
+		
+		
+/// <summary>
+/// Gets a value indicating whether this instance is representing a value of type <see cref="ErrorCode"/>.
+/// </summary>
+public System.Boolean IsErrorCode
+	
+/// <summary>
+/// Gets a value indicating whether this instance is representing a value of type <see cref="MultipleUsersError"/>.
+/// </summary>
+public System.Boolean IsMultipleUsersError
+	
+/// <summary>
+/// Gets a value indicating whether this instance is representing a value of type <see cref="User"/>.
+/// </summary>
+public System.Boolean IsUser
+	
+/// <summary>
+/// Retrieves the value represented by this instance as a <see cref="ErrorCode"/>.
+/// </summary>
+public ErrorCode AsErrorCode
+	
+/// <summary>
+/// Retrieves the value represented by this instance as a <see cref="MultipleUsersError"/>.
+/// </summary>
+public MultipleUsersError AsMultipleUsersError
+	
+/// <summary>
+/// Retrieves the value represented by this instance as a <see cref="User"/>.
+/// </summary>
+public User? AsUser
+		
+/// <summary>
+/// Determines whether this instance is representing a value of type <see cref="ErrorCode"/>.
+/// </summary>
+/// <returns>
+/// <see langword="true"/> if this instance is representing a value of type <see cref="ErrorCode"/>; otherwise, <see langword="false"/>.
+/// </returns>
+/// <param name="value">
+/// If this instance is representing a value of type <see cref="ErrorCode"/>, this parameter will contain that value; otherwise, <see langword="default"/>.
+/// </param>
+public System.Boolean TryAsErrorCode( out ErrorCode value)
+	
+/// <summary>
+/// Determines whether this instance is representing a value of type <see cref="MultipleUsersError"/>.
+/// </summary>
+/// <returns>
+/// <see langword="true"/> if this instance is representing a value of type <see cref="MultipleUsersError"/>; otherwise, <see langword="false"/>.
+/// </returns>
+/// <param name="value">
+/// If this instance is representing a value of type <see cref="MultipleUsersError"/>, this parameter will contain that value; otherwise, <see langword="default"/>.
+/// </param>
+public System.Boolean TryAsMultipleUsersError( out MultipleUsersError value)
+	
+/// <summary>
+/// Determines whether this instance is representing a value of type <see cref="User"/>.
+/// </summary>
+/// <returns>
+/// <see langword="true"/> if this instance is representing a value of type <see cref="User"/>; otherwise, <see langword="false"/>.
+/// </returns>
+/// <param name="value">
+/// If this instance is representing a value of type <see cref="User"/>, this parameter will contain that value; otherwise, <see langword="default"/>.
+/// </param>
+public System.Boolean TryAsUser([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out User value)
 
-/*Casting & Conversion*/
-public Boolean Is<TValue>();
+/// <summary>
+/// Determines whether this instance is representing a value of type <typeparamref name="TValue"/>.
+/// </summary>
+/// <typeparam name="TValue">
+/// The type whose representation in this instance to determine.
+/// </typeparam>
+/// <returns>
+/// <see langword="true"/> if this instance is representing a value of type <typeparamref name="TValue"/>; otherwise, <see langword="false"/>.
+/// </returns>
+public System.Boolean Is<TValue>()
 
-public Boolean Is(Type type);
+/// <summary>
+/// Determines whether this instance is representing a value of type <typeparamref name="TValue"/>.
+/// </summary>
+/// <param name="value">
+/// If this instance is representing a value of type <typeparamref name="TValue"/>, this parameter will contain that value; otherwise, <see langword="default"/>.
+/// </param>
+/// <typeparam name="TValue">
+/// The type whose representation in this instance to determine.
+/// </typeparam>
+/// <returns>
+/// <see langword="true"/> if this instance is representing a value of type <typeparamref name="TValue"/>; otherwise, <see langword="false"/>.
+/// </returns>
+public System.Boolean Is<TValue>(out TValue? value)
 
-public TValue As<TValue>();
+/// <summary>
+/// Determines whether this instance is representing an instance of <paramref name="type"/>.
+/// </summary>
+/// <param name="type">
+/// The type whose representation in this instance to determine.
+/// </param>
+/// <returns>
+/// <see langword="true"/> if this instance is representing an instance of <paramref name="type"/>; otherwise, <see langword="false"/>.
+/// </returns>
+public System.Boolean Is(System.Type type)
 
-public Boolean IsErrorCode;
-public ErrorCode AsErrorCode;
+/// <summary>
+/// Retrieves the value represented by this instance as an instance of <typeparamref name="TValue"/>.
+/// </summary>
+/// <typeparam name="TValue">
+/// The type to retrieve the represented value as.
+/// </typeparam>
+/// <returns>
+/// The currently represented value as an instance of <typeparamref name="TValue"/>.
+/// </returns>
+public TValue As<TValue>()
+		
+/// <inheritdoc/>
+public override System.String ToString()
+		
+/// <inheritdoc/>
+public override System.Int32 GetHashCode()
+		
+/// <inheritdoc/>
+public override System.Boolean Equals(System.Object? obj)
 
-public Boolean IsMultipleUsersResult;
-public MultipleUsersResult AsMultipleUsersResult;
+/// <inheritdoc/>
+public System.Boolean Equals(GetUserResult other)
 
-public Boolean IsUser;
-public User AsUser;
+public static System.Boolean operator ==(GetUserResult a, GetUserResult b) => a.Equals(b);
+public static System.Boolean operator !=(GetUserResult a, GetUserResult b) => !a.Equals(b);
+		
+	/// <summary>
+/// Converts an instance of the representable type <see cref="ErrorCode"/> to the union type <see cref="GetUserResult"/>.
+/// </summary>
+/// <param name="value">
+/// The value to convert.
+/// </param>
+/// <returns>
+/// The union type instance.
+/// </returns>
+public static implicit operator GetUserResult(ErrorCode value)
+	
+/// <summary>
+/// Converts an instance of the union type <see cref="GetUserResult"/> to the representable type <see cref="ErrorCode"/>.
+/// </summary>
+/// <param name="union">
+/// The union to convert.
+/// </param>
+/// <returns>
+/// The represented value.
+/// </returns>
+public static explicit operator ErrorCode(GetUserResult union)
 
-public Type GetRepresentedType();
+/// <summary>
+/// Converts an instance of the representable type <see cref="MultipleUsersError"/> to the union type <see cref="GetUserResult"/>.
+/// </summary>
+/// <param name="value">
+/// The value to convert.
+/// </param>
+/// <returns>
+/// The union type instance.
+/// </returns>
+public static implicit operator GetUserResult(MultipleUsersError value)
 
-public static implicit operator GetUserResult(ErrorCode value);
-public static explicit operator ErrorCode(GetUserResult union);
+/// <summary>
+/// Converts an instance of the union type <see cref="GetUserResult"/> to the representable type <see cref="MultipleUsersError"/>.
+/// </summary>
+/// <param name="union">
+/// The union to convert.
+/// </param>
+/// <returns>
+/// The represented value.
+/// </returns>
+public static explicit operator MultipleUsersError(GetUserResult union)
 
-public static implicit operator GetUserResult(MultipleUsersResult value);
-public static explicit operator MultipleUsersResult(GetUserResult union);
+/// <summary>
+/// Converts an instance of the representable type <see cref="User"/> to the union type <see cref="GetUserResult"/>.
+/// </summary>
+/// <param name="value">
+/// The value to convert.
+/// </param>
+/// <returns>
+/// The union type instance.
+/// </returns>
+public static implicit operator GetUserResult(User value)
 
-public static implicit operator GetUserResult(User value);
-public static explicit operator User(GetUserResult union);
+/// <summary>
+/// Converts an instance of the union type <see cref="GetUserResult"/> to the representable type <see cref="User"/>.
+/// </summary>
+/// <param name="union">
+/// The union to convert.
+/// </param>
+/// <returns>
+/// The represented value.
+/// </returns>
+public static explicit operator User(GetUserResult union)
 ```
