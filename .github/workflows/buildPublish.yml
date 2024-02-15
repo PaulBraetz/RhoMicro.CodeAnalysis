@@ -12,6 +12,10 @@ env:
   DOTNET_NOLOGO: true
   NuGetDirectory: ${{ github.workspace }}/nuget
 
+defaults:
+  run:
+    shell: pwsh
+
 jobs:
 #TODO: check nuget/GH auth flows, is token required etc.?
 #TODO: check if publish job sees dist/nuget, see publish-artifact for reference
@@ -47,11 +51,12 @@ jobs:
       run: dotnet pack -c Release -o $NuGetDirectory -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg --include-source --force --nologo -p:PackageVersion=${{github.ref_name}}
 
     - name: Publish NuGet Package
-      run: dotnet nuget push $NuGetDirectory/*.*nupkg -k $NUGETAPITOKEN --skip-duplicate
+      run: |
+          foreach($file in (Get-ChildItem "$NuGetDirectory" -Recurse -Include *.*nupkg)) {
+              dotnet nuget push $file --api-key "$NUGETAPITOKEN" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          }
       env: 
         NUGETAPITOKEN: ${{ secrets.NUGETAPITOKEN }}
-
-
 
 
 
