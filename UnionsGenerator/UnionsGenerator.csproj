@@ -16,6 +16,7 @@
 			Generate hybrid (tagged/type) union types.
 		</Description>
 		<PackageTags>Source Generator; Union Types; Unions</PackageTags>
+		<PackageIconUrl>PackageLogo.svg</PackageIconUrl>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -42,8 +43,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Include="PackageLogo.svg" Pack="true" PackagePath=""/>
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="README.md" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
 		<None Include="LICENSE.txt" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
 	</ItemGroup>
+	
 </Project>
