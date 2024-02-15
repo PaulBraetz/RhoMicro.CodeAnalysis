@@ -319,7 +319,15 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
             })
             .Append(b =>
             {
-                if(target.Signature.Nature is TypeNature.PureValueType or TypeNature.ImpureValueType)
+                if(target is
+                    {
+                        Signature.Nature: TypeNature.PureValueType or TypeNature.ImpureValueType,
+                        Settings.EqualityOperatorsSetting: EqualityOperatorsSetting.EmitOperatorsIfValueType or EqualityOperatorsSetting.EmitOperators
+                    } or
+                    {
+                        Signature.Nature: TypeNature.ReferenceType or TypeNature.UnknownType,
+                        Settings.EqualityOperatorsSetting: EqualityOperatorsSetting.EmitOperators
+                    })
                 {
                     b.Append("public static System.Boolean operator ==(")
                     .Append(target.Signature.Names.GenericName).Append(" a, ")
