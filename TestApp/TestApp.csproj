@@ -16,8 +16,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.CodeAnalysis" Version="4.8.0" />
-		<PackageReference Include="RhoMicro.CodeAnalysis.UnionsGenerator" Version="14.0.0-alpha.26">
+		<PackageReference Include="RhoMicro.CodeAnalysis.UnionsGenerator" Version="14.0.0-alpha.30">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
