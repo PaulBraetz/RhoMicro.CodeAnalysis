@@ -53,7 +53,7 @@ jobs:
     - name: Publish NuGet Package
       run: |
           foreach($file in (Get-ChildItem "$Env:NuGetDirectory" -Recurse -Include *.*nupkg)) {
-              dotnet nuget push $file --api-key "$NUGETAPITOKEN" --source https://api.nuget.org/v3/index.json --skip-duplicate
+              dotnet nuget push $file --api-key "$Env:NUGETAPITOKEN" --source https://api.nuget.org/v3/index.json --skip-duplicate
           }
       env: 
         NUGETAPITOKEN: ${{ secrets.NUGETAPITOKEN }}
