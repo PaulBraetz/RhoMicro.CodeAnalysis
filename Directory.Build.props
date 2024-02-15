@@ -41,7 +41,8 @@
 		<PackageId Condition="'$(SolutionName)'!=''">$(SolutionName).$(MSBuildProjectName)</PackageId>
 		<RepositoryUrl>https://github.com/PaulBraetz/RhoMicro.CodeAnalysis/tree/master/$(MSBuildProjectName)</RepositoryUrl>
 		<ProjectUrl>$(RepositoryUrl)</ProjectUrl>
-		<DebugType>embedded</DebugType>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	</PropertyGroup>
 
 	<PropertyGroup>
