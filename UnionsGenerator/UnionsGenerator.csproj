@@ -36,7 +36,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Remove=".~lock.Logo_Explorations.odg#" />
 		<None Remove="bin\Debug\netstandard2.0\\RhoMicro.CodeAnalysis.UnionsGenerator.13.0.0.674.dll" />
+		<None Remove="Logo_Explorations.odg" />
 	</ItemGroup>
 
 	<ItemGroup>
