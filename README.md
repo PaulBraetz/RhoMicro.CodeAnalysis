@@ -1,6 +1,6 @@
 # Rhomicro.CodeAnalysis
 
-![Build](https://github.com/PaulBraetz/RhoMicro.CodeAnalysis/blob/master/.github/workflows/buildPublish.yml/badge.svg)
+![Build](https://github.com/PaulBraetz/RhoMicro.CodeAnalysis/.github/workflows/buildPublish.yml/badge.svg)
 
 This repository contains my explorations on c# source code generation and analysis.
 
