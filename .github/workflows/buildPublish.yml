@@ -46,11 +46,8 @@ jobs:
     - name: Create Nuget Packages
       run: dotnet pack -c Release -o $NuGetDirectory -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg --include-source --force --nologo -p:PackageVersion=${{github.ref_name}}
 
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v4
-        
     - name: Publish NuGet Package
-      run: dotnet nuget push -s $NuGetDirectory -k $NUGETAPITOKEN --skip-duplicate
+      run: dotnet nuget push $NuGetDirectory/*.*nupkg -k $NUGETAPITOKEN --skip-duplicate
       env: 
         NUGETAPITOKEN: ${{ secrets.NUGETAPITOKEN }}
 
