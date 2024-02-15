@@ -25,9 +25,6 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
 
-    - name: Dotnet Build
-      run: dotnet build -c Release
-
     - name: Run Tests
       run: dotnet test -c Release
 
@@ -40,9 +37,6 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
 
-    - name: Dotnet Build
-      run: dotnet build -c Release
-      
     - name: Run Tests
       run: dotnet test -c Release
 
