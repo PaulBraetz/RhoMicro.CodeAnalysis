@@ -46,7 +46,7 @@ jobs:
       
     - name: Run Tests
       run: dotnet test -c Release
-      
+
     - name: Create Nuget Packages
       run: dotnet pack -c Release -o $NuGetDirectory -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg --include-source --force --nologo -p:PackageVersion=${{github.ref_name}}
 
@@ -54,7 +54,7 @@ jobs:
       uses: actions/setup-dotnet@v4
         
     - name: Publish NuGet Package
-      run: dotnet nuget push -s $NuGetDirectory --api-key $NUGETAPITOKEN --skip-duplicate
+      run: for pkg in $NuGetDirectory; do dotnet nuget push $pkg --api-key $NUGETAPITOKEN --skip-duplicate; done
       env: 
         NUGETAPITOKEN: ${{ secrets.NUGETAPITOKEN }}
 
