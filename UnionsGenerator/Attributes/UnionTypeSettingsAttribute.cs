@@ -153,6 +153,25 @@ enum MiscellaneousSettings
     EmitStructuralRepresentation = 0x04
 }
 
+/// <summary>
+/// Defines settings pertaining to equality operator implementations.
+/// </summary>
+enum EqualityOperatorsSetting
+{
+    /// <summary>
+    /// Equality operators will be emitted only if the target union type is a value type.
+    /// </summary>
+    EmitOperatorsIfValueType,
+    /// <summary>
+    /// Equality operators will be emitted.
+    /// </summary>
+    EmitOperators,
+    /// <summary>
+    /// Equality operators will be omitted.
+    /// </summary>
+    OmitOperators
+}
+
 #endregion
 #region Attribute Declaration
 /// <summary>
@@ -193,6 +212,12 @@ sealed partial class UnionTypeSettingsAttribute : Attribute
     /// </para>
     /// </summary>
     public InterfaceMatchSetting InterfaceMatchSetting { get; set; } = InterfaceMatchSetting.Auto;
+    /// <summary>
+    /// Indicates how to generate equality operators.
+    /// By default, equality operators will only be emitted for value types, so as to preserve
+    /// reference equality for comparing reference union types via <c>==</c> or <c>!=</c>.
+    /// </summary>
+    public EqualityOperatorsSetting EqualityOperatorsSetting { get; set; } = EqualityOperatorsSetting.EmitOperatorsIfValueType;
     /// <summary>
     /// Gets or sets miscellaneous settings.
     /// </summary>
