@@ -17,6 +17,7 @@ jobs:
 #TODO: check if publish job sees dist/nuget, see publish-artifact for reference
 #TODO: omit push if built version is lower than or equal to latest published nuget package
   build:
+    if: github.ref_type != 'tag'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -42,6 +43,9 @@ jobs:
 
     - name: Dotnet Build
       run: dotnet build -c Release
+      
+    - name: Run Tests
+      run: dotnet test -c Release
       
     - name: Create Nuget Packages
       run: dotnet pack -c Release -o $NuGetDirectory -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg --include-source --force --nologo -p:PackageVersion=${{github.ref_name}}
