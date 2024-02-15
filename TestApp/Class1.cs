@@ -1,0 +1,1 @@
+﻿[assembly: RhoMicro.CodeAnalysis.UnionTypeSettings(Miscellaneous = RhoMicro.CodeAnalysis.MiscellaneousSettings.EmitStructuralRepresentation | RhoMicro.CodeAnalysis.MiscellaneousSettings.GenerateJsonConverter)]
