@@ -1,4 +1,4 @@
-![Logo](ReadmeLogo.svg)
+![Logo](https://raw.githubusercontent.com/PaulBraetz/RhoMicro.CodeAnalysis/master/UnionsGenerator/ReadmeLogo.svg)
 
 # UnionsGenerator
 
