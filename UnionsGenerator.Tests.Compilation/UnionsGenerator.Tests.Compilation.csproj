@@ -4,12 +4,6 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 	</PropertyGroup>
 
-	<PropertyGroup>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<Description>Contains helper type for compiling and testing union generations.</Description>
-		<PackageTags></PackageTags>
-	</PropertyGroup>
-
 	<ItemGroup>
 		<None Include="README.md" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
 		<None Include="LICENSE.txt" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />

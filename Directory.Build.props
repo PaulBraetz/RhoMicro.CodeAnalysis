@@ -29,6 +29,8 @@
 	</PropertyGroup>
 
 	<PropertyGroup Label="PackageInfo">
+		<IsPackable>false</IsPackable>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<Authors>Paul Brätz</Authors>

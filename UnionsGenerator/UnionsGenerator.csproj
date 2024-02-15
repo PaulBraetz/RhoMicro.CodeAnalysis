@@ -10,6 +10,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
+		<IsPackable>true</IsPackable>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Description>
 			Generate hybrid (tagged/type) union types.

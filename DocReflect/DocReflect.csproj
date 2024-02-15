@@ -12,6 +12,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
+		<IsPackable>true</IsPackable>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Description>Generates reflection-like API to examine member documentation.</Description>
 		<PackageTags>Source Generator; Documentation; Reflection</PackageTags>

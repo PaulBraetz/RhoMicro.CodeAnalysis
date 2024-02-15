@@ -6,6 +6,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
+		<IsPackable>true</IsPackable>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Description>Provides the types required to inspect type documentation using a reflection-like api.</Description>
 		<PackageTags>Source Generator; Documentation; Reflection</PackageTags>

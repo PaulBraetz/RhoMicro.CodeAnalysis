@@ -5,17 +5,6 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-		<Description>
-			This library contains common utilities and types for code analysis projects.
-		</Description>
-		<PackageTags>CodeAnalysis; Common; Generator; Analyzer</PackageTags>
-		<PackageId>$(MSBuildProjectName)</PackageId>
-		<PackageId Condition="'$(SolutionName)'!=''">$(SolutionName).$(MSBuildProjectName)</PackageId>
-		<RepositoryUrl>https://github.com/PaulBraetz/Common/</RepositoryUrl>
-	</PropertyGroup>
-
-	<PropertyGroup>
 		<AssemblyName>$(MSBuildProjectName)</AssemblyName>
 		<AssemblyName Condition="'$(SolutionName)'!=''">$(SolutionName).$(MSBuildProjectName)</AssemblyName>
 

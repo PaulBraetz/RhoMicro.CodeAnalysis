@@ -12,6 +12,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
+		<IsPackable>true</IsPackable>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Description>Generates utilities for lexing and parsing domain specific languages, little languages etc.</Description>
 		<PackageTags>Source Generator</PackageTags>
