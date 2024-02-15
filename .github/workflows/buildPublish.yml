@@ -57,7 +57,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         
       - name: Publish NuGet Package
-        run: dotnet nuget push $NuGetDirectory/*.*nupkg --api-key $NUGETAPITOKEN
+        run: dotnet nuget push $NuGetDirectory --api-key $NUGETAPITOKEN --skip-duplicate
         env: 
           NUGETAPITOKEN: ${{ secrets.NUGETAPITOKEN }}
 
