@@ -30,7 +30,7 @@ jobs:
       uses: actions/setup-dotnet@v4
 
     - name: Run Tests
-      run: dotnet test -c Release
+      run: dotnet test -c Release -p:Version=1.0.0
 
   deploy:
     if: github.ref_type == 'tag'
@@ -42,13 +42,13 @@ jobs:
       uses: actions/setup-dotnet@v4
 
     - name: Run Tests
-      run: dotnet test -c Release
+      run: dotnet test -c Release -p:Version=${{github.ref_name}}
 
     - name: Dotnet Build
       run: dotnet build -c Release -p:Version=${{github.ref_name}}
 
     - name: Create Nuget Packages
-      run: dotnet pack -c Release -o "$Env:NuGetDirectory" --nologo -p:PackageVersion=${{github.ref_name}}
+      run: dotnet pack -c Release -o "$Env:NuGetDirectory" -p:PackageVersion=${{github.ref_name}}
 
     - name: Publish NuGet Package
       run: |
