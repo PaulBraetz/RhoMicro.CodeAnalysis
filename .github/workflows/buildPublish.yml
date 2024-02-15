@@ -24,6 +24,9 @@ jobs:
     if: github.ref_type != 'tag'
     runs-on: ubuntu-latest
     steps:
+    - name: Echo NugetDirectory
+      run: echo $NuGetDirectory
+
     - uses: actions/checkout@v4
 
     - name: Setup .NET
@@ -46,9 +49,6 @@ jobs:
 
     - name: Dotnet Build
       run: dotnet build -c Release
-
-    - name: Echo NugetDirectory
-      run: echo $NuGetDirectory
 
     - name: Create Nuget Packages
       run: dotnet pack -c Release -o "$NuGetDirectory" -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg --include-source --force --nologo -p:PackageVersion=${{github.ref_name}}
