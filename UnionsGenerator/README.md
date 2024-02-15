@@ -137,7 +137,7 @@ u = "Nonnull String";
 u = (List<String>?)null; //CS8604 - Possible null reference argument for parameter.
 ```
 
-#### `Storage`
+##### `Storage`
 
 Optimize the generated storage implementation for the representable type against boxing or size constraints using `Storage`.
 
