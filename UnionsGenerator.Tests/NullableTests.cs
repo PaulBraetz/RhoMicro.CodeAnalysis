@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-public class NullableTests : GeneratorTest
+public class NullableTests : TestBase
 {
     [Fact]
     public void AllowsForNullableValueType()

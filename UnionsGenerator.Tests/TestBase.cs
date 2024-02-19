@@ -5,14 +5,16 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Basic.Reference.Assemblies;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Generators;
+using Microsoft.CodeAnalysis.Diagnostics;
+using System.Collections.Immutable;
 
 /// <summary>
 /// Base class for tests verifying <see cref="UnionsGenerator"/> outputs.
 /// </summary>
-public abstract class GeneratorTest
+public abstract class TestBase
 {
-    protected GeneratorTest() : this(NetStandard20.References.All.ToArray()) { }
-    protected GeneratorTest(IEnumerable<MetadataReference> references) =>
+    protected TestBase() : this(NetStandard20.References.All.ToArray()) { }
+    protected TestBase(IEnumerable<MetadataReference> references) =>
         _references = [.. references];
 
     private readonly MetadataReference[] _references;
@@ -58,7 +60,20 @@ public abstract class GeneratorTest
         var result = RunGenerator(ref compilation);
         assertion.Invoke(result);
     }
+    public Task TestDiagnostics(String source, Func<CompilationWithAnalyzers, Task> assertion)
+    {
+        _ = assertion ?? throw new ArgumentNullException(nameof(assertion));
 
+        var compilation = CreateCompilation(source, out _);
+        var compilationWithDiagnostics = AttachAnalyzer(compilation);
+        return assertion.Invoke(compilationWithDiagnostics);
+    }
+    private CompilationWithAnalyzers AttachAnalyzer(Compilation compilation)
+    {
+        var result = compilation.WithAnalyzers([(DiagnosticAnalyzer)new Analyzers.Analyzer()]);
+
+        return result;
+    }
     private GeneratorDriverRunResult RunGenerator(ref Compilation compilation)
     {
         var generator = new UnionsGenerator();

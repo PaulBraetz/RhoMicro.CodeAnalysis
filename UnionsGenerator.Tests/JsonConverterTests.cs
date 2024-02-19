@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 
-public class JsonConverterTests() : GeneratorTest(Basic.Reference.Assemblies.Net60.References.All)
+public class JsonConverterTests() : TestBase(Basic.Reference.Assemblies.Net60.References.All)
 {
     [Theory]
     [InlineData(
