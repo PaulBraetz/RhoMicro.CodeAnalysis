@@ -48,7 +48,7 @@ jobs:
       run: dotnet build -c Release -p:Version=${{github.ref_name}}
 
     - name: Create Nuget Packages
-      run: dotnet pack -c Release -o "$Env:NuGetDirectory" -p:PackageVersion=${{github.ref_name}}
+      run: dotnet pack -c Release -o "$Env:NuGetDirectory" -p:PackageVersion=${{github.ref_name}} -p:Version=${{github.ref_name}}
 
     - name: Publish NuGet Package
       run: |
