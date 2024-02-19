@@ -16,27 +16,32 @@ public sealed class Analyzer : DiagnosticAnalyzer
 {
     public override void Initialize(AnalysisContext context)
     {
-        //commented out because of breaking rewrite changes
-        return;
         _ = context ?? throw new ArgumentNullException(nameof(context));
 
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
-        context.RegisterSyntaxNodeAction(static c =>
+        context.RegisterSymbolStartAction(ctx =>
         {
-            if(c.IsGeneratedCode || !Util.IsAnalysisCandidate(c.Node, c.SemanticModel))
+            ctx.CancellationToken.ThrowIfCancellationRequested();
+            if(ctx is not { IsGeneratedCode: false, Symbol: INamedTypeSymbol target } || !Util.IsUnionTypeSymbol(target, ctx.CancellationToken))
                 return;
 
-            //commented out due to breaking rewrite changes
-            //var model = TargetDataModel.Create((TypeDeclarationSyntax)c.Node, c.SemanticModel);
+            ctx.RegisterSymbolEndAction(ctx =>
+            {
+                ctx.CancellationToken.ThrowIfCancellationRequested();
+                if(ctx is not { IsGeneratedCode: false, Symbol: INamedTypeSymbol target } || !Util.IsUnionTypeSymbol(target, ctx.CancellationToken))
+                    return;
 
-            //var accumulator = DiagnosticsAccumulator.Create(model)
-            //                .DiagnoseNonHiddenSeverities()
-            //                .ReportNonHiddenSeverities()
-            //                .Receive(Providers.All, c.CancellationToken);
+                var model = UnionTypeModel.Create(target, ctx.CancellationToken);
 
-            //accumulator.ReportDiagnostics(c.ReportDiagnostic);
-        }, SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordDeclaration, SyntaxKind.RecordStructDeclaration);
+                var accumulator = DiagnosticsAccumulator.Create(model)
+                                .DiagnoseNonHiddenSeverities()
+                                .ReportNonHiddenSeverities()
+                                .Receive(Providers.All, ctx.CancellationToken);
+
+                accumulator.ReportDiagnostics(ctx.ReportDiagnostic);
+            });
+        }, SymbolKind.NamedType);
     }
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = Diagnostics.Descriptors.ToImmutableArray();

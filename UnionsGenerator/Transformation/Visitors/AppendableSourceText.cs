@@ -166,7 +166,7 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
                             .AppendLineCore();
                     }
 
-                    b.AppendCore(representableType.StrategyContainer.Value.StrongInstanceVariableExpression("union"));
+                    b.AppendCore(representableType.StorageStrategy.Value.StrongInstanceVariableExpression("union"));
 
                     if(target.RepresentableTypes.Count > 1)
                     {
@@ -185,7 +185,7 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
                         .Append('(')
                         .Append(target.Signature.Names.FullGenericName)
                         .Append(" union) => ")
-                        .Append(representableType.StrategyContainer.Value.StrongInstanceVariableExpression("union"))
+                        .Append(representableType.StorageStrategy.Value.StrongInstanceVariableExpression("union"))
                         .Append(';')
                         .AppendLineCore();
                 }
@@ -313,21 +313,21 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
                         }
                     }).TagSwitchExpr(
                         target,
-                        (b, t) => b.Append(t.StrategyContainer.Value.EqualsInvocation("other")))
+                        (b, t) => b.Append(t.StorageStrategy.Value.EqualsInvocation("other")))
                     .AppendLine(';')
                 .DetentCore();
             })
             .Append(b =>
             {
                 if(target is
-                    {
-                        Signature.Nature: TypeNature.PureValueType or TypeNature.ImpureValueType,
-                        Settings.EqualityOperatorsSetting: EqualityOperatorsSetting.EmitOperatorsIfValueType or EqualityOperatorsSetting.EmitOperators
-                    } or
-                    {
-                        Signature.Nature: TypeNature.ReferenceType or TypeNature.UnknownType,
-                        Settings.EqualityOperatorsSetting: EqualityOperatorsSetting.EmitOperators
-                    })
+                {
+                    Signature.Nature: TypeNature.PureValueType or TypeNature.ImpureValueType,
+                    Settings.EqualityOperatorsSetting: EqualityOperatorsSetting.EmitOperatorsIfValueType or EqualityOperatorsSetting.EmitOperators
+                } or
+                {
+                    Signature.Nature: TypeNature.ReferenceType or TypeNature.UnknownType,
+                    Settings.EqualityOperatorsSetting: EqualityOperatorsSetting.EmitOperators
+                })
                 {
                     b.Append("public static System.Boolean operator ==(")
                     .Append(target.Signature.Names.GenericName).Append(" a, ")
@@ -349,7 +349,7 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
             .AppendLine("public override System.Int32 GetHashCode() => ")
             .TagSwitchExpr(
                 target,
-                (b, t) => b.Append(t.StrategyContainer.Value.GetHashCodeInvocation()))
+                (b, t) => b.Append(t.StorageStrategy.Value.GetHashCodeInvocation()))
             .Append(';')
             .CloseBlockCore();
     }
@@ -405,10 +405,10 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
             {
                 _ = b.TagSwitchExpr(
                     target,
-                    (b, t) => b.AppendCore(t.StrategyContainer.Value.ToStringInvocation()));
+                    (b, t) => b.AppendCore(t.StorageStrategy.Value.ToStringInvocation()));
             } else
             {
-                b.AppendCore(target.RepresentableTypes[0].StrategyContainer.Value.ToStringInvocation());
+                b.AppendCore(target.RepresentableTypes[0].StorageStrategy.Value.ToStringInvocation());
             }
         }
     }
@@ -446,7 +446,7 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
                         {
                             if(target.RepresentableTypes.Count == 1)
                             {
-                                b.Append("value = ").Append(target.RepresentableTypes[0].StrategyContainer.Value.StrongInstanceVariableExpression("this")).AppendLine(';')
+                                b.Append("value = ").Append(target.RepresentableTypes[0].StorageStrategy.Value.StrongInstanceVariableExpression("this")).AppendLine(';')
                                 .AppendCore("return true;");
                             } else
                             {
@@ -455,7 +455,7 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
                                 .Append(" == ")
                                 .Append(target.Settings.TagTypeName).Append('.').Append(t.Alias).Append(')')
                                 .OpenBracesBlock()
-                                    .Append("value = ").Append(t.StrategyContainer.Value.StrongInstanceVariableExpression("this")).AppendLine(';')
+                                    .Append("value = ").Append(t.StorageStrategy.Value.StrongInstanceVariableExpression("this")).AppendLine(';')
                                     .Append("return true;")
                                 .CloseBlock()
                                 .AppendLine("value = default;")
@@ -514,7 +514,7 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
                         _ = b.MetadataNameSwitchStmt(
                             target,
                             b => b.Append("typeof(").Append(target.Settings.GenericTValueName).Append(')'),
-                            (b, a) => b.Append("value = ").Append(a.StrategyContainer.Value.ConvertedInstanceVariableExpression(target.Settings.GenericTValueName))
+                            (b, a) => b.Append("value = ").Append(a.StorageStrategy.Value.ConvertedInstanceVariableExpression(target.Settings.GenericTValueName))
                                 .AppendLine(';').Append("return true;"),
                             b => b.AppendLine("value = default;").Append("return false;"));
                     } else
@@ -523,7 +523,7 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
                         .Typeof(target.RepresentableTypes[0].Signature).Append(")")
                         .OpenBracesBlock()
                             .Append("value = ").Append(
-                                target.RepresentableTypes[0].StrategyContainer.Value.ConvertedInstanceVariableExpression(target.Settings.GenericTValueName))
+                                target.RepresentableTypes[0].StorageStrategy.Value.ConvertedInstanceVariableExpression(target.Settings.GenericTValueName))
                             .AppendLine(';')
                             .Append("return true;")
                         .CloseBlock()
@@ -576,7 +576,7 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
                         target,
                         (b, a) => b.Append("typeof(").Append(target.Settings.GenericTValueName).Append(") == ")
                             .Typeof(a.Signature).AppendLine()
-                            .Append("? ").AppendLine(a.StrategyContainer.Value.ConvertedInstanceVariableExpression(target.Settings.GenericTValueName))
+                            .Append("? ").AppendLine(a.StorageStrategy.Value.ConvertedInstanceVariableExpression(target.Settings.GenericTValueName))
                             .Append(": ")
                             .InvalidConversionThrow(
                                 fromTypeNameExpression: $"typeof({target.Signature.Names.FullGenericName})",
@@ -588,7 +588,7 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
                     b.Append("typeof(").Append(target.Settings.GenericTValueName).Append(") == ")
                     .Typeof(target.RepresentableTypes[0].Signature).AppendLine()
                     .Append("? ").Append(
-                        target.RepresentableTypes[0].StrategyContainer.Value.ConvertedInstanceVariableExpression(target.Settings.GenericTValueName))
+                        target.RepresentableTypes[0].StorageStrategy.Value.ConvertedInstanceVariableExpression(target.Settings.GenericTValueName))
                         .AppendLine()
                     .Append(": ")
                     .InvalidConversionThrow(
@@ -628,7 +628,7 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
                 .Append(" As").Append(a.Alias).Append(" => ")
                 .Append(target.Settings.TagFieldName).Append(" == ")
                 .Append(target.Settings.TagTypeName).Append('.').AppendLine(a.Alias)
-                .Append("? ").AppendLine(a.StrategyContainer.Value.StrongInstanceVariableExpression("this"))
+                .Append("? ").AppendLine(a.StorageStrategy.Value.StrongInstanceVariableExpression("this"))
                 .Append(": ").Append(a.Signature.Nature == TypeNature.ReferenceType ? "null" : "default"))
             .AppendCore(';');
         } else
@@ -642,7 +642,7 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
                     .Append("Retrieve the value represented by this instance as a ").Comment.Ref(attribute.Signature).Append('.')
                 .CloseBlock()
                 .Append("public ").Append(attribute.Signature.Names.FullGenericName).Append(" As").Append(attribute.Alias).Append(" => ")
-                .Append(attribute.StrategyContainer.Value.StrongInstanceVariableExpression("this"))
+                .Append(attribute.StorageStrategy.Value.StrongInstanceVariableExpression("this"))
                 .AppendCore(';');
         }
 
@@ -700,7 +700,7 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
                 target,
                 (b, t) =>
                     b.Append("on").Append(t.Alias).Append(".Invoke(")
-                    .Append(t.StrategyContainer.Value.StrongInstanceVariableExpression("this"))
+                    .Append(t.StorageStrategy.Value.StrongInstanceVariableExpression("this"))
                     .AppendLine(")"))
             .Append(';')
         .CloseBlockCore();
@@ -731,7 +731,7 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
                     target,
                     (b, t) =>
                         b.Append("on").Append(t.Alias).Append(".Invoke(")
-                        .Append(t.StrategyContainer.Value.StrongInstanceVariableExpression("this"))
+                        .Append(t.StorageStrategy.Value.StrongInstanceVariableExpression("this"))
                         .AppendLine(");")
                         .Append("return;"))
             .CloseBlock()
@@ -977,7 +977,7 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
                     .AppendLineCore();
                 }
 
-                b.Append(t.StrategyContainer.Value
+                b.Append(t.StorageStrategy.Value
                     .InstanceVariableAssignmentExpression("value", "this")).Append(';')
                     .CloseBlockCore();
             }));
@@ -988,7 +988,7 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
     }
     public void TagType(IndentedStringBuilder builder)
     {
-        var (_, representableTypes, _, settings, _, _, _, _, _) = target;
+        var (representableTypes, settings) = (target.RepresentableTypes, target.Settings);
 
         if(representableTypes.Count < 2)
             return;
@@ -1017,7 +1017,7 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
     }
     public void JsonConverterType(IndentedStringBuilder builder)
     {
-        var (_, representableTypes, _, settings, _, _, _, _, _) = target;
+        var (representableTypes, settings) = (target.RepresentableTypes, target.Settings);
 
         if(!settings.Miscellaneous.HasFlag(MiscellaneousSettings.GenerateJsonConverter))
             return;
@@ -1054,14 +1054,14 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
         if(target.RepresentableTypes.Count == 1)
         {
             builder.AppendCore(
-                target.RepresentableTypes[0].StrategyContainer.Value
+                target.RepresentableTypes[0].StorageStrategy.Value
                 .InstanceVariableExpression("value"));
         } else
         {
             _ = builder.TagSwitchExpr(
                 target,
                 (b, t) => b.AppendCore(
-                    t.StrategyContainer.Value.InstanceVariableExpression(instance: "value")),
+                    t.StorageStrategy.Value.InstanceVariableExpression(instance: "value")),
                 instanceExpr: "value");
         }
 
@@ -1117,8 +1117,8 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
                     .Append("throw new System.Text.Json.JsonException($\"Unable to deserialize a union instance representing an instance of {RepresentedType} as an instance of ")
                     .Append(target.Signature.Names.FullGenericName).AppendCore("\")"))
             .AppendLine(';')
-            .AppendLine("public required System.String RepresentedType { get; set; }")
-            .AppendLine("public required System.Object? RepresentedValue { get; set; }")
+            .AppendLine("public System.String RepresentedType { get; set; }")
+            .AppendLine("public System.Object? RepresentedValue { get; set; }")
             .CloseBlock()
             .Comment.InheritDoc()
             .Append("public override ").Append(target.Signature.Names.GenericName)

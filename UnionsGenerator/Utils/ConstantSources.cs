@@ -60,11 +60,7 @@ internal static partial class ConstantSources
                         List<(String Format, Type? Argument)> transitiveArgumentsMap,
                         ref Int32 unboundTransitiveParameters)
                     {
-    #if NETSTANDARD2_0
-                            if(type.IsGenericParameter && type.DeclaringMethod is null)
-    #else
-                        if(type.IsGenericTypeParameter)
-    #endif
+                        if(type.IsGenericParameter && type.DeclaringMethod is null)
                         {
                             var format = $"{Guid.NewGuid()}";
                             _ = builder.Append(format);
@@ -83,11 +79,7 @@ internal static partial class ConstantSources
 
                         var tickIndex = type.Name.IndexOf('`');
                         _ = tickIndex != -1 ?
-    #if NETSTANDARD2_0
-                                builder.Append(type.Name.Substring(0, tickIndex)) :
-    #else
-                            builder.Append(type.Name.AsSpan(0, tickIndex)) :
-    #endif
+                            builder.Append(type.Name.Substring(0, tickIndex)) :
                             builder.Append(type.Name);
 
                         var arguments = type.GetGenericArguments();

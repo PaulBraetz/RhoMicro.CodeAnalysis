@@ -3,13 +3,21 @@
 using Microsoft.CodeAnalysis;
 
 using RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Visitors;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 
 using System;
+using System.Collections.Immutable;
 
-internal readonly record struct RelationModel(
-    RelatedTypeModel RelatedType,
-    RelationType RelationType) : IModel<RelationModel>
+internal readonly record struct RelationModel(RelatedTypeModel RelatedType, RelationType RelationType) : IModel<RelationModel>
 {
+    public static EquatableList<RelationModel> Create(INamedTypeSymbol targetSymbol, CancellationToken cancellationToken) =>
+        targetSymbol.GetAttributes()
+        .Where(Qualifications.IsRelationAttribute)
+        .Where(a => a.AttributeClass != null)
+        .SelectMany(a => a.AttributeClass!.TypeArguments)
+        .OfType<INamedTypeSymbol>()
+        .Select(t => Create(targetSymbol, t, cancellationToken))
+        .ToEquatableList(cancellationToken);
     public static RelationModel Create(
         INamedTypeSymbol targetSymbol,
         INamedTypeSymbol relationSymbol,
@@ -18,6 +26,7 @@ internal readonly record struct RelationModel(
         cancellationToken.ThrowIfCancellationRequested();
         var relatedType = RelatedTypeModel.Create(relationSymbol, cancellationToken);
         var relationType = GetRelationType(targetSymbol, relationSymbol, relatedType, cancellationToken);
+
         var result = new RelationModel(relatedType, relationType);
 
         return result;
@@ -43,7 +52,7 @@ internal readonly record struct RelationModel(
             return RelationType.BidirectionalRelation;
 
         var relationTypes = relatedTypeModel.RepresentableTypeSignatures
-            .Select(s=>s.Names.FullGenericNullableName)
+            .Select(s => s.Names.FullGenericNullableName)
             .ToList();
         var targetTypes = RelatedTypeModel.Create(targetType, cancellationToken).RepresentableTypeSignatures
             .Select(s => s.Names.FullGenericNullableName)

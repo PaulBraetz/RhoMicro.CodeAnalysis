@@ -2,6 +2,8 @@
 
 using Microsoft.CodeAnalysis;
 
+using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +29,7 @@ internal static partial class Diagnostics
         }
 
         public static Boolean operator ==(DiagnosticInfo left, DiagnosticInfo right) => left.Equals(right);
-        public static Boolean operator !=(DiagnosticInfo left, DiagnosticInfo right) => !(left == right);
+        public static Boolean operator !=(DiagnosticInfo left, DiagnosticInfo right) => !( left == right );
     }
 
     private static readonly IReadOnlyDictionary<Id, DiagnosticInfo> _infos = new Dictionary<Id, DiagnosticInfo>()
@@ -35,14 +37,14 @@ internal static partial class Diagnostics
 {Id.AliasCollision , new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:"An alias collision has been detected for the representable type `{0}`. Make sure that for colliding type names (excluding generic arguments) you provide a unique alias. If no explicit alias is provided, the simple type name of the representable type will be used, e.g.: `List` will be used for variables of the `List<T>` type. Aliae are used for parameter, variable, enum and field names.",title:"Alias Collision")},
 {Id.BoxingStrategy , new DiagnosticInfo(severity: DiagnosticSeverity.Warning,message:"Boxing will occur for the representable type {0}. Consider using a different storage option.",title:"Boxing Storage Detected")},
 {Id.DuplicateUnionTypeAttributes , new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:"Union types may not be declared using duplicate 'UnionType' attributes of the same representable type ({0}).",title:"Duplicate Union Type Declaration")},
-{Id.TooManyTypes, new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:"Union types may represent no more that 255 types.",title:"Too many Union Types")},
+{Id.TooManyTypes, new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:$"Union types may represent no more that {Qualifications.MaxRepresentableTypesCount} types.",title:"Too many Union Types")},
 {Id.GeneratorException , new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:"The generator encountered an unexpected error: {0}",title:"Unexpected Generator Error")},
 {Id.GenericViolationStrategy , new DiagnosticInfo(severity: DiagnosticSeverity.Warning,message:"The selected storage option for {0} was ignored because the target union type is generic.",title:"Generic Storage Violation Detected")},
 {Id.ImplicitConversionOptionOnNonSolitary , new DiagnosticInfo(severity: DiagnosticSeverity.Warning,message:"The `ImplicitConversionIfSolitary` option will be ignored because the target union type may represent more than one type.",title:"Union Type Option Ignored")},
-{Id.ImplicitConversionOptionOnSolitary , new DiagnosticInfo(severity: DiagnosticSeverity.Info,message:"The interface implementation for `{0}` was omitted because the `ImplicitConversionIfSolitary` option was used.",title:"Omitting Interface Implementation")},
+//{Id.ImplicitConversionOptionOnSolitary , new DiagnosticInfo(severity: DiagnosticSeverity.Info,message:"The interface implementation for `{0}` was omitted because the `ImplicitConversionIfSolitary` option was used.",title:"Omitting Interface Implementation")},
 {Id.InvalidAttributeTarget , new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:"Only type declarations may be annotated with union type attributes.",title:"Invalid Attribute Target")},
 //{Id.MissingUnionTypeAttribute , new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:"Union types must be declared using at least one instance of the 'UnionType' attribute.",title:"Missing 'UnionType' Attribute")},
-{Id.NonPartialDeclaration , new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:"Union types must be declared using the 'partial' keyword.",title:"Nonpartial Union Declaration")},
+//{Id.NonPartialDeclaration , new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:"Union types must be declared using the 'partial' keyword.",title:"Nonpartial Union Declaration")},
 {Id.PossibleBoxingStrategy , new DiagnosticInfo(severity: DiagnosticSeverity.Warning,message:"Boxing may occur for the representable type {0}. Consider constraining it to either `class` or `struct` in order to help the generator emit an efficient implementation. Alternatively, use the `StorageOption.Field` option to generate dedicated field for the type.",title:"Possible Boxing Storage Detected")},
 {Id.PossibleTleStrategy , new DiagnosticInfo(severity: DiagnosticSeverity.Warning,message:"The selected storage option for {0} was ignored because it could cause a `TypeLoadException` to be thrown.",title:"Possible TypeLoadException Detected")},
 {Id.RecordTarget , new DiagnosticInfo(severity: DiagnosticSeverity.Error,message:"Union types may not be declared as 'record' types.",title:"Record Union Type Declaration")},

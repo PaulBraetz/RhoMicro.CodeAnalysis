@@ -1,6 +1,7 @@
 ﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Visitors;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
@@ -12,15 +13,23 @@ using System.Threading;
 internal record PartialUnionTypeModel(
     TypeSignatureModel Signature,
     PartialRepresentableTypeModel RepresentableType,
-    Boolean IsEqualsRequired)
+    Boolean IsEqualsRequired,
+    EquatedData<ImmutableArray<Location>> Locations)
     : IModel<PartialUnionTypeModel>
 {
+    public static EquatableList<PartialUnionTypeModel> Create(INamedTypeSymbol unionType, CancellationToken cancellationToken) =>
+        CreateFromTypeDeclaration(unionType, cancellationToken)
+        .Concat(unionType.TypeParameters.Select(p =>
+            CreateFromTypeParameter(p, cancellationToken))
+            .Where(m => m != null))
+        .ToEquatableList(cancellationToken)!;
     public static PartialUnionTypeModel? CreateFromTypeParameter(ITypeParameterSymbol target, CancellationToken cancellationToken) =>
         CreateFromTypeParameter(
             target,
             target.GetAttributes()
                 .Where(Qualifications.IsUnionTypeParameterAttribute)
                 .ToImmutableArray(),
+            target.ContainingType.Locations,
             cancellationToken);
     public static PartialUnionTypeModel? CreateFromTypeParameter(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
     {
@@ -31,11 +40,28 @@ internal record PartialUnionTypeModel(
         if(context.TargetSymbol is not ITypeParameterSymbol typeParam)
             return null;
 
-        var result = CreateFromTypeParameter(typeParam, context.Attributes, cancellationToken);
+        var locations = ImmutableArray<Location>.Empty;
+        var parent = context.TargetNode;
+        while(parent?.Parent is not null)
+        {
+            if(parent.Parent is TypeDeclarationSyntax tds)
+            {
+                locations = ImmutableArray.Create(tds.Identifier.GetLocation());
+                break;
+            }
+
+            parent = parent.Parent;
+        }
+
+        var result = CreateFromTypeParameter(
+            typeParam,
+            context.Attributes,
+            locations,
+            cancellationToken);
 
         return result;
     }
-    private static PartialUnionTypeModel? CreateFromTypeParameter(ITypeParameterSymbol target, ImmutableArray<AttributeData> attributes, CancellationToken cancellationToken)
+    private static PartialUnionTypeModel? CreateFromTypeParameter(ITypeParameterSymbol target, ImmutableArray<AttributeData> attributes, ImmutableArray<Location> targetLocations, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if(attributes.Length < 1)
@@ -51,12 +77,12 @@ internal record PartialUnionTypeModel(
         var containingType = target.ContainingType;
         var isEqualsRequired = IsEqualsRequiredForTarget(containingType);
 
-        var result = new PartialUnionTypeModel(signature, representableType, isEqualsRequired);
+        var result = new PartialUnionTypeModel(signature, representableType, isEqualsRequired, targetLocations);
 
         return result;
     }
 
-    private static Boolean IsEqualsRequiredForTarget(INamedTypeSymbol target) =>
+    public static Boolean IsEqualsRequiredForTarget(INamedTypeSymbol target) =>
         !target
         .GetMembers("Equals")
         .OfType<IMethodSymbol>()
@@ -139,8 +165,8 @@ internal record PartialUnionTypeModel(
             if(args[i] is INamedTypeSymbol named)
             {
                 var representableType = attribute!.GetPartialModel(new(named), target, cancellationToken);
-
-                yield return new(signature, representableType, isEqualsRequired);
+                var locations = target.Locations;
+                yield return new(signature, representableType, isEqualsRequired, locations);
             }
         }
     }

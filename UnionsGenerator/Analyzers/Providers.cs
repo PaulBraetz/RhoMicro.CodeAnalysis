@@ -1,188 +1,184 @@
 ﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Analyzers;
+
+using System.Xml.Linq;
+
+using Microsoft.CodeAnalysis;
+
+using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Storage;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
+
 internal static class Providers
 {
-    //commenetd out due to breaking rewrite changes
-    //public static readonly IDiagnosticProvider<TargetDataModel> BidirectionalRelation =
-    //    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
+    private static void Add(
+        UnionTypeModel model,
+        IDiagnosticsAccumulator<UnionTypeModel> diagnostics,
+        Func<Location, Diagnostic> factory) => diagnostics.AddRange(model.Locations.Value.Select(factory));
+    private static void Add(
+        UnionTypeModel model,
+        IDiagnosticsAccumulator<UnionTypeModel> diagnostics,
+        Func<Location, IEnumerable<Diagnostic>> factory) => diagnostics.AddRange(model.Locations.Value.SelectMany(factory));
+    public static readonly IDiagnosticProvider<UnionTypeModel> BidirectionalRelation =
+        DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
+        {
+            var bidirectionalRelationNames = model.Relations
+                .Where(r => r.RelatedType.Signature.Names.FullGenericName == model.Signature.Names.FullGenericName)
+                .Select(r => r.RelatedType.Signature.Names.FullGenericName);
+
+            if(!bidirectionalRelationNames.Any())
+                return;
+
+            Add(model, diagnostics,
+                l => bidirectionalRelationNames.Select(n => Diagnostics.BidirectionalRelation(l, n)));
+        });
+    public static readonly IDiagnosticProvider<UnionTypeModel> DuplicateRelation =
+        DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
+        {
+            var duplicateRelationNames = model.Relations
+            .GroupBy(r => r.RelatedType.Signature.Names.FullGenericName)
+            .Select(g => g.ToArray())
+            .Where(g => g.Length > 1)
+            .Select(g => g[0].RelatedType.Signature.Names.FullGenericName);
+
+            if(!duplicateRelationNames.Any())
+                return;
+
+            Add(model, diagnostics,
+                l => duplicateRelationNames.Select(n => Diagnostics.DuplicateRelation(l, n)));
+        });
+    public static IDiagnosticProvider<UnionTypeModel> GenericRelation =
+        DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
+        {
+            var relations = model.Relations
+                .Where(r => r.RelatedType.Signature.IsGenericType);
+
+            if(!( model.Signature.IsGenericType && relations.Any() ))
+                return;
+
+            Add(model, diagnostics,
+                Diagnostics.GenericRelation);
+        });
+    public static IDiagnosticProvider<UnionTypeModel> StorageSelectionViolations =
+        DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
+        {
+            var offendingRepresentables = model.RepresentableTypes
+                .Where(d => d.StorageStrategy.Value.Violation != StorageSelectionViolation.None);
+
+            foreach(var representableType in offendingRepresentables)
+            {
+                var name = representableType.Signature.Names.FullGenericNullableName;
+                var violation = representableType.StorageStrategy.Value.Violation;
+
+                var factory = violation switch
+                {
+                    StorageSelectionViolation.PureValueReferenceSelection =>
+                        //cast once, infer following exprs
+                        (Func<Location, String, Diagnostic>)Diagnostics.BoxingStrategy,
+                    StorageSelectionViolation.PureValueValueSelectionGeneric =>
+                        Diagnostics.GenericViolationStrategy,
+                    StorageSelectionViolation.ImpureValueReference =>
+                        Diagnostics.BoxingStrategy,
+                    StorageSelectionViolation.ImpureValueValue =>
+                        Diagnostics.TleStrategy,
+                    StorageSelectionViolation.ReferenceValue =>
+                        Diagnostics.TleStrategy,
+                    StorageSelectionViolation.UnknownReference =>
+                        Diagnostics.PossibleBoxingStrategy,
+                    StorageSelectionViolation.UnknownValue =>
+                        Diagnostics.PossibleTleStrategy,
+                    _ => null
+                };
+
+                if(factory != null)
+                {
+                    Add(model, diagnostics,
+                        l => factory.Invoke(l, name));
+                }
+            }
+        });
+    public static IDiagnosticProvider<UnionTypeModel> SmallGenericUnion =
+        DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
+        {
+            if(!model.Signature.IsGenericType || model.Settings.Layout != LayoutSetting.Small)
+            {
+                return;
+            }
+
+            var newLocations = model.Locations.Value
+                .Select(Diagnostics.SmallGenericUnion);
+            diagnostics.AddRange(newLocations);
+        });
+    //public static IDiagnosticProvider<UnionTypeModel> UnknownGenericParameterName =
+    //    DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
     //    {
-    //        //commented out because of breaking rewrite changes
-    //        var bidirectionalRelationNames = Array.Empty<String>();
-    //        //model.Annotations.Relations
-    //        //    .Select(r => r.ExtractData(model))
-    //        //    .Where(r => r.Annotations.Relations.Any(rr => SymbolEqualityComparer.Default.Equals(rr.RelatedTypeSymbol, model.Symbol)))
-    //        //    .Select(r => r.Symbol.Name);
-
-    //        if(!bidirectionalRelationNames.Any())
-    //            return;
-
-    //        var location = model.TargetDeclaration.GetLocation();
-    //        foreach(var name in bidirectionalRelationNames)
-    //        {
-    //            var diagnostic = Diagnostics.BidirectionalRelation(location, name);
-    //            _ = diagnostics.Add(diagnostic);
-    //        }
-    //    });
-    //public static readonly IDiagnosticProvider<TargetDataModel> DuplicateRelation =
-    //    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
-    //    {
-    //        //commented out because of breaking rewrite changes
-    //        var duplicateRelationNames = Array.Empty<String>();
-    //        //model.Annotations.Relations
-    //        //.GroupBy(r => r.RelatedTypeSymbol, SymbolEqualityComparer.Default)
-    //        //.Select(g => g.ToArray())
-    //        //.Where(g => g.Length > 1)
-    //        //.Select(g => g[0].RelatedTypeSymbol.Name);
-
-    //        if(!duplicateRelationNames.Any())
-    //            return;
-
-    //        var location = model.TargetDeclaration.GetLocation();
-    //        foreach(var name in duplicateRelationNames)
-    //        {
-    //            var diagnostic = Diagnostics.DuplicateRelation(location, name);
-    //            _ = diagnostics.Add(diagnostic);
-    //        }
-    //    });
-    //public static IDiagnosticProvider<TargetDataModel> GenericRelation =
-    //    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
-    //    {
-    //        var target = model.Symbol;
-    //        //commented out because of breaking rewrite changes
-    //        //var relations = model.Annotations.Relations
-    //        //    .Where(r => r.RelatedTypeSymbol.IsGenericType);
-
-    //        if(!/*(*/target.IsGenericType /*&& relations.Any())*/)
-    //            return;
-
-    //        var location = model.TargetDeclaration.GetLocation();
-    //        var diagnostic = Diagnostics.GenericRelation(location);
-    //        _ = diagnostics.Add(diagnostic);
-    //    });
-    //public static IDiagnosticProvider<TargetDataModel> StorageSelectionViolations =
-    //    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
-    //    {
-    //        var violations = model.Annotations.AllRepresentableTypes
-    //            .Where(d => d.Storage.Violation != StorageSelectionViolation.None);
-
-    //        if(!violations.Any())
-    //            return;
-
-    //        var location = model.TargetDeclaration.GetLocation();
-    //        foreach(var violation in violations)
-    //        {
-    //            var name = violation.Names.FullTypeName;
-    //            var diagnostic = (violation.Storage.Violation switch
-    //            {
-    //                StorageSelectionViolation.PureValueReferenceSelection =>
-    //                    (Func<Location, String, Diagnostic>)Diagnostics.BoxingStrategy,
-    //                StorageSelectionViolation.PureValueValueSelectionGeneric =>
-    //                    Diagnostics.GenericViolationStrategy,
-    //                StorageSelectionViolation.ImpureValueReference =>
-    //                    Diagnostics.BoxingStrategy,
-    //                StorageSelectionViolation.ImpureValueValue =>
-    //                    Diagnostics.TleStrategy,
-    //                StorageSelectionViolation.ReferenceValue =>
-    //                    Diagnostics.TleStrategy,
-    //                StorageSelectionViolation.UnknownReference =>
-    //                    Diagnostics.PossibleBoxingStrategy,
-    //                StorageSelectionViolation.UnknownValue =>
-    //                    Diagnostics.PossibleTleStrategy,
-    //                _ => null
-    //            })?.Invoke(location, name);
-
-    //            if(diagnostic != null)
-    //                _ = diagnostics.Add(diagnostic);
-    //        }
-    //    });
-    //public static IDiagnosticProvider<TargetDataModel> SmallGenericUnion =
-    //    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
-    //    {
-    //        if(!model.Symbol.IsGenericType)
-    //        //commented out because of breaking rewrite changes
-    //        //|| model.Annotations.Settings.Layout != LayoutSetting.Small)
-    //        {
-    //            return;
-    //        }
-
-    //        var location = model.TargetDeclaration.GetLocation();
-    //        var diagnostic = Diagnostics.SmallGenericUnion(location);
-    //        _ = diagnostics.Add(diagnostic);
-    //    });
-    ////public static IDiagnosticProvider<TargetDataModel> UnknownGenericParameterName =
-    ////    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
-    ////    {
-    ////        var available = model.Symbol.TypeParameters
-    ////            .Select(p => p.Name)
-    ////            .ToImmutableHashSet();
-    ////        var unknowns = model.Annotations.AllRepresentableTypes
-    ////            .Where(a => a.Attribute.RepresentableTypeIsGenericParameter)
-    ////            .Where(a => !available.Contains(a.Names.SimpleTypeName))
-    ////            .Select(a => a.Names.SimpleTypeName)
-    ////            .ToArray();
-
-    ////        if(unknowns.Length == 0)
-    ////            return;
-
-    ////        var location = model.TargetDeclaration.GetLocation();
-
-    ////        foreach(var unknown in unknowns)
-    ////        {
-    ////            var diagnostic = Diagnostics.UnknownGenericParameterName(location, unknown);
-    ////            _ = diagnostics.Add(diagnostic);
-    ////        }
-    ////    });
-    //public static IDiagnosticProvider<TargetDataModel> ReservedGenericParameterName =
-    //    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
-    //    {
-    //        var collisions = model.Symbol.TypeParameters
+    //        var available = model.Symbol.TypeParameters
     //            .Select(p => p.Name)
-    //            //commented out because of breaking rewrite changes
-    //            //.Where(model.Annotations.Settings.IsReservedGenericTypeName)
+    //            .ToImmutableHashSet();
+    //        var unknowns = model.Annotations.AllRepresentableTypes
+    //            .Where(a => a.Attribute.RepresentableTypeIsGenericParameter)
+    //            .Where(a => !available.Contains(a.Names.SimpleTypeName))
+    //            .Select(a => a.Names.SimpleTypeName)
     //            .ToArray();
 
-    //        if(collisions.Length == 0)
+    //        if(unknowns.Length == 0)
     //            return;
 
     //        var location = model.TargetDeclaration.GetLocation();
 
-    //        foreach(var collision in collisions)
+    //        foreach(var unknown in unknowns)
     //        {
-    //            var diagnostic = Diagnostics.ReservedGenericParameterName(location, collision);
+    //            var diagnostic = Diagnostics.UnknownGenericParameterName(location, unknown);
     //            _ = diagnostics.Add(diagnostic);
     //        }
     //    });
-    //public static IDiagnosticProvider<TargetDataModel> OperatorOmissions =
-    //    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
+    public static IDiagnosticProvider<UnionTypeModel> ReservedGenericParameterName =
+        DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
+        {
+            var collisions = model.Signature.TypeArgs
+                .Select(p => p.Names.Name)
+                .Where(model.Settings.IsReservedGenericTypeName);
+
+            if(!collisions.Any())
+                return;
+
+            var newDiagnostics = model.Locations.Value
+                .SelectMany(l => collisions
+                    .Select(c => Diagnostics.ReservedGenericParameterName(l, c)));
+            diagnostics.AddRange(newDiagnostics);
+        });
+    public static IDiagnosticProvider<UnionTypeModel> OperatorOmissions =
+        DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
+        {
+            var omissions = model.RepresentableTypes
+                .Where(t => t.OmitConversionOperators);
+
+            var interfaceOmissions = omissions.Where(o => o.Signature.IsInterface);
+
+            foreach(var interfaceOmission in interfaceOmissions)
+            {
+                Add(model, diagnostics,
+                    l => Diagnostics.RepresentableTypeIsInterface(
+                        l,
+                        interfaceOmission.Signature.Names.FullGenericNullableName));
+            }
+
+            var supertypeOmissions = omissions.Where(o => o.IsBaseClassToUnionType);
+
+            foreach(var supertype in supertypeOmissions)
+            {
+                Add(model, diagnostics,
+                    l => Diagnostics.RepresentableTypeIsSupertype(
+                        l,
+                        supertype.Signature.Names.FullGenericNullableName));
+            }
+        });
+    //public static IDiagnosticProvider<UnionTypeModel> UnionTypeSettingsOnNonUnionType =
+    //    DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
     //    {
-    //        var omissions = model.OperatorOmissions;
-    //        var location = model.TargetDeclaration.GetLocation();
+    //        TODO
+    //        var representableTypes = model.RepresentableTypes;
 
-    //        foreach(var interfaceOmission in omissions.Interfaces)
-    //        {
-    //            var diagnostic = Diagnostics.RepresentableTypeIsInterface(
-    //                location,
-    //                interfaceOmission.Names.SimpleTypeName);
-    //            _ = diagnostics.Add(diagnostic);
-    //        }
-
-    //        foreach(var supertypes in omissions.Supertypes)
-    //        {
-    //            var diagnostic = Diagnostics.RepresentableTypeIsSupertype(
-    //                location,
-    //                supertypes.Names.SimpleTypeName);
-    //            _ = diagnostics.Add(diagnostic);
-    //        }
-    //    });
-    //public static IDiagnosticProvider<TargetDataModel> UnionTypeSettingsOnNonUnionType =
-    //    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
-    //    {
-    //        var representableTypes = model.Annotations.AllRepresentableTypes;
-
-    //        if(representableTypes.Count > 0 ||
-    //           !model.Symbol
-    //            .GetAttributes()
-    //            .OfUnionTypeSettingsAttribute()
-    //            .Any())
+    //        if(representableTypes.Count > 0 || /*settings not located ?*/)
     //        {
     //            return;
     //        }
@@ -191,40 +187,28 @@ internal static class Providers
     //        var diagnostic = Diagnostics.UnionTypeSettingsOnNonUnionType(location);
     //        _ = diagnostics.Add(diagnostic);
     //    });
-    //public static IDiagnosticProvider<TargetDataModel> ImplicitConversionIfSolitary =
-    //    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
-    //    {
-    //        var attributes = model.Annotations.AllRepresentableTypes;
-    //        var location = model.TargetDeclaration.GetLocation();
+    public static IDiagnosticProvider<UnionTypeModel> ImplicitConversionIfSolitary =
+        DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
+        {
+            if(model.RepresentableTypes.Count > 1 &&
+               model.RepresentableTypes.Any(a => a.Options.HasFlag(UnionTypeOptions.ImplicitConversionIfSolitary)))
+            {
+                Add(model, diagnostics,
+                    Diagnostics.ImplicitConversionOptionOnNonSolitary);
+            }
+        });
+    public static IDiagnosticProvider<UnionTypeModel> UnionTypeCount =
+        DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
+        {
+            var count = model.RepresentableTypes.Count;
+            if(count <= Qualifications.MaxRepresentableTypesCount)
+                return;
 
-    //        if(attributes.Count == 1 &&
-    //           attributes[0].Attribute.Options.HasFlag(UnionTypeOptions.ImplicitConversionIfSolitary))
-    //        {
-    //            var diagnostic = Diagnostics.ImplicitConversionOptionOnSolitary(
-    //                model.Symbol.Name,
-    //                attributes[0].Names.SimpleTypeName,
-    //                location);
-    //            _ = diagnostics.Add(diagnostic);
-    //        } else if(attributes.Count > 1 &&
-    //           attributes.Any(a => a.Attribute.Options.HasFlag(UnionTypeOptions.ImplicitConversionIfSolitary)))
-    //        {
-    //            var diagnostic = Diagnostics.ImplicitConversionOptionOnNonSolitary(location);
-    //            _ = diagnostics.Add(diagnostic);
-    //        }
-    //    });
-    //public static IDiagnosticProvider<TargetDataModel> UnionTypeCount =
-    //    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
-    //    {
-    //        var count = model.Annotations.AllRepresentableTypes.Count;
-    //        if(count <= Byte.MaxValue)
-    //            return;
-
-    //        var location = model.TargetDeclaration.GetLocation();
-    //        var diagnostic = Diagnostics.TooManyTypes(location);
-    //        _ = diagnostics.Add(diagnostic);
-    //    });
-    //public static IDiagnosticProvider<TargetDataModel> Partiality =
-    //    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
+            Add(model, diagnostics,
+                Diagnostics.TooManyTypes);
+        });
+    //public static IDiagnosticProvider<UnionTypeModel> Partiality =
+    //    DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
     //    {
     //        if(model.TargetDeclaration.IsPartial())
     //            return;
@@ -233,113 +217,111 @@ internal static class Providers
     //        var diagnostic = Diagnostics.NonPartialDeclaration(location);
     //        _ = diagnostics.Add(diagnostic);
     //    });
-    //public static IDiagnosticProvider<TargetDataModel> NonStatic =
-    //    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
-    //    {
-    //        if(!model.TargetDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword))
-    //            return;
+    public static IDiagnosticProvider<UnionTypeModel> NonStatic =
+        DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
+        {
+            if(!model.Signature.IsStatic)
+                return;
 
-    //        var location = model.TargetDeclaration.Identifier.GetLocation();
-    //        var diagnostic = Diagnostics.StaticTarget(location);
-    //        _ = diagnostics.Add(diagnostic);
-    //    });
-    //public static IDiagnosticProvider<TargetDataModel> NonRecord =
-    //    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
-    //    {
-    //        if(!model.TargetDeclaration.IsKind(SyntaxKind.RecordDeclaration) &&
-    //            !model.TargetDeclaration.IsKind(SyntaxKind.RecordStructDeclaration))
-    //        {
-    //            return;
-    //        }
+            Add(model, diagnostics,
+                Diagnostics.StaticTarget);
+        });
+    public static IDiagnosticProvider<UnionTypeModel> NonRecord =
+        DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
+        {
+            if(!model.Signature.IsRecord)
+                return;
 
-    //        var location = model.TargetDeclaration.Identifier.GetLocation();
-    //        var diagnostic = Diagnostics.RecordTarget(location);
-    //        _ = diagnostics.Add(diagnostic);
-    //    });
-    ///*
-    //public static IDiagnosticProvider<TargetDataModel> UnionTypeAttribute =
-    //    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
-    //    {
-    //        if(model.Annotations.AllRepresentableTypes.Count > 0)
-    //            return;
+            Add(model, diagnostics,
+                Diagnostics.RecordTarget);
+        });
+    /*
+    public static IDiagnosticProvider<UnionTypeModel> UnionTypeAttribute =
+        DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
+        {
+            if(model.Annotations.AllRepresentableTypes.Count > 0)
+                return;
 
-    //        var location = model.TargetDeclaration.Identifier.GetLocation();
-    //        var diagnostic = Diagnostics.MissingUnionTypeAttribute(location);
-    //        _ = diagnostics.Add(diagnostic);
-    //    });
-    //*/
-    //public static IDiagnosticProvider<TargetDataModel> UniqueUnionTypeAttributes =
-    //    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
-    //    {
-    //        _ = model.Annotations.AllRepresentableTypes
-    //            .GroupBy(t => t.Names.FullTypeName)
-    //            .Select(g => (Name: g.Key, Locations: g.Select(t => model.TargetDeclaration.GetLocation()).ToArray()))
-    //            .Where(t => t.Locations.Length > 1)
-    //            .SelectMany(t => t.Locations.Skip(1).Select(l => Diagnostics.DuplicateUnionTypeAttributes(t.Name, l)))
-    //            .Aggregate(diagnostics, (b, d) => b.Add(d));
-    //    });
-    //public static IDiagnosticProvider<TargetDataModel> AliasCollisions =
-    //    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
-    //{
-    //    var duplicates = model.Annotations.AllRepresentableTypes
-    //        .GroupBy(a => a.Names.SafeAlias)
-    //        .Where(g => g.Skip(1).Any())
-    //        .Select(g => g.First().Names.SimpleTypeName);
-    //    if(!duplicates.Any())
-    //        return;
+            var location = model.TargetDeclaration.Identifier.GetLocation();
+            var diagnostic = Diagnostics.MissingUnionTypeAttribute(location);
+            _ = diagnostics.Add(diagnostic);
+        });
+    */
+    public static IDiagnosticProvider<UnionTypeModel> UniqueUnionTypeAttributes =
+        DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
+        {
+            var duplicateRepresentableTypeNames = model.RepresentableTypes
+                .Select(t => t.Signature.Names.FullGenericName)
+                .GroupBy(n => n)
+                .Where(g => g.Skip(1).Any())
+                .Select(g => g.First());
 
-    //    var location = model.TargetDeclaration.GetLocation();
-    //    _ = duplicates.Select(d => Diagnostics.AliasCollision(location, d))
-    //            .Aggregate(diagnostics, (b, d) => b.Add(d));
-    //});
-    //public static IDiagnosticProvider<TargetDataModel> SelfReference =
-    //    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
-    //    {
-    //        var targetName = model.Symbol.ToFullOpenString();
-    //        var hasSelfReference = model.Annotations.AllRepresentableTypes
-    //            .Any(t => t.Names.FullTypeName == targetName);
-    //        if(!hasSelfReference)
-    //            return;
+            if(!duplicateRepresentableTypeNames.Any())
+                return;
 
-    //        var location = model.TargetDeclaration.GetLocation();
-    //        var diagnostic = Diagnostics.SelfReference(location);
-    //        _ = diagnostics.Add(diagnostic);
-    //    });
-    //public static IDiagnosticProvider<TargetDataModel> Inheritance =
-    //    DiagnosticProvider.Create<TargetDataModel>(static (model, diagnostics) =>
-    //    {
-    //        if(model.Symbol.BaseType == null ||
-    //           model.Symbol.BaseType.SpecialType == SpecialType.System_Object ||
-    //           model.Symbol.BaseType.SpecialType == SpecialType.System_ValueType)
-    //        {
-    //            return;
-    //        }
+            Add(model, diagnostics,
+                l => duplicateRepresentableTypeNames.Select(t =>
+                    Diagnostics.DuplicateUnionTypeAttributes(l, t)));
+        });
+    public static IDiagnosticProvider<UnionTypeModel> AliasCollisions =
+        DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
+    {
 
-    //        var location = model.TargetDeclaration.GetLocation();
-    //        var diagnostic = Diagnostics.Inheritance(location);
-    //        _ = diagnostics.Add(diagnostic);
-    //    });
+        var duplicateRepresentableTypeAliae = model.RepresentableTypes
+            .Select(t => t.Alias)
+            .GroupBy(n => n)
+            .Where(g => g.Skip(1).Any())
+            .Select(g => g.First());
 
-    //public static IEnumerable<IDiagnosticProvider<TargetDataModel>> All = new[]
-    //{
-    //        BidirectionalRelation,
-    //        DuplicateRelation,
-    //        GenericRelation,
-    //        StorageSelectionViolations,
-    //        SmallGenericUnion,
-    //        //UnknownGenericParameterName,
-    //        ReservedGenericParameterName,
-    //        OperatorOmissions,
-    //        UnionTypeSettingsOnNonUnionType,
-    //        ImplicitConversionIfSolitary,
-    //        UnionTypeCount,
-    //        Partiality,
-    //        NonStatic,
-    //        NonRecord,
-    //        //UnionTypeAttribute,
-    //        UniqueUnionTypeAttributes,
-    //        AliasCollisions,
-    //        SelfReference,
-    //        Inheritance
-    //};
+        if(!duplicateRepresentableTypeAliae.Any())
+            return;
+
+        Add(model, diagnostics,
+            l => duplicateRepresentableTypeAliae.Select(t =>
+                Diagnostics.AliasCollision(l, t)));
+    });
+    public static IDiagnosticProvider<UnionTypeModel> SelfReference =
+        DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
+        {
+            var hasSelfReference = model.RepresentableTypes
+                .Any(t => t.Signature.Equals(model.Signature));
+
+            if(!hasSelfReference)
+                return;
+
+            Add(model, diagnostics,
+                Diagnostics.SelfReference);
+        });
+    public static IDiagnosticProvider<UnionTypeModel> Inheritance =
+        DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
+        {
+            if(model.Signature.HasNoBaseClass)
+                return;
+
+            Add(model, diagnostics,
+                Diagnostics.Inheritance);
+        });
+
+    public static IEnumerable<IDiagnosticProvider<UnionTypeModel>> All = new[]
+    {
+            BidirectionalRelation,
+            DuplicateRelation,
+            GenericRelation,
+            StorageSelectionViolations,
+            SmallGenericUnion,
+            //UnknownGenericParameterName,
+            ReservedGenericParameterName,
+            OperatorOmissions,
+            //UnionTypeSettingsOnNonUnionType,
+            ImplicitConversionIfSolitary,
+            UnionTypeCount,
+            //Partiality,
+            NonStatic,
+            NonRecord,
+            //UnionTypeAttribute,
+            UniqueUnionTypeAttributes,
+            AliasCollisions,
+            SelfReference,
+            Inheritance
+    };
 }

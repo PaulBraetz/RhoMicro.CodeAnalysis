@@ -8,7 +8,14 @@ partial class AliasedUnionTypeBaseAttribute
 {
     internal PartialRepresentableTypeModel GetPartialModel(TypeOrTypeParameterType representableType, INamedTypeSymbol unionType, CancellationToken ct)
     {
-        var result = PartialRepresentableTypeModel.Create(Alias, Options, Storage, new(Groups), representableType, unionType, ct);
+        var result = PartialRepresentableTypeModel.Create(
+            Alias,
+            Options,
+            Storage,
+            new(Groups),
+            representableType,
+            unionType,
+            ct);
 
         return result;
     }

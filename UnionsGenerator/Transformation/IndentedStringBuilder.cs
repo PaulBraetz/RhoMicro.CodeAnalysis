@@ -295,7 +295,7 @@ partial class IndentedStringBuilder
         RepresentableTypeModel unionTypeRepresentableType,
         String unionTypeParameterName) =>
         Append("((").Append(relatedType.Signature.Names.FullGenericNullableName).Append(')')
-        .Append(unionTypeRepresentableType.StrategyContainer.Value.StrongInstanceVariableExpression(unionTypeParameterName)).Append(')');
+        .Append(unionTypeRepresentableType.StorageStrategy.Value.StrongInstanceVariableExpression(unionTypeParameterName)).Append(')');
     public IndentedStringBuilder GeneratedUnnavigableInternalCode(UnionTypeModel model) =>
         GeneratedUnnavigableInternalCode(model.Signature);
     public IndentedStringBuilder GeneratedUnnavigableInternalCode(TypeSignatureModel signature) =>

@@ -48,8 +48,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnionsGenerator.Tests", "Un
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnionsGenerator.EndToEnd.Tests", "UnionsGenerator.EndToEnd.Tests\UnionsGenerator.EndToEnd.Tests.csproj", "{374C6DDC-DDA9-450F-A449-AA7FC3985C2F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnionsGenerator.Tests.Compilation", "UnionsGenerator.Tests.Compilation\UnionsGenerator.Tests.Compilation.csproj", "{2E828C18-66B9-4BC6-9D9B-261A54E15986}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -124,10 +122,6 @@ Global
 		{374C6DDC-DDA9-450F-A449-AA7FC3985C2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{374C6DDC-DDA9-450F-A449-AA7FC3985C2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{374C6DDC-DDA9-450F-A449-AA7FC3985C2F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2E828C18-66B9-4BC6-9D9B-261A54E15986}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2E828C18-66B9-4BC6-9D9B-261A54E15986}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2E828C18-66B9-4BC6-9D9B-261A54E15986}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2E828C18-66B9-4BC6-9D9B-261A54E15986}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -150,7 +144,6 @@ Global
 		{A12BC4A0-DCB8-4FCB-8BFA-ACD0DCD4B568} = {D2B8AC38-3B81-453F-A253-6D410D860D6C}
 		{9743772D-6AEE-4775-AEAA-C4E58DDCE0E9} = {96BBB21A-F476-4234-97AF-D79F88CE0644}
 		{374C6DDC-DDA9-450F-A449-AA7FC3985C2F} = {96BBB21A-F476-4234-97AF-D79F88CE0644}
-		{2E828C18-66B9-4BC6-9D9B-261A54E15986} = {96BBB21A-F476-4234-97AF-D79F88CE0644}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8A219ED5-5120-4C5F-8EB4-FFF44FFCE2CF}

@@ -4,7 +4,7 @@ using System.Security.Cryptography.X509Certificates;
 
 using Microsoft.CodeAnalysis;
 
-public class ConversionTests : TestBase
+public class ConversionTests : GeneratorTest
 {
     [Theory]
     [InlineData(

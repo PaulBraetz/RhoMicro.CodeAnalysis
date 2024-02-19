@@ -13,6 +13,8 @@ static class Qualifications
     public const String NonGenericFullMetadataName = MetadataNamespace + "." + NonGenericMetadataName;
     public const String NonGenericMetadataName = "UnionTypeAttribute";
     public const String MetadataNamespace = "RhoMicro.CodeAnalysis";
+    public const String NonGenericRelationMetadataName = "RelationAttribute";
+    public const String FactoryMetadataName = "UnionTypeFactoryAttribute";
     public const String GenericFullMetadataName = MetadataNamespace + "." + GenericMetadataName;
     public const String GenericMetadataName = NonGenericMetadataName + "`";
     private static readonly Dictionary<Int32, String> _genericNames =
@@ -21,20 +23,28 @@ static class Qualifications
     public static IEnumerable<String> GenericMetadataNames => _genericNames.Values;
 
     public const Int32 MaxRepresentableTypesCount = 255; //limit to 255 due to tag type being byte + None tag
-
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Boolean IsRelationAttribute(this AttributeData data) =>
+        data.IsAttributesNamespaceAttribute()
+        && ( data.AttributeClass?.MetadataName.StartsWith(NonGenericRelationMetadataName) ?? false );
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static Boolean IsAttributesNamespaceAttribute(this AttributeData data) =>
         data.AttributeClass?.ContainingNamespace.ToDisplayString(
             SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted))
         == MetadataNamespace;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Boolean IsUnionTypeDeclarationAttribute(this AttributeData data) =>
         data.IsAttributesNamespaceAttribute()
         && data.AttributeClass!.MetadataName.StartsWith(GenericMetadataName)
         && data.AttributeClass.TypeArguments.Length < MaxRepresentableTypesCount;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Boolean IsUnionTypeParameterAttribute(this AttributeData data) =>
         data.IsAttributesNamespaceAttribute()
         && data.AttributeClass?.MetadataName == NonGenericMetadataName
         && data.AttributeClass.TypeArguments.Length == 0;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Boolean IsUnionTypeAttribute(this AttributeData data) => data.IsUnionTypeParameterAttribute() || data.IsUnionTypeDeclarationAttribute();
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Boolean IsUnionTypeSettingsAttribute(this AttributeData data) =>
         data.IsAttributesNamespaceAttribute()
         && data.AttributeClass?.MetadataName == typeof(UnionTypeSettingsAttribute).Name;
@@ -68,18 +78,19 @@ static class Qualifications
         return ( (TypeDeclarationSyntax)node ).Modifiers.Any(SyntaxKind.PartialKeyword);
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Boolean IsUnionTypeFactorySymbol(IMethodSymbol methodSymbol, CancellationToken cancellationToken)
+    public static Boolean IsUnionTypeFactoryAttribute(AttributeData data) =>
+        data.IsAttributesNamespaceAttribute() &&
+        data.AttributeClass?.MetadataName == FactoryMetadataName;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Boolean IsUnionTypeFactorySymbol(IMethodSymbol methodSymbol)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        if(!methodSymbol.IsStatic
-           || SymbolEqualityComparer.IncludeNullability.Equals(methodSymbol.ReturnType, methodSymbol.ContainingSymbol)
-           || methodSymbol.Parameters.Length != 1
-           || methodSymbol.TypeParameters.Length != 0)
-        {
-            return false;
-        }
+        var result = methodSymbol.IsStatic
+            && !SymbolEqualityComparer.IncludeNullability.Equals(methodSymbol.ReturnType, methodSymbol.ContainingSymbol)
+            && methodSymbol.Parameters.Length == 1
+            && methodSymbol.TypeParameters.Length == 0
+            && methodSymbol.Parameters[0].GetAttributes().Any(IsUnionTypeFactoryAttribute);
 
-        return true;
+        return result;
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Boolean IsUnionTypeFactoryDeclarationSyntax(SyntaxNode? node, CancellationToken cancellationToken)

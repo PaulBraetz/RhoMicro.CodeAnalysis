@@ -1,5 +1,4 @@
 using RhoMicro.CodeAnalysis;
-#pragma warning disable
 
 internal class Program
 {
@@ -7,7 +6,8 @@ internal class Program
     { }
 }
 
-[UnionType<ErrorCode, MultipleUsersError, User>]
+[UnionType<ErrorCode, MultipleUsersError, User>(Storage = StorageOption.Value)]
+[UnionTypeSettings(Miscellaneous = MiscellaneousSettings.EmitStructuralRepresentation)]
 readonly partial struct GetUserResult;
 
 sealed record User(String Name);

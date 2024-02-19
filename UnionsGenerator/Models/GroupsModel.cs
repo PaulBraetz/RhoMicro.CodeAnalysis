@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-sealed class GroupsModel
+using RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Visitors;
+
+sealed class GroupsModel : IModel<GroupsModel>
 {
     private GroupsModel(EquatableDictionary<String, GroupModel> map) => _map = map;
     private readonly EquatableDictionary<String, GroupModel> _map;
@@ -48,4 +50,8 @@ sealed class GroupsModel
         && EqualityComparer<EquatableDictionary<String, GroupModel>>.Default.Equals(_map, model._map);
     public override Int32 GetHashCode() =>
         -2013957080 + EqualityComparer<EquatableDictionary<String, GroupModel>>.Default.GetHashCode(_map);
+    public void Receive<TVisitor>(TVisitor visitor)
+        where TVisitor : IVisitor<GroupsModel>
+        => visitor.Visit(this);
+
 }

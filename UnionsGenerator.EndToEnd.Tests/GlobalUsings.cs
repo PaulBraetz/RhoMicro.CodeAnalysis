@@ -1,3 +1,4 @@
 global using Xunit;
 
-[assembly: RhoMicro.CodeAnalysis.UnionTypeSettings(Miscellaneous = RhoMicro.CodeAnalysis.MiscellaneousSettings.Default | RhoMicro.CodeAnalysis.MiscellaneousSettings.GenerateJsonConverter)]
+[assembly: RhoMicro.CodeAnalysis.UnionTypeSettings(Miscellaneous = RhoMicro.CodeAnalysis.MiscellaneousSettings.Default | RhoMicro.CodeAnalysis.MiscellaneousSettings.GenerateJsonConverter |
+  RhoMicro.CodeAnalysis.MiscellaneousSettings.EmitStructuralRepresentation)]
