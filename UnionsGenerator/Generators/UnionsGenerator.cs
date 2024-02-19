@@ -20,6 +20,7 @@ using SettingsMapProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<(Mod
 using SourceTextProvider = Microsoft.CodeAnalysis.IncrementalValuesProvider<(String hintName, String source)>;
 using System.Linq;
 using System.Collections.Immutable;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Analyzers;
 
 /// <summary>
 /// Generates partial union type implementations.
@@ -60,9 +61,23 @@ public class UnionsGenerator : IIncrementalGenerator
     }
     #region Transformations
     static SourceTextProvider CreateSourceTextProvider(IncrementalValuesProvider<UnionTypeModel> provider) =>
-        provider.Select((model, ct) =>
+        provider
+        .Select((model, ct) =>
+        {
+            var containsErrors = DiagnosticsAccumulator.Create(model)
+                .DiagnoseNonHiddenSeverities()
+                .ReportNonHiddenSeverities()
+                .Receive(Providers.All, ct)
+                .ContainsErrors;
+
+            return (model, containsErrors);
+        })
+        .Where(t => !t.containsErrors)
+        .Select((tuple, ct) =>
         {
             ct.ThrowIfCancellationRequested();
+
+            var (model, _) = tuple;
 
             var resultBuilder = new IndentedStringBuilder(
                 IndentedStringBuilderOptions.GeneratedFile with
@@ -162,7 +177,7 @@ public class UnionsGenerator : IIncrementalGenerator
                 var mutableResult = new Dictionary<TypeSignatureModel, (List<PartialRepresentableTypeModel> representableTypes, HashSet<TypeSignatureModel> mappedRepresentableTypes)>();
                 var result = new Dictionary<TypeSignatureModel, (EquatableList<PartialRepresentableTypeModel> representableTypes, Boolean isEqualsRequired)>();
                 var isEqualsRequiredAccumulator = true;
-                foreach(var (key, value, isEqualsRequired) in keyValuePairs)
+                foreach(var (key, value, isEqualsRequired, _) in keyValuePairs)
                 {
                     isEqualsRequiredAccumulator &= isEqualsRequired;
 

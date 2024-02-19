@@ -4,6 +4,8 @@ using RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Storage;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Visitors;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models.Storage;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
+using Microsoft.CodeAnalysis;
+using System.Collections.Immutable;
 
 /// <summary>
 /// Represents a user-defined union type.
@@ -17,6 +19,7 @@ using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 /// <param name="Groups"></param>
 /// <param name="StrategyHostContainer"></param>
 /// <param name="IsEqualsRequired"></param>
+/// <param name="Locations"></param>
 sealed record UnionTypeModel(
     TypeSignatureModel Signature,
     EquatableList<RepresentableTypeModel> RepresentableTypes,
@@ -25,13 +28,59 @@ sealed record UnionTypeModel(
     Boolean IsGenericType,
     String ScopedDataTypeName,
     GroupsModel Groups,
-    StaticallyEquatableContainer<StrategySourceHost> StrategyHostContainer,
-    Boolean IsEqualsRequired) : IModel<UnionTypeModel>
+    EquatedData<StrategySourceHost> StrategyHostContainer,
+    Boolean IsEqualsRequired,
+    EquatedData<ImmutableArray<Location>> Locations) : IModel<UnionTypeModel>
 {
+    public static UnionTypeModel Create(INamedTypeSymbol unionType, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var signature = TypeSignatureModel.Create(unionType, cancellationToken);
+        var relations = RelationModel.Create(unionType, cancellationToken);
+        var settings = SettingsModel.Create(unionType, cancellationToken);
+        var factories = FactoryModel.Create(unionType, cancellationToken);
+        var isEqualsRequired = PartialUnionTypeModel.IsEqualsRequiredForTarget(unionType);
+        var partials = PartialUnionTypeModel.Create(unionType, cancellationToken)
+            .Select(m => m.RepresentableType)
+            .ToEquatableList(cancellationToken);
+        var locations = unionType.Locations
+            .Where(l => l.IsInSource && !( l.SourceTree?.FilePath.EndsWith(".g.cs") ?? true ))
+            .ToImmutableArray();
+
+        var result = Create(
+            signature,
+            partials,
+            factories,
+            relations,
+            settings,
+            isEqualsRequired,
+            locations,
+            cancellationToken);
+
+        return result;
+    }
     /// <inheritdoc/>
     public void Receive<TVisitor>(TVisitor visitor)
         where TVisitor : IVisitor<UnionTypeModel>
         => visitor.Visit(this);
+    public static UnionTypeModel Create(
+        TypeSignatureModel signature,
+        EquatableList<PartialRepresentableTypeModel> partialRepresentableTypes,
+        EquatableList<FactoryModel> factories,
+        EquatableList<RelationModel> relations,
+        SettingsModel settings,
+        Boolean isEqualsRequired,
+        CancellationToken cancellationToken) =>
+        Create(
+        signature,
+        partialRepresentableTypes,
+        factories,
+        relations,
+        settings,
+        isEqualsRequired,
+        ImmutableArray<Location>.Empty,
+        cancellationToken);
 
     /// <summary>
     /// Creates a new union type model.
@@ -42,6 +91,7 @@ sealed record UnionTypeModel(
     /// <param name="relations"></param>
     /// <param name="settings"></param>
     /// <param name="isEqualsRequired"></param>
+    /// <param name="locations"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public static UnionTypeModel Create(
@@ -51,6 +101,7 @@ sealed record UnionTypeModel(
         EquatableList<RelationModel> relations,
         SettingsModel settings,
         Boolean isEqualsRequired,
+        ImmutableArray<Location> locations,
         CancellationToken cancellationToken)
     {
         Throw.ArgumentNull(signature, nameof(signature));
@@ -59,40 +110,15 @@ sealed record UnionTypeModel(
         Throw.ArgumentNull(relations, nameof(relations));
         Throw.ArgumentNull(settings, nameof(settings));
 
-        if(partialRepresentableTypes.Count < 1)
-            throw new ArgumentException($"{nameof(partialRepresentableTypes)} must contain at least one representable type model.", nameof(partialRepresentableTypes));
-
         cancellationToken.ThrowIfCancellationRequested();
 
         var isGenericType = signature.TypeArgs.Count > 0;
         var conversionFunctionsTypeName = $"{signature.Names.FullIdentifierOrHintName}_ScopedData{signature.Names.TypeArgsString}";
 
         var factoryMap = factories.ToDictionary(f => f.Parameter);
-        var representableTypes = partialRepresentableTypes
-            .Select(p =>
-            (
-                partial: p,
-                factory: factoryMap.TryGetValue(p.Signature, out var f)
-                    ? f
-                    : FactoryModel.CreateGenerated(p),
-                strategy: StorageStrategy.Create(settings, isGenericType, p)
-            )).Select(t => RepresentableTypeModel.Create(t.partial, t.factory, t.strategy, cancellationToken))
-            .ToEquatableList(cancellationToken);
-
+        var representableTypes = GetRepresentableTypes(partialRepresentableTypes, settings, isGenericType, factoryMap, cancellationToken);
         var groups = GroupsModel.Create(representableTypes);
-
-        var hostContainer = new StaticallyEquatableContainer<StrategySourceHost>(
-            new(
-                settings,
-                signature,
-                isGenericType,
-                representableTypes), 
-            true);
-
-        for(var i = 0; i < representableTypes.Count; i++)
-        {
-            representableTypes[i].StrategyContainer.Value.Visit(hostContainer.Value);
-        }
+        var hostContainer = CreateHostContainerAndReceiveStrategies(signature, settings, isGenericType, representableTypes);
 
         var result = new UnionTypeModel(
             signature,
@@ -103,9 +129,44 @@ sealed record UnionTypeModel(
             conversionFunctionsTypeName,
             groups,
             hostContainer,
-            isEqualsRequired);
+            isEqualsRequired,
+            locations);
 
         return result;
+    }
+
+    private static EquatableList<RepresentableTypeModel> GetRepresentableTypes(EquatableList<PartialRepresentableTypeModel> partialRepresentableTypes, SettingsModel settings, Boolean isGenericType, Dictionary<TypeSignatureModel, FactoryModel> factoryMap, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = partialRepresentableTypes
+            .Select(p =>
+            (
+                partial: p,
+                factory: factoryMap.TryGetValue(p.Signature, out var f)
+                    ? f
+                    : FactoryModel.CreateGenerated(p),
+                strategy: StorageStrategy.Create(settings, isGenericType, p)
+            )).Select(t => RepresentableTypeModel.Create(t.partial, t.factory, t.strategy, cancellationToken))
+            .ToEquatableList(cancellationToken);
+
+        return result;
+    }
+
+    private static StrategySourceHost CreateHostContainerAndReceiveStrategies(TypeSignatureModel signature, SettingsModel settings, Boolean isGenericType, EquatableList<RepresentableTypeModel> representableTypes)
+    {
+        var hostContainer = new StrategySourceHost(
+                settings,
+                signature,
+                isGenericType,
+                representableTypes);
+
+        for(var i = 0; i < representableTypes.Count; i++)
+        {
+            representableTypes[i].StorageStrategy.Value.Visit(hostContainer);
+        }
+
+        return hostContainer;
     }
 
     public String GetSpecificAccessibility(TypeSignatureModel _)

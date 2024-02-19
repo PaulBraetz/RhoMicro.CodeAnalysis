@@ -1,6 +1,9 @@
 ﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Models;
 
+using System.Collections.Immutable;
 using System.Threading;
+
+using Microsoft.CodeAnalysis;
 
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models.Storage;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
@@ -14,8 +17,9 @@ using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 /// <param name="Groups"></param>
 /// <param name="Signature"></param>
 /// <param name="Factory"></param>
-/// <param name="StrategyContainer"></param>
+/// <param name="StorageStrategy"></param>
 /// <param name="OmitConversionOperators"></param>
+/// <param name="IsBaseClassToUnionType"></param>
 sealed record RepresentableTypeModel(
     String Alias,
     UnionTypeOptions Options,
@@ -23,9 +27,10 @@ sealed record RepresentableTypeModel(
     EquatableList<String> Groups,
     TypeSignatureModel Signature,
     Boolean OmitConversionOperators,
+    Boolean IsBaseClassToUnionType,
     FactoryModel Factory,
-    StaticallyEquatableContainer<StorageStrategy> StrategyContainer) :
-    PartialRepresentableTypeModel(Alias, Options, Storage, Groups, Signature, OmitConversionOperators)
+    EquatedData<StorageStrategy> StorageStrategy) :
+    PartialRepresentableTypeModel(Alias, Options, Storage, Groups, Signature, OmitConversionOperators, IsBaseClassToUnionType)
 {
     /// <summary>
     /// Creates a new representable type model.
@@ -43,8 +48,6 @@ sealed record RepresentableTypeModel(
     {
         Throw.ArgumentNull(partialModel, nameof(partialModel));
 
-        var container = new StaticallyEquatableContainer<StorageStrategy>(strategy, true);
-
         cancellationToken.ThrowIfCancellationRequested();
         var result = new RepresentableTypeModel(
             partialModel.Alias,
@@ -53,8 +56,9 @@ sealed record RepresentableTypeModel(
             partialModel.Groups,
             partialModel.Signature,
             partialModel.OmitConversionOperators,
+            partialModel.IsBaseClassToUnionType,
             factory,
-            container);
+            strategy);
 
         return result;
     }

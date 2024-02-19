@@ -73,7 +73,7 @@ sealed class StrategySourceHost(
             .Comment.OpenList("bullet");
 
         var referenceTypes = representableTypes
-            .Select(t => t.StrategyContainer.Value)
+            .Select(t => t.StorageStrategy.Value)
             .Where(s => s.ActualOption == StorageOption.Reference)
             .Select(s => s.RepresentableType.Signature);
         foreach(var referenceType in referenceTypes)
@@ -126,7 +126,7 @@ sealed class StrategySourceHost(
             .Comment.OpenList("bullet");
 
         var valueTypes = representableTypes
-            .Select(t => t.StrategyContainer.Value)
+            .Select(t => t.StorageStrategy.Value)
             .Where(s => s.ActualOption == StorageOption.Value)
             .Select(s => s.RepresentableType.Signature);
         foreach(var valueType in valueTypes)

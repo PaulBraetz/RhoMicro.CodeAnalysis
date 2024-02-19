@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
+
 using System;
 
 internal static class Util
@@ -13,28 +15,26 @@ internal static class Util
         tds.Modifiers.Any(SyntaxKind.PartialKeyword) ||
         node is TypeParameterSyntax;
 
-    public static Boolean IsAnalysisCandidate(SyntaxNode node, SemanticModel semanticModel)
+    public static Boolean IsUnionTypeSymbol(INamedTypeSymbol symbol, CancellationToken cancellationToken)
     {
-        var symbol = semanticModel.GetDeclaredSymbol(node);
-
-        if(symbol is not INamedTypeSymbol or ITypeParameterSymbol)
-            return false;
-
+        cancellationToken.ThrowIfCancellationRequested();
         var attributes = symbol.GetAttributes();
         foreach(var attribute in attributes)
         {
-            if(AliasedUnionTypeBaseAttribute.TryCreate(attribute, out _))
+            cancellationToken.ThrowIfCancellationRequested();
+            if(Qualifications.IsUnionTypeAttribute(attribute)
+                || Qualifications.IsRelationAttribute(attribute)
+                || Qualifications.IsUnionTypeSettingsAttribute(attribute))
+            {
                 return true;
-            //commented out because of breaking rewrite changes
-            //if(RelationAttribute.TryCreate(attribute, out _))
-            //    return true;
-            if(UnionTypeSettingsAttribute.TryCreate(attribute, out _))
-                return true;
+            }
         }
 
-        //only commented out because of breaking rewrite changes
-        var result = symbol is INamedTypeSymbol; //named &&
-        //named.GetMembers().SelectMany(m => m.GetAttributes()).OfUnionFactoryAttribute().Any();
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = symbol is INamedTypeSymbol named &&
+            named.GetMembers()
+                .OfType<IMethodSymbol>()
+                .Any(Qualifications.IsUnionTypeFactorySymbol);
 
         return result;
     }

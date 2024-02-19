@@ -176,7 +176,7 @@ sealed class TypeNamesModel(
         });
         identifierOrHintName = new(() => symbol.ToDisplayString(
                 SymbolDisplayFormats.FullNullableNoContainingTypesOrNamespaces
-                .WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays))
+                .WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays | SymbolDisplayMiscellaneousOptions.ExpandNullable))
             .Replace(" ", String.Empty)
             .Replace("<", "_of_")
             .Replace(">", String.Empty)

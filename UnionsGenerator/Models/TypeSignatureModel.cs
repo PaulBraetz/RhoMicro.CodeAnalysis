@@ -6,6 +6,7 @@ using RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Visitors;
 using RhoMicro.CodeAnalysis.Library;
 
 using System.Threading;
+using System.Reflection;
 
 /// <summary>
 /// Represents a types signature.
@@ -14,6 +15,11 @@ using System.Threading;
 /// <param name="TypeArgs"></param>
 /// <param name="DeclarationKeyword"></param>
 /// <param name="IsTypeParameter"></param>
+/// <param name="IsGenericType"></param>
+/// <param name="IsInterface"></param>
+/// <param name="IsStatic"></param>
+/// <param name="IsRecord"></param>
+/// <param name="HasNoBaseClass"></param>
 /// <param name="Nature"></param>
 /// <param name="IsNullableAnnotated"></param>
 /// <param name="Names"></param>
@@ -22,6 +28,11 @@ sealed record TypeSignatureModel(
     EquatableList<TypeSignatureModel> TypeArgs,
     String DeclarationKeyword,
     Boolean IsTypeParameter,
+    Boolean IsGenericType,
+    Boolean IsInterface,
+    Boolean IsStatic,
+    Boolean IsRecord,
+    Boolean HasNoBaseClass,
     TypeNature Nature,
     Boolean IsNullableAnnotated,
     TypeNamesModel Names)
@@ -69,7 +80,18 @@ sealed record TypeSignatureModel(
             _ => String.Empty
         };
         var nature = TypeNatures.Create(new(type), cancellationToken);
+        var isInterface = type.TypeKind == TypeKind.Interface;
         var isTypeParameter = type is ITypeParameterSymbol;
+        var isStatic = type.IsStatic;
+        var isRecord = type.IsRecord;
+        var isGenericType = type is INamedTypeSymbol { TypeParameters.Length: > 0 };
+        var hasNoBaseClass =
+            type.BaseType is null or
+            {
+                SpecialType: SpecialType.System_Object or
+                             SpecialType.System_ValueType or
+                             SpecialType.System_Enum
+            };
         var containingTypes = new List<TypeSignatureModel>();
         var equatableContainingTypes = containingTypes.AsEquatable();
         var typeArgs = new List<TypeSignatureModel>();
@@ -77,13 +99,18 @@ sealed record TypeSignatureModel(
         var names = TypeNamesModel.Create(type, equatableContainingTypes, equatableTypeArgs, isNullableAnnotated, cancellationToken);
 
         result = new(
-            equatableContainingTypes,
-            equatableTypeArgs,
-            declarationKeyword,
-            isTypeParameter,
-            nature,
-            isNullableAnnotated,
-            names);
+            ContainingTypes: equatableContainingTypes,
+            TypeArgs: equatableTypeArgs,
+            DeclarationKeyword: declarationKeyword,
+            IsTypeParameter: isTypeParameter,
+            IsGenericType: isGenericType,
+            IsInterface: isInterface,
+            IsStatic: isStatic,
+            IsRecord: isRecord,
+            HasNoBaseClass: hasNoBaseClass,
+            Nature: nature,
+            IsNullableAnnotated: isNullableAnnotated,
+            Names: names);
 
         cache.Add(type, result);
 
@@ -158,6 +185,8 @@ sealed record TypeSignatureModel(
         ReferenceEquals(this, other) ||
         other != null &&
         Nature == other.Nature &&
+        IsStatic == other.IsStatic &&
+        IsRecord == other.IsRecord &&
         IsTypeParameter == other.IsTypeParameter &&
         EqualityComparer<TypeNamesModel>.Default.Equals(Names, other.Names);
     /// <inheritdoc/>

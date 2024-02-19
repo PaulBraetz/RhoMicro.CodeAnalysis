@@ -16,10 +16,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="RhoMicro.CodeAnalysis.UnionsGenerator" Version="14.0.0-alpha.30">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
+		<ProjectReference Include="../UnionsGenerator/UnionsGenerator.csproj" OutputItemType="analyzer" ReferenceOutputAssembly="false"/>
 	</ItemGroup>
 
 </Project>

@@ -14,12 +14,12 @@ internal static partial class Diagnostics
         DuplicateUnionTypeAttributes = 1,
         GeneratorException = 2,
         //MissingUnionTypeAttribute = 3,
-        NonPartialDeclaration = 4,
+        //NonPartialDeclaration = 4,
         StaticTarget = 5,
         RecordTarget = 6,
         TooManyTypes = 7,
         ImplicitConversionOptionOnNonSolitary = 8,
-        ImplicitConversionOptionOnSolitary = 9,
+        //ImplicitConversionOptionOnSolitary = 9,
         InvalidAttributeTarget = 10,
         AliasCollision = 11,
         UnionTypeSettingsOnNonUnionType = 12,
@@ -81,14 +81,14 @@ internal static partial class Diagnostics
         Create(Id.StaticTarget, location);
     public static Diagnostic RecordTarget(Location location) =>
         Create(Id.RecordTarget, location);
-    public static Diagnostic NonPartialDeclaration(Location location) =>
-        Create(Id.NonPartialDeclaration, location);
+    //public static Diagnostic NonPartialDeclaration(Location location) =>
+    //    Create(Id.NonPartialDeclaration, location);
     public static Diagnostic GeneratorException(Exception exception) =>
         Create(Id.GeneratorException, Location.None, exception.Message);
-    public static Diagnostic DuplicateUnionTypeAttributes(String unionTypeName, Location location) =>
+    public static Diagnostic DuplicateUnionTypeAttributes(Location location, String unionTypeName) =>
         Create(Id.DuplicateUnionTypeAttributes, location, unionTypeName);
     public static Diagnostic ImplicitConversionOptionOnNonSolitary(Location location) =>
         Create(Id.ImplicitConversionOptionOnNonSolitary, location);
-    public static Diagnostic ImplicitConversionOptionOnSolitary(String unionTypeName, String representableTypeName, Location location) =>
-        Create(Id.ImplicitConversionOptionOnSolitary, location, $"ISuperset<{representableTypeName}, {unionTypeName}>");
+    //public static Diagnostic ImplicitConversionOptionOnSolitary(String unionTypeName, String representableTypeName, Location location) =>
+    //    Create(Id.ImplicitConversionOptionOnSolitary, location, $"ISuperset<{representableTypeName}, {unionTypeName}>");
 }

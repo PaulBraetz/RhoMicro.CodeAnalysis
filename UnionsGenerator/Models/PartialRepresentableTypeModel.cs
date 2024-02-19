@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Transformation.Visitors;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 
+using System.Collections.Immutable;
 using System.Threading;
 
 /// <summary>
@@ -16,26 +17,17 @@ using System.Threading;
 /// <param name="Groups"></param>
 /// <param name="Signature"></param>
 /// <param name="OmitConversionOperators"></param>
+/// <param name="IsBaseClassToUnionType"></param>
 record PartialRepresentableTypeModel(
     String Alias,
     UnionTypeOptions Options,
     StorageOption Storage,
     EquatableList<String> Groups,
     TypeSignatureModel Signature,
-    Boolean OmitConversionOperators) :
+    Boolean OmitConversionOperators,
+    Boolean IsBaseClassToUnionType) :
     IModel<PartialRepresentableTypeModel>
 {
-    /// <summary>
-    /// Creates a new partial representable type model.
-    /// </summary>
-    /// <param name="alias"></param>
-    /// <param name="options"></param>
-    /// <param name="storage"></param>
-    /// <param name="groups"></param>
-    /// <param name="representableType"></param>
-    /// <param name="unionType"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     public static PartialRepresentableTypeModel Create(
         String? alias,
         UnionTypeOptions options,
@@ -53,24 +45,32 @@ record PartialRepresentableTypeModel(
 
         var nonNullAlias = alias ?? typeModel.Names.IdentifierOrHintName;
 
-        var omitConversionOperators = IsOperatorConversionsOmitted(representableType, unionType, cancellationToken);
+        var omitConversionOperators = IsOperatorConversionsOmitted(representableType, unionType, out var isBaseClassToUnionType, cancellationToken);
 
-        var result = new PartialRepresentableTypeModel(nonNullAlias, options, storage, groups, typeModel, omitConversionOperators);
+        var result = new PartialRepresentableTypeModel(
+            nonNullAlias,
+            options,
+            storage,
+            groups,
+            typeModel,
+            omitConversionOperators,
+            isBaseClassToUnionType);
 
         return result;
     }
-    private static Boolean IsOperatorConversionsOmitted(TypeOrTypeParameterType representableType, INamedTypeSymbol unionType, CancellationToken cancellationToken)
+    private static Boolean IsOperatorConversionsOmitted(TypeOrTypeParameterType representableType, INamedTypeSymbol unionType, out Boolean unionTypeInheritsRepresentableType, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        unionTypeInheritsRepresentableType = InheritsFrom(unionType, representableType.UnifiedType, cancellationToken);
+        if(unionTypeInheritsRepresentableType)
+            return true;
+
         //cancellationToken.ThrowIfCancellationRequested();
         //if(representableType.IsTypeParameter)
         //    return true;
 
         cancellationToken.ThrowIfCancellationRequested();
         if(representableType.UnifiedType.TypeKind == TypeKind.Interface)
-            return true;
-
-        cancellationToken.ThrowIfCancellationRequested();
-        if(InheritsFrom(unionType, representableType.UnifiedType, cancellationToken))
             return true;
 
         return false;

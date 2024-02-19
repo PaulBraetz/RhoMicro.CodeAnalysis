@@ -43,6 +43,10 @@ sealed record SettingsModel(
         ToStringSetting: ToStringSetting.Detailed or ToStringSetting.Simple
     };
 
+    private EquatedData<HashSet<String>>? _reservedNames;
+    public Boolean IsReservedGenericTypeName(String name) =>
+        ( _reservedNames ??= new([GenericTValueName, TryConvertTypeName, MatchTypeName]) ).Value.Contains(name);
+
     public static ImmutableHashSet<String> PropertyNames { get; } = new[]
     {
 #region Settings
@@ -87,7 +91,7 @@ sealed record SettingsModel(
             ?? new();
 
         cancellationToken.ThrowIfCancellationRequested();
-        var implementsToString = type.GetMembers("ToString")
+        var implementsToString = type.GetMembers(nameof(Object.ToString))
             .OfType<IMethodSymbol>()
             .Any(m => m.Parameters.Length == 0);
 
