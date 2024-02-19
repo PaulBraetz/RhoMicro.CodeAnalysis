@@ -66,7 +66,6 @@ public class UnionsGenerator : IIncrementalGenerator
         {
             var containsErrors = DiagnosticsAccumulator.Create(model)
                 .DiagnoseNonHiddenSeverities()
-                .ReportNonHiddenSeverities()
                 .Receive(Providers.All, ct)
                 .ContainsErrors;
 

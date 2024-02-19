@@ -15,8 +15,15 @@
 		<WarningsAsErrors>$(WarningsAsErrors);NU1605;1591;1573;1712;nullable</WarningsAsErrors>
 	</PropertyGroup>
 
+	<!--<ItemGroup>
+	  <PackageReference Include="RhoMicro.CodeAnalysis.UnionsGenerator" Version="14.0.4">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	</ItemGroup>-->
+
 	<ItemGroup>
-		<ProjectReference Include="../UnionsGenerator/UnionsGenerator.csproj" OutputItemType="analyzer" ReferenceOutputAssembly="false"/>
+		<ProjectReference Include="../UnionsGenerator/UnionsGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
 </Project>

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using RhoMicro.CodeAnalysis.Library;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Models;
+using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 
 using System.Collections.Immutable;
 
@@ -23,23 +24,43 @@ public sealed class Analyzer : DiagnosticAnalyzer
         context.RegisterSymbolStartAction(ctx =>
         {
             ctx.CancellationToken.ThrowIfCancellationRequested();
-            if(ctx is not { IsGeneratedCode: false, Symbol: INamedTypeSymbol target } || !Util.IsUnionTypeSymbol(target, ctx.CancellationToken))
+            if(ctx is not { IsGeneratedCode: false, Symbol: INamedTypeSymbol target } || !Qualifications.IsUnionTypeSymbol(target, ctx.CancellationToken))
                 return;
 
             ctx.RegisterSymbolEndAction(ctx =>
             {
                 ctx.CancellationToken.ThrowIfCancellationRequested();
-                if(ctx is not { IsGeneratedCode: false, Symbol: INamedTypeSymbol target } || !Util.IsUnionTypeSymbol(target, ctx.CancellationToken))
+                if(ctx is not { IsGeneratedCode: false, Symbol: INamedTypeSymbol target } || !Qualifications.IsUnionTypeSymbol(target, ctx.CancellationToken))
                     return;
 
                 var model = UnionTypeModel.Create(target, ctx.CancellationToken);
 
-                var accumulator = DiagnosticsAccumulator.Create(model)
-                                .DiagnoseNonHiddenSeverities()
-                                .ReportNonHiddenSeverities()
-                                .Receive(Providers.All, ctx.CancellationToken);
+                if(model.Settings.DiagnosticsLevel == DiagnosticsLevelSettings.None)
+                    return;
 
-                accumulator.ReportDiagnostics(ctx.ReportDiagnostic);
+                var accumulator = DiagnosticsAccumulator.Create(model)
+                    .DiagnoseNonHiddenSeverities();
+
+                if(model.Settings.DiagnosticsLevel != DiagnosticsLevelSettings.None)
+                {
+                    if(model.Settings.DiagnosticsLevel.HasFlag(DiagnosticsLevelSettings.Info))
+                    {
+                        accumulator = accumulator.ReportSeverity(DiagnosticSeverity.Info);
+                    }
+
+                    if(model.Settings.DiagnosticsLevel.HasFlag(DiagnosticsLevelSettings.Warning))
+                    {
+                        accumulator = accumulator.ReportSeverity(DiagnosticSeverity.Warning);
+                    }
+
+                    if(model.Settings.DiagnosticsLevel.HasFlag(DiagnosticsLevelSettings.Error))
+                    {
+                        accumulator = accumulator.ReportSeverity(DiagnosticSeverity.Error);
+                    }
+                }
+
+                accumulator.Receive(Providers.All, ctx.CancellationToken)
+                    .ReportDiagnostics(ctx.ReportDiagnostic);
             });
         }, SymbolKind.NamedType);
     }
