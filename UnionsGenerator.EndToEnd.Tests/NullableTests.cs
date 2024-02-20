@@ -20,7 +20,7 @@ public partial class NullableTests
     [Fact]
     public void NullableBoolTrueFactoryCall()
     {
-        var u = NullableBoolUnion.CreateFromNullable_of_Boolean(true);
+        var u = NullableBoolUnion.Create((Boolean?)true);
         Assert.True(u.IsNullable_of_Boolean);
         Assert.True(u.AsNullable_of_Boolean.HasValue);
         Assert.True(u.AsNullable_of_Boolean.Value);
@@ -29,7 +29,7 @@ public partial class NullableTests
     [Fact]
     public void NullableBoolFalseFactoryCall()
     {
-        var u = NullableBoolUnion.CreateFromNullable_of_Boolean(false);
+        var u = NullableBoolUnion.Create((Boolean?)false);
         Assert.True(u.IsNullable_of_Boolean);
         Assert.True(u.AsNullable_of_Boolean.HasValue);
         Assert.False(u.AsNullable_of_Boolean.Value);
@@ -38,7 +38,7 @@ public partial class NullableTests
     [Fact]
     public void NullableBoolNullFactoryCall()
     {
-        var u = NullableBoolUnion.CreateFromNullable_of_Boolean(null);
+        var u = NullableBoolUnion.Create((Boolean?)null);
         Assert.True(u.IsNullable_of_Boolean);
         Assert.False(u.AsNullable_of_Boolean.HasValue);
     }
