@@ -12,6 +12,7 @@ using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 /// Models a representable type.
 /// </summary>
 /// <param name="Alias"></param>
+/// <param name="FactoryName"></param>
 /// <param name="Options"></param>
 /// <param name="Storage"></param>
 /// <param name="Groups"></param>
@@ -22,6 +23,7 @@ using RhoMicro.CodeAnalysis.UnionsGenerator.Utils;
 /// <param name="IsBaseClassToUnionType"></param>
 sealed record RepresentableTypeModel(
     String Alias,
+    String FactoryName,
     UnionTypeOptions Options,
     StorageOption Storage,
     EquatableList<String> Groups,
@@ -30,7 +32,7 @@ sealed record RepresentableTypeModel(
     Boolean IsBaseClassToUnionType,
     FactoryModel Factory,
     EquatedData<StorageStrategy> StorageStrategy) :
-    PartialRepresentableTypeModel(Alias, Options, Storage, Groups, Signature, OmitConversionOperators, IsBaseClassToUnionType)
+    PartialRepresentableTypeModel(Alias, FactoryName, Options, Storage, Groups, Signature, OmitConversionOperators, IsBaseClassToUnionType)
 {
     /// <summary>
     /// Creates a new representable type model.
@@ -51,6 +53,7 @@ sealed record RepresentableTypeModel(
         cancellationToken.ThrowIfCancellationRequested();
         var result = new RepresentableTypeModel(
             partialModel.Alias,
+            partialModel.FactoryName,
             partialModel.Options,
             partialModel.Storage,
             partialModel.Groups,

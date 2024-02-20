@@ -43,7 +43,7 @@
 
 	<ItemGroup>
 		<None Include="PackageLogo.svg" Pack="true" PackagePath="" />
-		<None Remove="bin\Debug\netstandard2.0\\RhoMicro.CodeAnalysis.UnionsGenerator.1.0.0.1119.dll" />
+		<None Remove="bin\Debug\netstandard2.0\\RhoMicro.CodeAnalysis.UnionsGenerator.1.0.0.1138.dll" />
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="README.md" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />
 		<None Include="LICENSE.txt" Pack="true" PackagePath="/" CopyToOutputDirectory="Always" />

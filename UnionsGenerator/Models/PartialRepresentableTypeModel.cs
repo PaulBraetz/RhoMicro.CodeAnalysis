@@ -12,6 +12,7 @@ using System.Threading;
 /// Models a partial model of a union types representable type.
 /// </summary>
 /// <param name="Alias"></param>
+/// <param name="FactoryName"></param>
 /// <param name="Options"></param>
 /// <param name="Storage"></param>
 /// <param name="Groups"></param>
@@ -20,6 +21,7 @@ using System.Threading;
 /// <param name="IsBaseClassToUnionType"></param>
 record PartialRepresentableTypeModel(
     String Alias,
+    String FactoryName,
     UnionTypeOptions Options,
     StorageOption Storage,
     EquatableList<String> Groups,
@@ -30,6 +32,7 @@ record PartialRepresentableTypeModel(
 {
     public static PartialRepresentableTypeModel Create(
         String? alias,
+        String factoryName,
         UnionTypeOptions options,
         StorageOption storage,
         EquatableList<String> groups,
@@ -49,6 +52,7 @@ record PartialRepresentableTypeModel(
 
         var result = new PartialRepresentableTypeModel(
             nonNullAlias,
+            factoryName,
             options,
             storage,
             groups,

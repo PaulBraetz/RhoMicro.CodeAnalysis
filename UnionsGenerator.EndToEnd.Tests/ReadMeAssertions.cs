@@ -27,8 +27,8 @@ public partial class ReadMeAssertions
     [Fact]
     public void TypeParameterTarget()
     {
-        var u = GenericUnion<Int32, String>.CreateFromT1("Hello, World!");
-        u = GenericUnion<Int32, String>.CreateFromT0(32);
+        var u = GenericUnion<Int32, String>.Create("Hello, World!");
+        u = GenericUnion<Int32, String>.Create(32);
     }
 
     [UnionType<List<String>>(Alias = "MultipleNames")]

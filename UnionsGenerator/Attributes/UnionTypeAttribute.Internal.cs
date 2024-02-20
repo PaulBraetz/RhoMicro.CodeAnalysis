@@ -10,6 +10,7 @@ partial class AliasedUnionTypeBaseAttribute
     {
         var result = PartialRepresentableTypeModel.Create(
             Alias,
+            FactoryName,
             Options,
             Storage,
             new(Groups),
