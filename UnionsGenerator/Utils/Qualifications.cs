@@ -23,6 +23,31 @@ static class Qualifications
     public static IEnumerable<String> GenericMetadataNames => _genericNames.Values;
 
     public const Int32 MaxRepresentableTypesCount = 255; //limit to 255 due to tag type being byte + None tag
+
+    public static Boolean IsUnionTypeSymbol(INamedTypeSymbol symbol, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var attributes = symbol.GetAttributes();
+        foreach(var attribute in attributes)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if(IsUnionTypeAttribute(attribute)
+                || IsRelationAttribute(attribute)
+                || IsUnionTypeSettingsAttribute(attribute))
+            {
+                return true;
+            }
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = symbol is INamedTypeSymbol named &&
+            named.GetMembers()
+                .OfType<IMethodSymbol>()
+                .Any(IsUnionTypeFactorySymbol);
+
+        return result;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Boolean IsRelationAttribute(this AttributeData data) =>
         data.IsAttributesNamespaceAttribute()

@@ -1,7 +1,7 @@
 ﻿namespace RhoMicro.CodeAnalysis.UnionsGenerator.Tests;
 using System.Linq;
 
-public class ConstructorTests : GeneratorTest
+public class ConstructorTests : TestBase
 {
     [Fact]
     public void GeneratesPrivateInterfaceAccessibilityForPublicIfInconvertible() =>
