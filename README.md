@@ -1,7 +1,5 @@
 # Rhomicro.CodeAnalysis
 
-![Build](https://github.com/PaulBraetz/RhoMicro.CodeAnalysis/actions/workflows/buildPublish.yml/badge.svg)
-
 This repository contains my explorations on c# source code generation and analysis.
 
 The [UnionsGenerator](UnionsGenerator) generator enables the use of union types in C#.
