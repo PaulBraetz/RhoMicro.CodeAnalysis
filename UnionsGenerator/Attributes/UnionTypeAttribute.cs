@@ -185,6 +185,11 @@ namespace RhoMicro.CodeAnalysis
         /// only be taken into account if it is a valid identifier name.
         /// </summary>
         public String? Alias { get; set; }
+        /// <summary>
+        /// Gets or sets the name of the generated static factory method used to create instances
+        /// of the union type with the representable type.
+        /// </summary>
+        public String FactoryName { get; set; } = "Create";
         /// <inheritdoc/>
         public override String[] Groups { get => base.Groups; set => base.Groups = value; }
         /// <inheritdoc/>

@@ -33,7 +33,7 @@ sealed record FactoryModel(
     public static FactoryModel CreateCustom(IMethodSymbol parameterType, CancellationToken cancellationToken) =>
         CreateCustom(parameterType.Name, parameterType.ContainingType ?? throw new ArgumentException($"Containing type of {nameof(parameterType)} must not be null.", nameof(parameterType)), parameterType.Locations, cancellationToken);
     public static FactoryModel CreateGenerated(PartialRepresentableTypeModel model) =>
-        new(RequiresGeneration: true, $"CreateFrom{model.Alias}", model.Signature, ImmutableArray<Location>.Empty);
+        new(RequiresGeneration: true, model.FactoryName , model.Signature, ImmutableArray<Location>.Empty);
     public void Receive<TVisitor>(TVisitor visitor)
         where TVisitor : IVisitor<FactoryModel>
         => visitor.Visit(this);
