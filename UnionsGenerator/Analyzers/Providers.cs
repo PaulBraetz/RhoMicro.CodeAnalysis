@@ -18,6 +18,18 @@ internal static class Providers
         UnionTypeModel model,
         IDiagnosticsAccumulator<UnionTypeModel> diagnostics,
         Func<Location, IEnumerable<Diagnostic>> factory) => diagnostics.AddRange(model.Locations.Value.SelectMany(factory));
+    public static readonly IDiagnosticProvider<UnionTypeModel> NullableOptionOnValueType =
+        DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
+        {
+            var nullableValueTypes = model.RepresentableTypes
+                .Where(t => t.Signature.IsNullableAnnotated);
+
+            if(!nullableValueTypes.Any())
+                return;
+
+            Add(model, diagnostics,
+                l => nullableValueTypes.Select(t => Diagnostics.NullableOptionOnValueType(l, t.Alias)));
+        });
     public static readonly IDiagnosticProvider<UnionTypeModel> BidirectionalRelation =
         DiagnosticProvider.Create<UnionTypeModel>(static (model, diagnostics) =>
         {
@@ -322,6 +334,7 @@ internal static class Providers
             UniqueUnionTypeAttributes,
             AliasCollisions,
             SelfReference,
-            Inheritance
+            Inheritance,
+            NullableOptionOnValueType
     };
 }
