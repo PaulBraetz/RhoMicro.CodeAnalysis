@@ -37,8 +37,11 @@ internal static partial class Diagnostics
         BidirectionalRelation = 24,
         DuplicateRelation = 25,
         SelfReference = 26,
-        Inheritance = 27
+        Inheritance = 27,
+        NullableOptionOnValueType = 28
     }
+    public static Diagnostic NullableOptionOnValueType(Location location, String alias) =>
+        Create(Id.NullableOptionOnValueType, location, alias);
     public static Diagnostic Inheritance(Location location) =>
         Create(Id.Inheritance, location);
     public static Diagnostic SelfReference(Location location) =>

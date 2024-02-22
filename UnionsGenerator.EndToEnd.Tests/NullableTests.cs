@@ -7,15 +7,10 @@ public partial class NullableTests
     [UnionType<Boolean?>]
     readonly partial struct NullableBoolUnion;
 
-#pragma warning disable
-    [UnionType<Nullable<int>>(Alias = "Int", Options = UnionTypeOptions.Nullable)]
+    [UnionType<Int32?>(Alias = "Int", Options = UnionTypeOptions.Nullable)]
     readonly partial struct PedroUnion;
-#pragma warning restore
-
-    [Fact]
-    public void PedroUnionFactoryCall()
-    {
-    }
+    [UnionType<Int64, Int64?>]
+    readonly partial struct PedroLongUnion;
 
     [Fact]
     public void NullableBoolTrueFactoryCall()

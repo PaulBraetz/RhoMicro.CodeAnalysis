@@ -39,7 +39,9 @@ namespace RhoMicro.CodeAnalysis
         /// <summary>
         /// Instructs the generator to treat the representable reference type 
         /// as nullable, allowing for <see langword="null"/> 
-        /// arguments in factories, conversions etc.
+        /// arguments in factories, conversions etc. 
+        /// If you are trying to use a nullable value type, use the <c>?</c> annotation or 
+        /// <see cref="Nullable{T}"/>, where <c>T</c> is the value type.
         /// </summary>
         Nullable = 0x04
     }
