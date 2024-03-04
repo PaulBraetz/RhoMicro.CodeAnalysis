@@ -8,8 +8,6 @@ using static RhoMicro.CodeAnalysis.DslGenerator.Analysis.DiagnosticDescriptors;
 using System;
 using static RhoMicro.CodeAnalysis.DslGenerator.Grammar.Rule;
 using System.Text;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
-using System.Runtime.InteropServices.ComTypes;
 
 /*
 RhoMicroBackusNaurForm;
