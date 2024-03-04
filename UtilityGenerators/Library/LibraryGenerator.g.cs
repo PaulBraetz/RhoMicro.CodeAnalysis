@@ -3239,7 +3239,6 @@ $$"""
 namespace RhoMicro.CodeAnalysis.Library;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 using System;
 using System.Collections.Generic;

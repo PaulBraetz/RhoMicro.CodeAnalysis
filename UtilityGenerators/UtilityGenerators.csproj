@@ -24,7 +24,7 @@
 	
 	<ItemGroup>
 		<PackageReference Update="NETStandard.Library" PrivateAssets="all" />
-		<PackageReference Include="Microsoft.CodeAnalysis" Version="*" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="*" />
 		<PackageReference Include="PolySharp" Version="1.14.1" />
 	</ItemGroup>
 
