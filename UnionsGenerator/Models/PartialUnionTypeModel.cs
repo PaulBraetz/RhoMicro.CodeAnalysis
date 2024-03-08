@@ -14,6 +14,7 @@ internal record PartialUnionTypeModel(
     TypeSignatureModel Signature,
     PartialRepresentableTypeModel RepresentableType,
     Boolean IsEqualsRequired,
+    Boolean DoesNotImplementToString,
     EquatedData<ImmutableArray<Location>> Locations)
     : IModel<PartialUnionTypeModel>
 {
@@ -76,20 +77,25 @@ internal record PartialUnionTypeModel(
         var representableType = attribute!.GetPartialModel(new(target), target.ContainingType, cancellationToken);
         var containingType = target.ContainingType;
         var isEqualsRequired = IsEqualsRequiredForTarget(containingType);
+        var doesNotImplementToString = TargetDoesNotImplementToString(containingType);
 
-        var result = new PartialUnionTypeModel(signature, representableType, isEqualsRequired, targetLocations);
+        var result = new PartialUnionTypeModel(signature, representableType, isEqualsRequired, doesNotImplementToString, targetLocations);
 
         return result;
     }
 
     public static Boolean IsEqualsRequiredForTarget(INamedTypeSymbol target) =>
         !target
-        .GetMembers("Equals")
+        .GetMembers(nameof(Equals))
         .OfType<IMethodSymbol>()
         .Any(m => m.Parameters.Length == 1 &&
             SymbolEqualityComparer.IncludeNullability.Equals(
                 target.WithNullableAnnotation(NullableAnnotation.Annotated),
                 m.Parameters[0].Type.WithNullableAnnotation(NullableAnnotation.Annotated)));
+    public static Boolean TargetDoesNotImplementToString(INamedTypeSymbol target) =>
+        !target.GetMembers(nameof(ToString))
+        .OfType<IMethodSymbol>()
+        .Any(m => m.Parameters.Length == 0);
 
     public static EquatableList<PartialUnionTypeModel> CreateFromTypeDeclaration(
         INamedTypeSymbol target,
@@ -157,6 +163,7 @@ internal record PartialUnionTypeModel(
 
         var signature = TypeSignatureModel.Create(target, cancellationToken);
         var isEqualsRequired = IsEqualsRequiredForTarget(target);
+        var doesNotImplementToString = TargetDoesNotImplementToString(target);
 
         for(var i = 0; i < args.Length; i++)
         {
@@ -166,7 +173,7 @@ internal record PartialUnionTypeModel(
             {
                 var representableType = attribute!.GetPartialModel(new(named), target, cancellationToken);
                 var locations = target.Locations;
-                yield return new(signature, representableType, isEqualsRequired, locations);
+                yield return new(signature, representableType, isEqualsRequired, doesNotImplementToString, locations);
             }
         }
     }

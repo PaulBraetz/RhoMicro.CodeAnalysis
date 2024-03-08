@@ -19,6 +19,7 @@ using System.Collections.Immutable;
 /// <param name="Groups"></param>
 /// <param name="StrategyHostContainer"></param>
 /// <param name="IsEqualsRequired"></param>
+/// <param name="IsToStringRequired"></param>
 /// <param name="Locations"></param>
 sealed record UnionTypeModel(
     TypeSignatureModel Signature,
@@ -30,6 +31,7 @@ sealed record UnionTypeModel(
     GroupsModel Groups,
     EquatedData<StrategySourceHost> StrategyHostContainer,
     Boolean IsEqualsRequired,
+    Boolean IsToStringRequired,
     EquatedData<ImmutableArray<Location>> Locations) : IModel<UnionTypeModel>
 {
     public static UnionTypeModel Create(INamedTypeSymbol unionType, CancellationToken cancellationToken)
@@ -41,6 +43,7 @@ sealed record UnionTypeModel(
         var settings = SettingsModel.Create(unionType, cancellationToken);
         var factories = FactoryModel.Create(unionType, cancellationToken);
         var isEqualsRequired = PartialUnionTypeModel.IsEqualsRequiredForTarget(unionType);
+        var isToStringRequired = PartialUnionTypeModel.TargetDoesNotImplementToString(unionType) && settings.ToStringSetting != ToStringSetting.None;
         var partials = PartialUnionTypeModel.Create(unionType, cancellationToken)
             .Select(m => m.RepresentableType)
             .ToEquatableList(cancellationToken);
@@ -55,6 +58,7 @@ sealed record UnionTypeModel(
             relations,
             settings,
             isEqualsRequired,
+            isToStringRequired,
             locations,
             cancellationToken);
 
@@ -71,6 +75,7 @@ sealed record UnionTypeModel(
         EquatableList<RelationModel> relations,
         SettingsModel settings,
         Boolean isEqualsRequired,
+        Boolean doesNotImplementToString,
         CancellationToken cancellationToken) =>
         Create(
         signature,
@@ -79,6 +84,7 @@ sealed record UnionTypeModel(
         relations,
         settings,
         isEqualsRequired,
+        doesNotImplementToString && settings.ToStringSetting != ToStringSetting.None,
         ImmutableArray<Location>.Empty,
         cancellationToken);
 
@@ -91,6 +97,7 @@ sealed record UnionTypeModel(
     /// <param name="relations"></param>
     /// <param name="settings"></param>
     /// <param name="isEqualsRequired"></param>
+    /// <param name="isToStringRequired"></param>
     /// <param name="locations"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
@@ -101,6 +108,7 @@ sealed record UnionTypeModel(
         EquatableList<RelationModel> relations,
         SettingsModel settings,
         Boolean isEqualsRequired,
+        Boolean isToStringRequired,
         ImmutableArray<Location> locations,
         CancellationToken cancellationToken)
     {
@@ -130,6 +138,7 @@ sealed record UnionTypeModel(
             groups,
             hostContainer,
             isEqualsRequired,
+            isToStringRequired,
             locations);
 
         return result;
