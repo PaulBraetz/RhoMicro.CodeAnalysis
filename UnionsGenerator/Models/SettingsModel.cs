@@ -30,19 +30,10 @@ sealed record SettingsModel(
     String ReferenceTypeContainerName,
     String TagFieldName,
     String TagNoneName,
-    String JsonConverterTypeName,
-#endregion
-#region Flags
-    Boolean ImplementsToString
+    String JsonConverterTypeName
 #endregion
     ) : IModel<SettingsModel>
 {
-    public Boolean IsToStringImplementationRequired => this is not
-    {
-        ImplementsToString: true,
-        ToStringSetting: ToStringSetting.Detailed or ToStringSetting.Simple
-    };
-
     private EquatedData<HashSet<String>>? _reservedNames;
     public Boolean IsReservedGenericTypeName(String name) =>
         ( _reservedNames ??= new([GenericTValueName, TryConvertTypeName, MatchTypeName]) ).Value.Contains(name);
@@ -91,15 +82,11 @@ sealed record SettingsModel(
             ?? new();
 
         cancellationToken.ThrowIfCancellationRequested();
-        var implementsToString = type.GetMembers(nameof(Object.ToString))
-            .OfType<IMethodSymbol>()
-            .Any(m => m.Parameters.Length == 0);
-
-        var result = Create(settings, implementsToString);
+        var result = Create(settings);
 
         return result;
     }
-    public static SettingsModel Create(UnionTypeSettingsAttribute attribute, Boolean implementsToString) => new(
+    public static SettingsModel Create(UnionTypeSettingsAttribute attribute) => new(
     #region Settings
     ToStringSetting: attribute.ToStringSetting,
     Layout: attribute.Layout,
@@ -120,10 +107,7 @@ sealed record SettingsModel(
     ReferenceTypeContainerName: attribute.ReferenceTypeContainerName,
     TagFieldName: attribute.TagFieldName,
     TagNoneName: attribute.TagNoneName,
-    JsonConverterTypeName: attribute.JsonConverterTypeName,
-    #endregion
-    #region Non-Attribute Flags
-    ImplementsToString: implementsToString
+    JsonConverterTypeName: attribute.JsonConverterTypeName
     #endregion
         );
     public void Receive<TVisitor>(TVisitor visitor)

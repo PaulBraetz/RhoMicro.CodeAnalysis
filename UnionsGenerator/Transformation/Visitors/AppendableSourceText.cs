@@ -355,7 +355,7 @@ sealed partial class AppendableSourceText(UnionTypeModel target) : IIndentedStri
     }
     public void ToString(IndentedStringBuilder builder)
     {
-        if(!target.Settings.IsToStringImplementationRequired)
+        if(!target.IsToStringRequired)
             return;
 
         builder.OpenRegionBlock("ToString")

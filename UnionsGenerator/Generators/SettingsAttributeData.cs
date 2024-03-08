@@ -43,7 +43,6 @@ sealed class SettingsAttributeData : AttributeData, IEquatable<SettingsAttribute
     public static SettingsAttributeData Default { get; } = new();
 
     private readonly Dictionary<String, TypedConstant> _namedArgumentsMap;
-    public Boolean ImplementsToString { get; private init; }
 
     protected override INamedTypeSymbol? CommonAttributeClass { get; }
     protected override IMethodSymbol? CommonAttributeConstructor { get; }
@@ -61,15 +60,7 @@ sealed class SettingsAttributeData : AttributeData, IEquatable<SettingsAttribute
 
         var declaredPropsMap = MapProperties(declaredSettings);
 
-        var implementsToString = ( (ITypeSymbol)context.TargetSymbol ).GetMembers(nameof(ToString))
-            .OfType<IMethodSymbol>()
-            .Any(s => s.IsOverride &&
-                s.Parameters.Length == 0);
-
-        var result = new SettingsAttributeData(declaredSettings, declaredPropsMap)
-        {
-            ImplementsToString = implementsToString
-        };
+        var result = new SettingsAttributeData(declaredSettings, declaredPropsMap);
 
         return result;
     }
@@ -91,10 +82,7 @@ sealed class SettingsAttributeData : AttributeData, IEquatable<SettingsAttribute
                .Where(c => c.HasValue)
                .ToDictionary(t => t!.Value.name, t => t!.Value.value);
         var namedArgs = namedArgsMap.ToImmutableArray();
-        var result = new SettingsAttributeData(declaredSettings, namedArgs, namedArgsMap)
-        {
-            ImplementsToString = declaredSettings is SettingsAttributeData { ImplementsToString: true }
-        };
+        var result = new SettingsAttributeData(declaredSettings, namedArgs, namedArgsMap);
 
         return result;
     }
