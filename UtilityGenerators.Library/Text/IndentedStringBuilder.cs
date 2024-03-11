@@ -32,19 +32,13 @@ partial class IndentedStringBuilder : IEquatable<IndentedStringBuilder?>
             _ = _builder.Append("// </auto-generated>").Append(Options.NewLine);
         
         if(!String.IsNullOrWhiteSpace(Options.License))
-        {
             _ = _builder.Append(Options.License).Append(Options.NewLine);
-        }
 
         if(Options.PrependWarningDisablePragma)
             _ = _builder.Append("#pragma warning disable").Append(Options.NewLine);
 
         if(Options.PrependNullableEnable)
             _ = _builder.Append("#nullable enable").Append(Options.NewLine);
-        }
-
-        if(Options.PrependWarningDisablePragma)
-            _ = _builder.Append("#pragma warning disable").Append(options.NewLine);
     }
 
     public IndentedStringBuilder() : this(IndentedStringBuilderOptions.Default)
