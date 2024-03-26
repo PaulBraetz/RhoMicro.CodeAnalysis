@@ -12,6 +12,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
+		<IsPackable>true</IsPackable>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Description>Generates constant strings containing the underlying values of annotated enum members.</Description>
 		<PackageTags>Source Generator; enum; constants; string enum</PackageTags>
