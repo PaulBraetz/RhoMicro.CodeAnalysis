@@ -14,13 +14,14 @@ using System;
 
 using FactoryMapProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<EquatableDictionary<Models.TypeSignatureModel, EquatableList<Models.FactoryModel>>>;
 using PartialUnionTypeModelsProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<EquatableList<Models.PartialUnionTypeModel>>;
-using PartialTargetTypeModelUnionProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<EquatableDictionary<Models.TypeSignatureModel, (EquatableList<Models.PartialRepresentableTypeModel> representableTypes, Boolean isEqualsRequired)>>;
+using PartialTargetTypeModelUnionProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<EquatableDictionary<Models.TypeSignatureModel, (EquatableList<Models.PartialRepresentableTypeModel> representableTypes, Boolean isEqualsRequired, Boolean doesNotImplementToString)>>;
 using RelationsProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<EquatableDictionary<Models.TypeSignatureModel, EquatableList<Models.RelationModel>>>;
 using SettingsMapProvider = Microsoft.CodeAnalysis.IncrementalValueProvider<(Models.SettingsModel fallbackSettings, EquatableDictionary<Models.TypeSignatureModel, Models.SettingsModel> definedSettings)>;
 using SourceTextProvider = Microsoft.CodeAnalysis.IncrementalValuesProvider<(String hintName, String source)>;
 using System.Linq;
 using System.Collections.Immutable;
 using RhoMicro.CodeAnalysis.UnionsGenerator.Analyzers;
+using Microsoft.CodeAnalysis.CSharp;
 
 /// <summary>
 /// Generates partial union type implementations.
@@ -129,7 +130,7 @@ public class UnionsGenerator : IIncrementalGenerator
 
                 foreach(var (targetTypeSig, data) in partials)
                 {
-                    var (representableTypes, isEqualsRequired) = data;
+                    var (representableTypes, isEqualsRequired, doesNotImplementToString) = data;
                     ct.ThrowIfCancellationRequested();
 
                     var settings = getSettings(targetTypeSig);
@@ -143,6 +144,7 @@ public class UnionsGenerator : IIncrementalGenerator
                         relationAttributes,
                         settings,
                         isEqualsRequired,
+                        doesNotImplementToString,
                         ct);
 
                     targetTypeModels.Add(targetModel);
@@ -174,28 +176,30 @@ public class UnionsGenerator : IIncrementalGenerator
                 ct.ThrowIfCancellationRequested();
 
                 var mutableResult = new Dictionary<TypeSignatureModel, (List<PartialRepresentableTypeModel> representableTypes, HashSet<TypeSignatureModel> mappedRepresentableTypes)>();
-                var result = new Dictionary<TypeSignatureModel, (EquatableList<PartialRepresentableTypeModel> representableTypes, Boolean isEqualsRequired)>();
+                var result = new Dictionary<TypeSignatureModel, (EquatableList<PartialRepresentableTypeModel> representableTypes, Boolean isEqualsRequired, Boolean doesNotImplementToString)>();
                 var isEqualsRequiredAccumulator = true;
-                foreach(var (key, value, isEqualsRequired, _) in keyValuePairs)
+                var doesNotImplementToStringAccumulator = true;
+                foreach(var (key, value, isEqualsRequired, doesNotImplementToString, _) in keyValuePairs)
                 {
                     isEqualsRequiredAccumulator &= isEqualsRequired;
+                    doesNotImplementToStringAccumulator &= doesNotImplementToString;
 
                     ct.ThrowIfCancellationRequested();
                     if(!mutableResult.TryGetValue(key, out var data))
                     {
                         data = ([], []);
                         mutableResult.Add(key, data);
-                        result.Add(key, (new(data.representableTypes), isEqualsRequired));
+                        result.Add(key, (new(data.representableTypes), isEqualsRequiredAccumulator, doesNotImplementToStringAccumulator));
                     } else
                     {
-                        result[key] = (result[key].representableTypes, isEqualsRequired);
+                        result[key] = (result[key].representableTypes, isEqualsRequiredAccumulator, doesNotImplementToStringAccumulator);
                     }
 
                     if(data.mappedRepresentableTypes.Add(value.Signature))
                         data.representableTypes.Add(value);
                 }
 
-                return new EquatableDictionary<TypeSignatureModel, (EquatableList<PartialRepresentableTypeModel> representableTypes, Boolean isEqualsRequired)>(result);
+                return new EquatableDictionary<TypeSignatureModel, (EquatableList<PartialRepresentableTypeModel> representableTypes, Boolean isEqualsRequired, Boolean doesNotImplementToString)>(result);
             });
     #endregion
     #region Relations FAWMN
@@ -333,7 +337,7 @@ public class UnionsGenerator : IIncrementalGenerator
                 new();
 
             ct.ThrowIfCancellationRequested();
-            var settings = SettingsModel.Create(attribute!, data.ImplementsToString);
+            var settings = SettingsModel.Create(attribute!);
 
             return (data, settings);
         });
@@ -349,6 +353,7 @@ public class UnionsGenerator : IIncrementalGenerator
                 var targetSignature = ctx.TargetSymbol is ITypeSymbol type ?
                     TypeSignatureModel.Create(type, ct) :
                     null;
+
                 var result = (targetSignature, settings);
 
                 return result;
@@ -383,7 +388,7 @@ public class UnionsGenerator : IIncrementalGenerator
                     if(!UnionTypeSettingsAttribute.TryCreate(defaultsAppliedSettings, out var parsedSettings))
                         continue;
 
-                    var settings = SettingsModel.Create(parsedSettings!, defaultsAppliedSettings.ImplementsToString);
+                    var settings = SettingsModel.Create(parsedSettings!);
 
                     definedSettings.Add(target, settings);
                 }
