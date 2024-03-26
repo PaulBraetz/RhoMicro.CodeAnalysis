@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<!--AutoUpdateAssemblyName-->
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<IncludeBuildOutput>false</IncludeBuildOutput>
+		<developmentDependency>true</developmentDependency>
+		<NoPackageAnalysis>true</NoPackageAnalysis>
+		<IsRoslynComponent>true</IsRoslynComponent>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Description>Generates constant strings containing the underlying values of annotated enum members.</Description>
+		<PackageTags>Source Generator; enum; constants; string enum</PackageTags>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<DefineConstants>$(DefineConstants);GENERATOR</DefineConstants>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Update="NETStandard.Library" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.CodeAnalysis" Version="*" />
+		<PackageReference Include="PolySharp" Version="*">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\UtilityGenerators\UtilityGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+		<None Include="README.md" Pack="true" PackagePath="/" CopyToOutputDirectory="Always"/>
+		<None Include="LICENSE.txt" Pack="true" PackagePath="/" CopyToOutputDirectory="Always"/>
+	</ItemGroup>
+
+</Project>
